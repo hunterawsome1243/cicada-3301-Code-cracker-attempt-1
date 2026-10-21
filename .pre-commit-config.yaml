@@ -1,0 +1,30 @@
+# Hooks run the ruff/black installed by `pip install -e '.[dev]'`, so pre-commit and CI
+# always agree on formatting.
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.6.0
+    hooks:
+      - id: check-json
+      - id: check-yaml
+      - id: end-of-file-fixer
+        exclude: ^data/(canon|reference)/
+      - id: trailing-whitespace
+        exclude: ^data/(canon|reference)/
+  - repo: local
+    hooks:
+      - id: ruff
+        name: ruff
+        entry: ruff check --fix
+        language: system
+        types: [python]
+      - id: black
+        name: black
+        entry: black
+        language: system
+        types: [python]
+      - id: canon-pins
+        name: canon pins verify
+        entry: runeforge canon --verify
+        language: system
+        pass_filenames: false
+        files: ^data/canon/

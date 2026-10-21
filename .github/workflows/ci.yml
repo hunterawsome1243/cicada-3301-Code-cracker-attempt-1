@@ -1,0 +1,38 @@
+name: ci
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  rules:
+    # Rule 1 (reproduce), Rule 2 (plant), Rule 3 (oracle) all live in the test suite.
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python: ["3.11", "3.12"]
+    env:
+      RUNEFORGE_REQUIRE_RAW: "1"  # raw-source tests must run, never skip, in CI
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python }}
+      - name: Install
+        run: pip install -e '.[dev]' sympy
+      - name: Fetch vendored sources (sparse, pinned commits)
+        run: bash scripts/fetch_raw.sh
+      - name: Lint
+        run: |
+          ruff check runeforge scripts tests
+          black --check runeforge scripts tests
+      - name: Canon -- three-way cross-check and pinned SHA-256
+        run: |
+          python scripts/build_canon.py --check
+          runeforge canon --verify
+      - name: Reference plaintext is cicada_tools' current output
+        run: python scripts/extract_reference.py --check
+      - name: Tests
+        run: pytest -q
+      - name: Oracle self-test
+        run: runeforge oracle --selftest

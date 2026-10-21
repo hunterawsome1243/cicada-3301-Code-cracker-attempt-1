@@ -1,0 +1,32 @@
+# Lane template -- copy to lanes/<lane_id>.yaml. Files starting with "_" are never run.
+# Every field is validated by runeforge.lanes.LaneSpec; the sweep runner writes the
+# pre-registration ledger row from this file BEFORE the first seed is scored, and
+# refuses to start while the bars are null or the control is not required to recover.
+#
+# Example below: queue item 1 of spec section 4.2, Python 2.7 random (MT19937) seeded
+# 32-bit, the "exact" key-skip relation. Dukotah/cicada3301 parked this lane at 44.14 %
+# (1,895,728,884 of 2^32 seeds, six worker bands, 2026-09-15). Their run/ state is not
+# in a clone, so it restarts from seed 0 here; the cursor below is OURS.
+lane_id: P3-MT19937-PY27-EXACT
+hypothesis: >-
+  The LP2 0-55 keystream is Python 2.7 random.Random(seed) output reduced mod 29 for a
+  32-bit seed, combined under the "exact" key-skip relation.
+family: prng
+generator: mt19937-py27
+seed_range: [0, 4294967296]
+chunk_size: 16777216
+ciphertext_view: raw
+filter_model: anti-repeat
+scorer_register: english
+pages: [0, 1, 2, 3, 4, 5]
+claim_bar: null        # computed by the Phase 2 calibration -- never copied from upstream
+family_wise_bar: null  # bar(N = 2^32) from our own null, see runeforge.scoring.calibration
+control:
+  planted_seed: 3301
+  synthetic_page: solved:a-koan-1
+  n_runes: 250
+  must_recover: true
+resume_cursor: null
+params:
+  reduction: mod29
+  upstream_ledger_ref: R27-S2 (Dukotah/cicada3301 handoff/PARKED-SWEEPS.md section 1)

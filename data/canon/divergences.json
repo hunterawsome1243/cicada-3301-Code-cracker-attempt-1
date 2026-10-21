@@ -1,0 +1,67 @@
+{
+ "$comment": "CURATED (hand-maintained). Every known disagreement between the canon (rtkd/iddqd master transcription) and a cross-check source, edit for edit. scripts/build_canon.py fails if the observed edits differ from this list in EITHER direction. Offsets: canon_offset/source_offset index the flat rune stream of the LP part; page/page_offset use that part's numbering (LP2-0-57 or LP1-0-16). Never 'fix' an entry by editing the canon -- adjudicate, then record.",
+ "divergences": [
+  {
+   "id": "DV-01",
+   "source": "scream314",
+   "section": "p23-26",
+   "status": "open",
+   "summary": "LP2 page 24, rune 172: canon AE (ᚫ), scream314 A (ᚪ).",
+   "agrees_with_canon": ["rtkd/iddqd", "yo-yo-yo-jbo/cicada_tools", "Dukotah/cicada3301 (krisyotam_runes.txt)"],
+   "adjudication": "Unsolved page, so only the page image can decide it. Three lineages read AE; the canon keeps the majority reading. Queued for the Phase 4 P-8 template-matching re-read (not to be read by an LLM). Affects the unsolved stream at one position.",
+   "edits": [
+    {"source": "scream314", "part": "LP2", "op": "replace", "canon_offset": 5891, "canon": "ᚫ", "source_offset": 5891, "reads": "ᚪ", "page": 24, "page_offset": 172}
+   ]
+  },
+  {
+   "id": "DV-02",
+   "source": "scream314",
+   "section": "parable",
+   "status": "decided-for-canon",
+   "summary": "LP2 page 57 (PARABLE), rune 80: canon Y (ᚣ) 'DIUINITY', scream314 E (ᛖ) 'DIUINITE'.",
+   "agrees_with_canon": ["rtkd/iddqd", "yo-yo-yo-jbo/cicada_tools", "Dukotah/cicada3301 (krisyotam_runes.txt)"],
+   "adjudication": "Plaintext page. scream314's own English rendering of the same page reads 'Find the divinity within and emerge'; Dukotah CONFLICTS-B C-06 decides the same reading for canon.",
+   "edits": [
+    {"source": "scream314", "part": "LP2", "op": "replace", "canon_offset": 13121, "canon": "ᚣ", "source_offset": 13121, "reads": "ᛖ", "page": 57, "page_offset": 80}
+   ]
+  },
+  {
+   "id": "DV-03",
+   "source": "scream314",
+   "section": "a-koan-1",
+   "status": "decided-for-canon",
+   "summary": "LP1 pages 6 and 7 (A KOAN): canon EA (ᛠ) twice, scream314 W S (ᚹᛋ).",
+   "agrees_with_canon": ["rtkd/iddqd", "yo-yo-yo-jbo/cicada_tools"],
+   "adjudication": "Solved page (Atbash then +3). Canon decodes to 'THAT IS NOT WHO YOU ARE' / 'THAT IS WHAT YOU DO NOT WHO YOU ARE', the koan's refrain and rtkd's published translation; scream314's reading gives 'WHAT'. Dukotah CONFLICTS-B C-02. Asserted by tests/test_solved_pages.py.",
+   "edits": [
+    {"source": "scream314", "part": "LP1", "op": "replace", "canon_offset": 998, "canon": "ᛠ", "source_offset": 998, "reads": "ᚹᛋ", "page": 6, "page_offset": 142},
+    {"source": "scream314", "part": "LP1", "op": "replace", "canon_offset": 1134, "canon": "ᛠ", "source_offset": 1135, "reads": "ᚹᛋ", "page": 7, "page_offset": 69}
+   ]
+  },
+  {
+   "id": "DV-04",
+   "source": "scream314",
+   "section": "the-loss-of-divinity",
+   "status": "decided-for-canon",
+   "summary": "LP1 page 10 (THE LOSS OF DIVINITY), rune 126: scream314 omits the O of 'FOLLOWNG'.",
+   "agrees_with_canon": ["rtkd/iddqd", "yo-yo-yo-jbo/cicada_tools"],
+   "adjudication": "Plaintext page; canon reads 'THE FOLLOWNG TWO ERRORS', scream314 'FLLOWNG'. A dropped rune in one transcription.",
+   "edits": [
+    {"source": "scream314", "part": "LP1", "op": "delete", "canon_offset": 1760, "canon": "ᚩ", "source_offset": 1762, "reads": "", "page": 10, "page_offset": 126}
+   ]
+  },
+  {
+   "id": "DV-05",
+   "source": "cicada_tools",
+   "section": "the-loss-of-divinity",
+   "status": "majority",
+   "summary": "LP1 page 10 (THE LOSS OF DIVINITY), runes 116-117: canon 'BELEIUE', cicada_tools 'BELIEUE' (the I moved one place).",
+   "agrees_with_canon": ["rtkd/iddqd", "scream314/cicada3301"],
+   "adjudication": "Plaintext page. Two lineages read the misspelling BELEIUE, and rtkd's English translation preserves it ('WE BELEIVE THE FOLLWING'); cicada_tools reads the dictionary spelling. Not image-adjudicated. The canon keeps the majority reading and solved_sections.json uses the canon runes as this section's plaintext.",
+   "edits": [
+    {"source": "cicada_tools", "part": "LP1", "op": "insert", "canon_offset": 1750, "canon": "", "source_offset": 1750, "reads": "ᛁ", "page": 10, "page_offset": 116},
+    {"source": "cicada_tools", "part": "LP1", "op": "delete", "canon_offset": 1751, "canon": "ᛁ", "source_offset": 1752, "reads": "", "page": 10, "page_offset": 117}
+   ]
+  }
+ ]
+}

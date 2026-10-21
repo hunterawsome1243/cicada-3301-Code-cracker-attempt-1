@@ -1,0 +1,10 @@
+# runeforge canon pins (SHA-256). Every load of the canon asserts these.
+# Regenerate only with scripts/build_canon.py; 'indices:*' hash the comma-joined
+# rune indices, so they are independent of JSON formatting and comparable upstream
+# (indices:LP2:unsolved == Dukotah/cicada3301 PROBLEM.json ciphertext_identity).
+8ab0c18fb7d212a4fd67b152e184bcc822da7ed7320c33eb558f56bc8bd440e6  lp2_runes.json
+de800ba24ec1a7fcc246de387478a5fad63cbc029cd1bd0a4c8e3ba2d94c5c54  lp1_runes.json
+579c410198859daf9f92eb06c0def8a35ca9def3c19ba6ab25075167249217b6  solved_sections.json
+74cebdb074898f4c2742733a421e6d1717068a4f4cf2802d2b50923285aad329  indices:LP2:all  n=13136
+023312066df471005264b9cbe7997cb77d2a9a6a2dc9b3316d22674023af1585  indices:LP2:unsolved  n=12956 pages 0-55
+e3bcc7904a4cbb855613f26097a7360879a4241d2fae976b1c30243881b20c6c  indices:LP1:all  n=2797

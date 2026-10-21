@@ -1,0 +1,60 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "runeforge"
+version = "0.1.0"
+description = "Control-validated cryptanalysis pipeline for the unsolved pages of Cicada 3301's Liber Primus"
+readme = "README.md"
+requires-python = ">=3.11"
+license = { text = "MIT" }
+dependencies = [
+    "numpy>=1.26",
+    "pydantic>=2.5",
+    "pyyaml>=6.0",
+    "rich>=13.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.0",
+    "ruff>=0.5",
+    "black>=24.0",
+    "pre-commit>=3.5",
+]
+# Phase 3. Install the CuPy wheel that matches your CUDA toolkit (cupy-cuda12x for CUDA 12.x).
+gpu = [
+    "cupy-cuda12x>=13.0",
+    "numba>=0.59",
+]
+
+[project.scripts]
+runeforge = "runeforge.cli:main"
+
+[tool.setuptools.packages.find]
+include = ["runeforge*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-ra"
+markers = [
+    "raw: needs the vendored sources under data/raw (run scripts/fetch_raw.sh)",
+    "slow: takes more than a few seconds",
+]
+
+[tool.black]
+line-length = 100
+target-version = ["py311"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "B", "UP", "SIM", "RUF"]
+ignore = [
+    "RUF001",  # runes are intentionally "ambiguous" unicode
+    "RUF002",
+    "RUF003",
+]
