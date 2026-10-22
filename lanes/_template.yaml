@@ -9,8 +9,12 @@
 # (1,895,728,884 of 2^32 seeds, six worker bands, 2026-09-15). Their run/ state is not
 # in a clone, so it restarts from seed 0 here; the cursor below is OURS.
 #
-# Its control is expected to come back INCONCLUSIVE (power) until the Phase 2 beam
-# decoder exists: the rigid decoder cannot follow anti-repeat key skips.
+# Measured 2026-10-22 (scratch runs, no lane evidence written; reports/beam_decoder.md):
+# * gate: interrupt_prob 0.0 -> GATE PASS; 1.0 (the solved pages' rule, every plaintext F an
+#   unencrypted interrupter) -> GATE FAIL C1 on 12/12 keys: LP2 0-55 holds 458 F's against
+#   447 uniform, no room for unencrypted plaintext F's at English rates.
+# * control (numpy-pcg64 stand-in generator, 20 plants x 199 decoys, L = 240): rigid 0/20;
+#   beam-skip 20/20 at rank 1. The rigid decoder cannot follow anti-repeat key skips.
 lane_id: P3-MT19937-PY27-EXACT
 hypothesis: >-
   The LP2 0-55 keystream is Python 2.7 random.Random(seed) output reduced mod 29 for a
@@ -28,13 +32,14 @@ combine: vigenere          # vigenere (c = p + k) | variant-beaufort (c = p - k)
 key_offset: 0
 filter_model: anti-repeat  # "off" (quoted: bare off is YAML false) | anti-repeat
 p_keep: 0.19               # anti-repeat: a repeat survives with this probability (LP2: 86/447)
-interrupt_prob: 0.44       # plaintext F left as an unencrypted interrupter (11 of 25 in WELCOME)
+interrupt_prob: 0.0        # P(plaintext F -> unencrypted interrupter); 1.0 in the solved sections (14/14), gate-excluded here
 scorer_register: english
-preset: lp-ngram3-heldout:rigid  # <scorer>:<decoder>; calibrated: runeforge.scoring.calib.available()
+preset: lp-ngram3-heldout:beam-skip  # <scorer>:<decoder>; decoders rigid | beam | beam-skip | beam-skip-int
 window: 240                # runes of the selected stream that are scored
 pages: [0, 1, 2, 3, 4, 5]
 claim_bar: null        # screening bar, <= family_wise_bar; never copied from upstream
-family_wise_bar: null  # scripts/threshold_for.py --n 4294967296 --preset lp-ngram3-heldout:rigid --L 240
+family_wise_bar: null  # scripts/threshold_for.py --n 4294967296 --preset lp-ngram3-heldout:beam-skip --L 240
+                       # (needs the beam calibration installed: TOOLBOX_REQUESTS.md)
 control:
   planted_seed: 3301
   synthetic_page: solved:a-koan-1   # must be held out of the preset's training text (checked)

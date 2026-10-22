@@ -832,12 +832,37 @@ def _write_pending(
             "preset": lane.preset,
             "pages": lane.pages,
             "keystream_sha256": keystream_sha256(lane, seed),
+            "decode_record": crosser_decode_record(lane, seed),
             "git_sha": git_sha(),
             "data_sha256": data_sha256(),
             "numbering": canon.LP2_NUMBERING,
             "found_epoch": int(time.time()),
         },
     )
+
+
+def record_budget(n: int) -> int:
+    """Key symbols a crosser's decode record over ``n`` runes may use: n plus room for the
+    anti-repeat skips (about 1.8 % of the runes under p_keep = 0.19 net of interrupts), so a
+    true key's path never runs out (fill) before the last page ends."""
+    return n + n // 8 + 16
+
+
+def crosser_decode_record(lane: LaneSpec, seed: int) -> dict | None:
+    """A beam decoder's path over the lane's whole pages, for crosser step 6 (re-encipher);
+    None under the rigid decoder (nothing to record)."""
+    model = pipeline.beam_model(lane)
+    if model is None:
+        return None
+    from runeforge import beam
+
+    stream = pipeline.lane_cipher(lane)
+    scorer = presets.get(presets.split_preset(lane.preset)[0])
+    k = pipeline.keys(lane, seed, record_budget(stream.size))
+    rec = beam.decode_record(stream, k, scorer, model).as_dict()
+    rec["key_budget"] = int(k.size)
+    rec["pages"] = list(lane.pages)
+    return rec
 
 
 # ---------------------------------------------------------------- detached launch

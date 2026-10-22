@@ -95,7 +95,10 @@ class LaneSpec(BaseModel):
     # anti-repeat filter: a repeat survives with this probability; LP2 measures 86 doublets
     # against 447 expected, 86/447 = 0.19 (CLAUDE.md: p_keep 0.18-0.19)
     p_keep: float = 0.19
-    interrupt_prob: float = 0.44  # plaintext F written as an unencrypted interrupter (11/25)
+    # P(a plaintext F is written as an unencrypted interrupter). The rule (CLAUDE.md) and the
+    # keyed solved sections say every one is: 14 of 14 plaintext F's (WELCOME 11/11, A KOAN 2
+    # 2/2, AN END 1/1). "11 of 25" is the share of CIPHERTEXT F's that are interrupters.
+    interrupt_prob: float = 1.0
     scorer_register: str = "english"
     preset: str = "lp-ngram3:rigid"  # <scorer>:<decoder>, see runeforge.scoring.presets
     window: int = 240  # runes of the selected stream that are scored

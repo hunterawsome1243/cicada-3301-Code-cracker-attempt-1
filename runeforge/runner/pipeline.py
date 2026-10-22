@@ -1,8 +1,8 @@
 """One lane's cipher model, shared by gate, control, sweep and crosser replay.
 
 The same functions encipher synthetic plants (forward model, with the anti-repeat filter
-and F-interrupts) and decode candidates (rigid), so the control exercises exactly the code
-path the sweep runs (Rule 2: "through the *same* pipeline").
+and F-interrupts) and decode candidates (the preset's decoder: rigid or beam), so the control
+exercises exactly the code path the sweep runs (Rule 2: "through the *same* pipeline").
 
 Conventions (mod 29):
 * ``combine``: vigenere c = p + k, variant-beaufort c = p - k, beaufort c = k - p.
@@ -14,8 +14,9 @@ Conventions (mod 29):
   probability ``p_keep``; otherwise one key symbol is skipped and the rune re-enciphered)
   is a fact about LP2's doublets, and an interrupter is an unencrypted canonical F (CLAUDE.md).
   The view symbol of each canonical rune follows from it and the previous canonical rune.
-  The rigid decoder cannot follow skips or interrupters -- the Phase 2 beam can -- so such
-  lanes fail their control until then (INCONCLUSIVE (power)).
+  The rigid decoder cannot follow skips or interrupters, so such lanes fail a rigid control
+  (INCONCLUSIVE (power)); the beam decoders (``runeforge.beam``, presets ``<scorer>:beam``
+  for interrupters, ``<scorer>:beam-skip`` for interrupters and skips) follow this model.
 """
 
 from __future__ import annotations
@@ -90,7 +91,33 @@ def keys_batch(lane: LaneSpec, seeds, n: int) -> np.ndarray:
     return k[:, lane.key_offset :]
 
 
+def beam_model(lane: LaneSpec):
+    """The lane's beam transition model (``runeforge.beam.BeamModel``), None when rigid."""
+    from runeforge.scoring import presets
+
+    return presets.beam_model(
+        presets.split_preset(lane.preset)[1], lane.combine, lane.ciphertext_view
+    )
+
+
 def decrypt(lane: LaneSpec, cipher, k) -> np.ndarray:
+    """Decode with the lane's decoder (the ``:<decoder>`` of its preset).
+
+    Rigid broadcasts a (L,) cipher against (B, L) keys. The beam decoders take the same
+    arguments and return the same shape, so the control, the nulls, the sweep and the crosser
+    replay all reach them through this one function; they read every key symbol given (at
+    least L; every caller passes exactly L for the scored window)."""
+    model = beam_model(lane)
+    if model is not None:
+        from runeforge import beam
+        from runeforge.scoring import presets
+
+        scorer = presets.get(presets.split_preset(lane.preset)[0])
+        return beam.decode(cipher, k, scorer, model)
+    return rigid_decrypt(lane, cipher, k)
+
+
+def rigid_decrypt(lane: LaneSpec, cipher, k) -> np.ndarray:
     """Rigid decode; broadcasts a (L,) cipher against (B, L) keys."""
     c, k = np.asarray(cipher, dtype=np.int64), np.asarray(k, dtype=np.int64)
     if lane.combine == "vigenere":

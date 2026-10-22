@@ -1,3 +1,81 @@
 # TOOLBOX_REQUESTS
 
 Claude writes requests here when a frozen tool (see FROZEN.txt) needs changing. Hunter approves or rejects; nothing in FROZEN.txt changes without an entry here.
+
+## TR-1 (2026-10-22): install the beam decoders' calibrations — open
+
+**Frozen path:** `runeforge/scoring/calib/presets/` (`runeforge/scoring/calib/*`).
+
+**Why.** `threshold_for` reads bars only from that directory, and the beam decoders need their
+own: a beam picks the best interrupt/skip path through a wrong key, so its noise scores sit above
+the uniform strings the rigid calibrations were fitted on (see `runeforge/scoring/beam_calib.py`).
+Until these files are installed, no `:beam*` lane has a bar (`runeforge lane` lists "no bar for
+this lane's N"), the sweep refuses it, and `runeforge control` extrapolates its ceiling with a
+beta from the per-plant maxima instead of the calibration (`control._beta`).
+
+**What.** Copy the fitted files from `reports/calib-staging/` into
+`runeforge/scoring/calib/presets/` unchanged, or refit them yourself:
+
+```bash
+for d in beam-skip beam-skip-int beam; do
+  python scripts/calibrate.py --preset lp-ngram3-heldout:$d --L 240 --L 120 --workers 4
+done   # writes straight into runeforge/scoring/calib/presets/
+```
+
+Each file records `decoder_params` (pinned per decoder name in
+`runeforge/scoring/presets.py` `DECODER_PARAMS`, tested in `tests/test_beam.py`) and the
+scorer fingerprint `calib.load` checks. Fit numbers and the out-of-sample checks are in
+`reports/beam_decoder.md` §4. After installing, re-run any `:beam*` control so its ceiling uses
+the calibrated beta.
+
+## TR-2 (2026-10-22): freeze the beam decoder with its tests — open
+
+Spec §6: the files of a phase are frozen in the commit that turns that phase's tests green. The
+beam decoder is the part of Phase 2 that is built (the Kneser-Ney scorer is not). Proposed lines
+for FROZEN.txt:
+
+```
+runeforge/beam.py
+runeforge/scoring/beam_calib.py
+tests/test_beam.py
+```
+
+`runeforge/scoring/presets.py` stays unfrozen (the Kneser-Ney presets go there), so the decoder
+parameters are pinned by `test_the_decoder_parameters_are_pinned_to_their_names` instead.
+
+## TR-3 (2026-10-22): the oracle cannot verify a beam decode — open
+
+**Frozen path:** `runeforge/oracle.py`.
+
+A crosser found under a `:beam*` preset reaches HIT_PROTOCOL step 5 with a decode record (the
+sweep writes `decode_record`: plain, interrupts, skips) that the oracle has no way to take:
+
+1. `--key-module`/`--lane` builds a `Claim` with no interrupts, and `Claim` has no skips at all,
+   so `decode_claim` and `reencipher_matches` replay a rigid decode of the generator's keystream:
+   a true beam-skip key fails criterion (d) and every page bar.
+2. The per-page bars are fitted on uniform strings (`page_bar`); a beam decode chose its
+   interrupt/skip path, so its bar must come from the beam's null (`beam_calib.measure` at the
+   page's length), or the oracle overstates every beam decode's significance.
+
+Proposed: a `--decode-record <json>` option (the crosser file's `decode_record`) that sets the
+claim's interrupts and skips; `reencipher_matches` replaying skips the way
+`runeforge/runner/crosser.py` `reencipher_forward` + `record_violations` do; and per-page bars
+from `beam_calib.measure` when the claim names a beam decoder. Until then a beam crosser stops at
+step 5 (a crosser is Hunter's anyway).
+
+## TR-4 (2026-10-22): the 11-of-25 interrupt figure read as a per-F probability — open
+
+**Frozen paths:** `runeforge/controls.py` (docstring of `synthetic_page`), `tests/test_controls.py`
+(`interrupt_prob=11 / 25`), and CLAUDE.md's "Non-derivable facts" (not frozen by the hook, but
+marked "do not alter").
+
+"Welcome 11/25, Koan 2 2/5, An End 1/5" counts **ciphertext** ᚠ's that are interrupters. In
+the keyed solved sections **every plaintext F** is an interrupter: 14 of 14 (WELCOME 11/11,
+A KOAN 2 2/2, AN END 1/1; `canon.load_solved_sections()`). `runeforge/lanes.py` took 11/25 as
+P(a plaintext F is interrupted) and defaulted `interrupt_prob` to 0.44; that is corrected to 1.0
+(not frozen). The frozen `synthetic_page` docstring says "(the solved pages use 11/25, 2/5,
+1/5)" next to its `interrupt_prob` parameter and its test plants at 11/25: the same misreading.
+Proposed wording for both docstrings and CLAUDE.md: "not every ciphertext ᚠ is an interrupt
+(Welcome 11/25, Koan 2 2/5, An End 1/5), but every plaintext F is (14/14)". The consequence for
+LP2 is measured in `reports/beam_decoder.md` §3: under the every-F rule the template lane fails
+the fingerprint gate on C1 (LP2 0–55 holds 458 ᚠ against 447 uniform).

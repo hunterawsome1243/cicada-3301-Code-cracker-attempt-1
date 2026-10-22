@@ -71,7 +71,7 @@ Trust anchor, run before writing (last line of each):
 | key space | <generator / family and parameters>; size <space_size>; this lane sweeps <slice> (<fraction> of it) |
 | true N (trials, for the bar) | <n_trials> |
 | ciphertext view | <raw / Atbash / chain / first-difference>; LP2 pages <pages> (<n_runes> runes) |
-| decoder | rigid screen → beam adjudication; preset `<preset>`; beam width <beam_width>; max_skip <max_skip> |
+| decoder | preset `<preset>`: rigid, or the beam decoder matching filter_model / interrupt_prob (`beam`, `beam-skip`, `beam-skip-int`); beam width <beam_width>, max_skip <max_skip> as `presets.DECODER_PARAMS` pins them |
 | scorer register(s) | <register>; calibration `runeforge/scoring/calib/<calib_file>` |
 | windows | screen L = <window>; escalation 2× → page → full 12,956-rune stream |
 | persisted per decode | IoC·N, min distinct symbols in a 32-rune window, order-2 entropy, zlib ratio, best non-English register |

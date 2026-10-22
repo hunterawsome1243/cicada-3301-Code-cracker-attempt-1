@@ -1,0 +1,39 @@
+{
+ "preset": "lp-ngram3-heldout:beam-skip",
+ "scorer": "lp-ngram3-heldout",
+ "decoder": "beam-skip",
+ "decoder_params": {
+  "width": 8,
+  "interrupt_prob": 0.0,
+  "p_keep": 0.19,
+  "max_skip": 2
+ },
+ "L": 240,
+ "units": "mean log2-probability per rune (higher = more language-like)",
+ "scorer_fingerprint": "a144706ac65a67119a825883df063b5cac38c021818a298dc8becf07dcb58870",
+ "method": "Gumbel MoM fit to 1000 block maxima of 1000 beam decodes (beam-skip) of a fresh uniform cipher under a fresh uniform key, both of length L; max of N = k*1000 is Gumbel(mu_b + beta ln k, beta)",
+ "null_source": "runeforge.scoring.beam_calib.measure",
+ "draws": 1000000,
+ "seed": 3301,
+ "null": {
+  "n": 10000,
+  "mean": -6.878323783688041,
+  "sd": 0.12646922030356283
+ },
+ "fit": {
+  "block": 1000,
+  "mu_block": -6.483821500064861,
+  "beta": 0.034678887329152676,
+  "n_blocks": 1000
+ },
+ "check": {
+  "mean_max_25000": -6.357310328729606,
+  "predicted_mean_max_25000": -6.352177270999982,
+  "max_1000000": -6.24885902342697,
+  "predicted_mean_max_1000000": -6.224251036039938,
+  "max_error": 0.024607987387032182
+ },
+ "created": "2026-10-22T12:40:22+00:00",
+ "git_sha": "72bfc9139d78743be86ed6dfba4ad2d4c1e4c3ab",
+ "seconds": 255.7
+}

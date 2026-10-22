@@ -1,8 +1,10 @@
 """The F-interrupt rule.
 
 House rule on the solved pages: a plaintext F is written as an unencrypted ᚠ and does
-NOT advance the key. Not every ciphertext ᚠ is an interrupt (WELCOME: 11 of 25,
-A KOAN 2: 2 of 5, AN END: 1 of 5), so decoders have to choose.
+NOT advance the key -- every one of them: the keyed sections' 14 plaintext F's are all
+interrupters. Not every ciphertext ᚠ is an interrupt, though (WELCOME: 11 of 25, A KOAN 2:
+2 of 5, AN END: 1 of 5; the rest are enciphered runes that landed on ᚠ), so decoders have
+to choose.
 
 Because every keyed transform consumes one key symbol per *enciphered* rune, skipping
 interrupt positions is the same as decrypting the subsequence that excludes them and
@@ -11,7 +13,10 @@ here, for any transform.
 
 * ``decode_rigid``      -- no interrupts (baseline; rejects correct keys under the rule).
 * ``decode_skip_known`` -- a given interrupt set (reproduces the solved pages).
-* beam search over the ᚠ choices needs the Phase 2 scorer and is not implemented yet.
+* ``decode_beam``       -- every ᚠ is an interrupt-or-not choice, beam-searched with a scorer
+  (spec section 2.4 ``beam(scorer, width)``; the algorithm is :mod:`runeforge.beam`). Given
+  only the key, it re-derives WELCOME's 11-of-25, A KOAN 2's 2-of-5 and AN END's 1-of-5
+  interrupt sets (tests/test_beam.py).
 """
 
 from __future__ import annotations
@@ -65,3 +70,30 @@ def encrypt_with_interrupts(plain, transform: Transform, interrupts: Iterable[in
     out = p.copy()
     out[keep] = transform.encrypt(p[keep])
     return out
+
+
+def decode_beam(
+    cipher, transform: Transform, scorer, width: int = 8, interrupt_prob: float = 15 / 16
+) -> tuple[np.ndarray, list[int]]:
+    """Decrypt with a keyed transform, choosing the interrupters by beam search.
+
+    Returns the plaintext and the chosen interrupt positions, which
+    ``decode_skip_known(cipher, transform, interrupts)`` reproduces exactly. The transform
+    must be a keystream cipher (p = c - k, e.g. Vigenere, StreamSubtract, TotientPrimeStream,
+    RunningKey) or Beaufort (p = k - c); other transforms have no key position to hold."""
+    from runeforge import beam
+    from runeforge.transforms.base import KeystreamTransform
+    from runeforge.transforms.classical import Beaufort
+
+    c = as_runes(cipher)
+    if isinstance(transform, Beaufort):
+        combine = "beaufort"
+    elif isinstance(transform, KeystreamTransform) and (
+        type(transform).decrypt is KeystreamTransform.decrypt
+    ):
+        combine = "vigenere"
+    else:
+        raise TypeError(f"the beam needs a keystream transform, got {type(transform).__name__}")
+    model = beam.BeamModel(combine=combine, width=width, interrupt_prob=interrupt_prob)
+    rec = beam.decode_record(c, transform.keystream(c.size), scorer, model)
+    return np.asarray(rec.plain, dtype=np.int64), rec.interrupts

@@ -65,7 +65,10 @@ Create `lanes/<id>/PREREG.md` from `.claude/rules/lanes.md` and commit it (`lane
   "no decode, plant, null or sweep of this lane's own has been executed at the time of writing".
 - Aiming Test Q1–Q5 (Q2 with a file path; Q5 is the kill condition at 10 % of budget, as a number).
 - Hypothesis: one falsifiable sentence. Key space and size. Ciphertext view (raw / Atbash / chain /
-  first-difference). Decoder (rigid screen → beam adjudication, width, max_skip). Scorer register(s).
+  first-difference). Decoder: the preset's (`rigid`, or the beam decoder matching the lane's filter
+  and interrupt model: `beam`, `beam-skip`, `beam-skip-int`; width and max_skip are pinned per decoder
+  name). A rigid screen cannot see a filtered key (control 0/20), so a filtered lane decodes with the
+  beam in its control, null and sweep alike. Scorer register(s).
 - Positive control, pre-specified: the planted key in the real shape (seed inside the real generator, at
   a random offset, on synthetic Cicada-register English), the numeric pass bar (rune-index recovery
   ≥ 0.90 on ≥ 90 % of ≥ 20 plants; planted score above the bar; a deliberately wrong key below the

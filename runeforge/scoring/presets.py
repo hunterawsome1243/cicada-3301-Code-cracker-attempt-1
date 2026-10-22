@@ -6,6 +6,7 @@ records what it was trained on, because a positive control planted on text the s
 was trained on overstates power: ``check_held_out`` refuses that combination.
 
 Phase 1 baselines (order-3 Witten-Bell n-grams); Phase 2 adds the Kneser-Ney model here.
+A preset is ``<scorer>:<decoder>``; the decoders are listed in ``DECODERS`` below.
 
 * ``lp-ngram3``      all nine solved sections' plaintext (always available, tiny)
 * ``lp-ngram3-heldout``  the solved sections except A KOAN (1) and THE LOSS OF DIVINITY,
@@ -35,7 +36,29 @@ PRESETS: dict[str, dict] = {
     "latin-ngram3": {"order": 3, "train": ["latin"]},
     "old-english-ngram3": {"order": 3, "train": ["old-english"]},
 }
-DECODERS = ("rigid",)  # Phase 2 adds the skip-aware beam presets
+DECODERS = ("rigid", "beam", "beam-skip", "beam-skip-int")
+# The beam decoders' transition model (runeforge.beam.BeamModel), fixed per decoder NAME: the
+# calibrations under scoring/calib/presets/ and every control's evidence were measured with
+# exactly these values, and neither records them in the lane spec, so a change is a new name
+# (tests/test_beam.py pins them). Pick the one that matches the lane's forward model (its
+# filter_model and interrupt_prob); the lane's own p_keep / interrupt_prob drive its plants and
+# gate, the decoder's priors stay these:
+#   beam           F-interrupters only (spec section 2.4 beam(scorer, width)): every canonical F
+#                  is an interrupt-or-not choice; filter_model off
+#   beam-skip      the anti-repeat filter's key skips only, no interrupters: the family that
+#                  passes the fingerprint gate (LP2 0-55 holds 458 F's against 447 uniform, no
+#                  room for unencrypted plaintext F's at English rates; PICKUP-HERE.md Lessons)
+#   beam-skip-int  both (pipeline.encrypt's full model)
+# interrupt_prob 15/16: every plaintext F in the keyed solved sections is an interrupter
+# (14 of 14), so the rule of succession gives (14 + 1) / (14 + 2). It is kept below 1 so a
+# path that deciphers a plaintext F pays 4 bits rather than dying (a wrong key's beam would
+# otherwise run out of paths). p_keep 0.19 is LP2's 86 / 447 doublets.
+DECODER_PARAMS: dict[str, dict] = {
+    "rigid": {},
+    "beam": {"width": 8, "interrupt_prob": 15 / 16, "p_keep": None, "max_skip": 0},
+    "beam-skip": {"width": 8, "interrupt_prob": 0.0, "p_keep": 0.19, "max_skip": 2},
+    "beam-skip-int": {"width": 8, "interrupt_prob": 15 / 16, "p_keep": 0.19, "max_skip": 2},
+}
 
 
 def names() -> list[str]:
@@ -71,6 +94,17 @@ def split_preset(preset: str) -> tuple[str, str]:
     if scorer not in PRESETS or decoder not in DECODERS:
         raise KeyError(f"unknown preset {preset!r} (scorers {names()}, decoders {DECODERS})")
     return scorer, decoder
+
+
+def beam_model(decoder: str, combine: str = "vigenere", view: str = "raw"):
+    """The ``runeforge.beam.BeamModel`` of a decoder name, or None for the rigid decoder."""
+    if decoder not in DECODERS:
+        raise KeyError(f"unknown decoder {decoder!r}; known: {DECODERS}")
+    if decoder == "rigid":
+        return None
+    from runeforge.beam import BeamModel
+
+    return BeamModel(combine=combine, view=view, **DECODER_PARAMS[decoder])
 
 
 def check_corpus_name(name: str) -> None:

@@ -4,18 +4,22 @@ A control-validated, GPU-ready cryptanalysis pipeline for the 56 unsolved pages 
 Cicada 3301's *Liber Primus* (LP2 pages 0–55), built so that every result — positive or
 negative — is reproducible, pre-registered and publishable.
 
-**Status: Phase 1 (foundation) built; the session toolbox built; no attack lane has run.**
+**Status: Phase 1 (foundation) built; the session toolbox built; the Phase 2 beam
+interrupt decoder built; no attack lane has run.**
 The canon is rebuilt from raw transcriptions and cross-checked against three other
 lineages, all nine solved sections reproduce rune-for-rune, the published statistical
 fingerprint is reproduced as tests, and the oracle and ledger work. The toolbox the
 session prompts call (`docs/BOOTSTRAP_CHECKLIST.md`) exists: calibrated family-wise bars,
 the planted control, murphy's fingerprint gate, a CPU sweep runner with detach, resume and
 crosser files, the results checker, the ledger validator, the frozen-file hooks and the
-stop gate. Not built yet: the Phase 2 Kneser-Ney scorer and beam interrupt decoder, and
-the Phase 3 CUDA kernels. Until the beam exists no lane passes both the gate and its control:
-LP2's doublet deficit needs the anti-repeat filter, and the rigid decoder cannot follow the
-filter's key skips, so a lane is either `EXCLUDED (gate)` or `INCONCLUSIVE (power)`
-(PICKUP-HERE.md, Lessons).
+stop gate. The beam decoder (`runeforge/beam.py`, presets `<scorer>:beam`, `:beam-skip`,
+`:beam-skip-int`) follows the F-interrupters and the anti-repeat filter's key skips: given
+only the key it re-derives the solved sections' interrupt sets, and a lane with LP2's
+doublet deficit (anti-repeat filter, which the gate needs) now passes its planted control
+where the rigid decoder recovers 0 of 20 (`reports/beam_decoder.md`). Its family-wise bars
+are fitted but wait for Hunter to install them (`TOOLBOX_REQUESTS.md`), and on the CPU it
+runs at about 10³ keys/s, so a 2³² lane needs the Phase 3 GPU kernel. Not built yet: the
+Phase 2 Kneser-Ney scorer and the Phase 3 CUDA kernels.
 
 ## The canon
 
@@ -94,7 +98,7 @@ with the command that regenerates it. The procedure is SESSION_PROMPT.md section
 
 ```bash
 cp lanes/_template.yaml lanes/<id>.yaml                       # then edit
-python scripts/threshold_for.py --n <N> --preset lp-ngram3-heldout:rigid --L 240  # the bars
+python scripts/threshold_for.py --n <N> --preset lp-ngram3-heldout:beam-skip --L 240  # the bars
 runeforge lane lanes/<id>.yaml                                # schema + runnable problems
 runeforge ledger append --lane lanes/<id>.yaml   # pre-registration: the bar frozen as threshold
 runeforge gate lanes/<id>.yaml        # murphy fingerprint gate, >= 12 keys, majority rule
@@ -149,7 +153,8 @@ and the three scripts above. Changing any of them is Hunter's call.
 |---|---|---|
 | nine solved sections, from canon runes | exact, all nine | `test_solved_pages.py` |
 | our transforms on cicada_tools' ciphertext | exact, all nine | `test_pipeline_matches_cicada_tools_reference` |
-| WELCOME / KOAN 2 / AN END interrupters | 11 of 25, 2 of 5, 1 of 5 ᚠ | `test_not_every_f_is_an_interrupter` |
+| WELCOME / KOAN 2 / AN END interrupters | 11 of 25, 2 of 5, 1 of 5 ciphertext ᚠ; every plaintext F (14 of 14) | `test_not_every_f_is_an_interrupter` |
+| the same interrupt sets from the key alone (beam) | exact, all three, two non-LP scorers | `test_the_beam_rederives_the_solved_interrupt_sets_from_the_key_alone` |
 | A WARNING sentence GP-sums | 757 1009 691 353 769 911 1051 859 677, all prime | `test_a_warning_sentences_have_prime_gp_sums` |
 | KNOW THIS squares | magic, 1033 and 3301 (rows, columns, diagonals) | `test_know_this_squares_are_magic` |
 | English → runes spelling rules | exact on 5 of 7 translation blocks; the other 2 differ by 3 explained edits | `test_english_spelling_reproduces_the_solved_pages` |
@@ -176,11 +181,12 @@ runeforge/
   sources.py       parsers for the vendored transcriptions
   transforms/      invertible primitives: atbash, shift, vigenere, beaufort,
                    stream_subtract, totient_prime_stream, running_key, chain, compose
-  interrupts.py    F-interrupt rule: rigid and skip_known decoders (beam: Phase 2)
+  interrupts.py    F-interrupt rule: rigid, skip_known and beam decoders
+  beam.py          beam decoder: F-interrupters + anti-repeat key skips, batched + reference
   stats/           IoC, entropy, chi2, doublets, periodic IoC/kappa scans, shared-key scan
   stats/fingerprint.py  murphy's constraints C1-C6 and the fingerprint gate
   scoring/         baseline rune n-gram scorer (Phase 2 replaces it), named presets,
-                   calib/ (family-wise bars from observed maxima)
+                   calib/ (family-wise bars from observed maxima), beam_calib.py (beam nulls)
   generators/      keystream generators: sha256-ctr (nulls), mt19937-py27, numpy-pcg64
   corpus.py        rune corpora built by scripts/build_corpus.py
   controls.py      plant-and-recover harness (Rule 2)
@@ -207,8 +213,8 @@ tests/             Rules 1-3 and the toolbox
 - **Phase 2: rune-native scorer.** Build Gutenberg, Cicada-register and alternate-language
   corpora; a 6–8-gram Kneser-Ney model with a word-boundary symbol, exported as a flat
   `float32` table; null distributions per page length and register; a power table
-  (`reports/scorer_power.md`); and the beam interrupt decoder. That decoder must recover
-  a planted DIVINITY key that the rigid decoder rejects.
+  (`reports/scorer_power.md`); and the beam interrupt decoder (built:
+  `reports/beam_decoder.md`; it recovers a planted DIVINITY key the rigid decoder rejects).
 - **Phase 3: CUDA sweep engine.** GPU kernels behind `runeforge sweep --backend gpu`,
   parity-tested against the CPU runner, at ≥ 10⁷ seeds/s, and the Dukotah never-run/parked
   queue. The queue

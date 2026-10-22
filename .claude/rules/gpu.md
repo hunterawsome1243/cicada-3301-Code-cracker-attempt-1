@@ -13,7 +13,9 @@ found the crosser).
 
 - Every kernel has a numpy CPU reference in `runeforge/` that the tests and
   `runeforge crosser replay <kid> --cpu` use. Same arithmetic: rune index 0–28, mod 29; primes
-  only for GP-sums; interrupts are the decoder's job (rigid in the sweep, beam only on survivors).
+  only for GP-sums; interrupts and anti-repeat skips are the decoder's job: the lane preset's
+  decoder (rigid, or the beam, whose CPU reference is `runeforge/beam.py` `decode_batch` with
+  `decode_reference` as its scalar twin) runs in the control, the nulls and the sweep alike.
 - Parity test on ≥ 10⁴ seeds (both ends of the seed range, the control's planted seed, random
   seeds): keystreams identical symbol for symbol, scores |Δ| ≤ 1e-6, the survivor set identical.
   Early exit must never drop a seed the CPU reference puts above the claim bar; include seeds whose
