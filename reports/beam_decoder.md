@@ -314,8 +314,8 @@ faced three refuters, and it stood if at least two did not refute it.
 | 3 | 8 | 8 | 0 | a vacuous wrap test; the null not bound to the decoder; stale wording |
 | report audit | 23 | 20 | 3 | the scale checks overstated; an unbacked template-control figure; Dukotah's pair misattributed |
 
-Round 2 also reported two round-1 fixes as unresolved, and both were closed in round 2:
-- `beam-skip`'s cipher independence, closed by the wrap-round and the doublet-free fits;
+Round 2 also reported two round-1 fixes as unresolved, and both were fixed in round 2:
+- `beam-skip`'s cipher independence, fixed by the wrap-round and the doublet-free fits;
 - the calibration binding outside the lane check, filed as TR-5.
 
 How the findings were handled:
