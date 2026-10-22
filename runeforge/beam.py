@@ -2,8 +2,10 @@
 
 The rigid decoder spends one key symbol per rune, so the first F-interrupter or anti-repeat
 key skip throws every later rune out of step with the key, and a correct key scores like noise
-(CLAUDE.md: a planted key scores -6.835 rigid vs -4.170 beam). This decoder follows the
-forward model of ``runeforge.runner.pipeline.encrypt``, position by position:
+(Dukotah, PAPER.md section 3: under the anti-repeat filter a correct key scores -6.835 rigid
+and -4.170 under a skip-aware beam; for interrupters see reports/beam_decoder.md section 2).
+This decoder follows the forward model of ``runeforge.runner.pipeline.encrypt``, position by
+position:
 
 * **interrupt** -- allowed only where the canonical rune is F: the plaintext is F and the key
   does not advance; prior ``interrupt_prob``. A plaintext F that is enciphered instead pays
@@ -49,7 +51,7 @@ into the tail of most wrong-key ``beam-skip`` decodes and made each window's nul
 review round 2. Falling back to ``k[i]`` would reuse a symbol the same path spent one or two
 runes earlier, inside the trigram context.) A planted key under the anti-repeat model loses
 its last runes to fill -- the skips' net excess over the interrupters: about 2.8 % of the
-window on Cicada-register text without interrupters, about 1.3 % with every plaintext F an
+window on Cicada-register text without interrupters, about 1.2 % with every plaintext F an
 interrupter (``scripts/beam_power.py``, section fill) -- which costs power, never adds any.
 
 Priors must stay strictly inside (0, 1) where they act: ``interrupt_prob = 1`` would kill every

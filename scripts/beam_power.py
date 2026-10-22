@@ -14,6 +14,10 @@ toy lane specs (lane id BEAM-POWER) and nothing is written but ``--out``. Sectio
 6. the staged beam calibrations (``reports/calib-staging``) and the control ceilings they imply
 7. fill: the share of a planted key's window lost to the key budget, per forward model
 8. width: control recovery and wrong-key noise at beam widths 4, 8 and 16
+9. fcount: how a wrong key's block maximum moves with the cipher's canonical F count
+10. doublets: LP2 page-start windows vs uniform and doublet-free ciphers under beam-skip
+11. windows: every page-start lane window (L 120, 240) vs its fit's ciphers, per beam decoder
+12. template: the template lane's own control (lanes/_template.yaml, in memory)
 """
 
 from __future__ import annotations
@@ -169,6 +173,8 @@ def controls(windows, staged: dict) -> list[dict]:
 
 
 def noise(length: int, n: int) -> list[dict]:
+    """Wrong-key scores per decoder; throughput is decode + score, best of two timings (the
+    first call of a rigid decode is dominated by allocation)."""
     scorer = presets.get(SCORER)
     rng = np.random.default_rng(3301)
     cipher = rng.integers(0, 29, (n, length))
@@ -176,10 +182,15 @@ def noise(length: int, n: int) -> list[dict]:
     rows = []
     for dec in presets.DECODERS:
         model = presets.beam_model(dec)
-        t0 = time.time()
-        plain = (cipher - keys) % 29 if model is None else beam.decode(cipher, keys, scorer, model)
-        dt = time.time() - t0
-        s = scorer.score_batch(plain)
+        times = []
+        for _ in range(2 if model is None else 1):
+            t0 = time.time()
+            plain = (
+                (cipher - keys) % 29 if model is None else beam.decode(cipher, keys, scorer, model)
+            )
+            s = scorer.score_batch(plain)
+            times.append(time.time() - t0)
+        dt = min(times)
         rows.append(
             {
                 "decoder": dec,
@@ -264,6 +275,138 @@ def widths(widths_=(4, 8, 16), n: int = 2000) -> list[dict]:
     return out
 
 
+def fcount(n_blocks: int = 50) -> list[dict]:
+    """Block-max mean (block 1,000) of wrong-key decodes of doublet-free ciphers holding exactly
+    n canonical F's, L = 240: an interrupt decoder's null rises with n, beam-skip's does not."""
+    from runeforge.scoring import beam_calib
+
+    out = []
+    for dec in ("beam", "beam-skip"):
+        for n_f in (4, 14, 20):
+            s = np.concatenate(
+                [beam_calib._chunk((SCORER, dec, 240, 3301, i, 1000, n_f)) for i in range(n_blocks)]
+            )
+            blocks = s.reshape(n_blocks, 1000).max(axis=1)
+            out.append(
+                {
+                    "decoder": dec,
+                    "canonical_F": n_f,
+                    "block_max_mean": float(blocks.mean()),
+                    "block_max_se": float(blocks.std(ddof=1) / np.sqrt(n_blocks)),
+                    "mean": float(s.mean()),
+                }
+            )
+    return out
+
+
+def _page_windows(length: int) -> list[tuple[int, np.ndarray]]:
+    lp2 = canon.load_lp2()
+    pages = [p for p in canon.UNSOLVED_LP2_PAGES if lp2.page(p).n_runes]
+    out = []
+    for i, p in enumerate(pages):
+        s = lp2.stream(pages[i:])[:length]
+        if s.size == length:
+            out.append((p, s))
+    return out
+
+
+def doublets(n: int = 8000, length: int = 120, every: int = 4) -> dict:
+    """beam-skip's wrong-key mean on LP2 page-start windows minus its mean on uniform ciphers
+    (with doublets) and on doublet-free ciphers: the doublet offset the fits are built for."""
+    from runeforge.scoring import beam_calib
+
+    scorer, model = presets.get(SCORER), presets.beam_model("beam-skip")
+    rng = np.random.default_rng(11)
+
+    def mean_of(cipher):
+        keys = rng.integers(0, 29, (n, length))
+        return float(scorer.score_batch(beam.decode(cipher, keys, scorer, model)).mean())
+
+    uniform = mean_of(rng.integers(0, 29, (n, length)))
+    free = mean_of(beam_calib._cipher(rng, n, length, None))
+    rows = [
+        {"page": p, "minus_uniform": mean_of(w) - uniform}
+        for p, w in _page_windows(length)[::every]
+    ]
+    devs = np.array([r["minus_uniform"] for r in rows])
+    return {
+        "L": length,
+        "keys_per_window": n,
+        "windows": rows,
+        "mean_offset_vs_uniform": float(devs.mean()),
+        "spread": float(devs.std(ddof=1)),
+        "doublet_free_minus_uniform": free - uniform,
+    }
+
+
+def windows(n: int = 2000, n_fit: int = 20_000) -> list[dict]:
+    """Every page-start lane window at L 120 and 240 under each beam decoder: the mean of n
+    wrong-key decodes against the mean of the decoder's fit ciphers (beam_calib._chunk at
+    the fit's canonical F count), as a z. A window well above its fit would get too low a bar."""
+    from runeforge.scoring import beam_calib
+
+    scorer = presets.get(SCORER)
+    out = []
+    for dec in ("beam-skip", "beam", "beam-skip-int"):
+        model = presets.beam_model(dec)
+        for length in (240, 120):
+            n_f = beam_calib.canonical_f(length) if beam_calib.uses_interrupts(dec) else None
+            fit = np.concatenate(
+                [
+                    beam_calib._chunk((SCORER, dec, length, 99, i, 5000, n_f))
+                    for i in range(n_fit // 5000)
+                ]
+            )
+            rng = np.random.default_rng(length)
+            zs = []
+            for page, w in _page_windows(length):
+                s = scorer.score_batch(
+                    beam.decode(w, rng.integers(0, 29, (n, length)), scorer, model)
+                )
+                se = float(np.sqrt(s.var() / n + fit.var() / fit.size))
+                zs.append(
+                    {"page": page, "F": int((w == 0).sum()), "z": (s.mean() - fit.mean()) / se}
+                )
+            z = np.array([r["z"] for r in zs])
+            out.append(
+                {
+                    "decoder": dec,
+                    "L": length,
+                    "canonical_F": n_f,
+                    "windows": len(zs),
+                    "max_z": float(z.max()),
+                    "windows_above_z2": int((z > 2).sum()),
+                    "mean_z": float(z.mean()),
+                    "worst": max(zs, key=lambda r: r["z"]),
+                }
+            )
+    return out
+
+
+def template_control() -> dict:
+    """The template lane's own control (mt19937-py27, its preset and decoys), in memory: no
+    lane evidence and no ledger row are written."""
+    lane = load_lane(ROOT / "lanes" / "_template.yaml")
+    t0 = time.time()
+    rep = control.run_control(lane)
+    return {
+        "lane": "lanes/_template.yaml",
+        "preset": lane.preset,
+        "generator": lane.generator,
+        "decoys": lane.control.decoys,
+        "status": rep.status,
+        "identified": rep.identified,
+        "n_plants": rep.n_plants,
+        "median_recovery": float(np.median([p.recovery for p in rep.plants])),
+        "floor": rep.floor,
+        "ceiling_observed": rep.ceiling_observed,
+        "beta": rep.beta,
+        "beta_source": rep.beta_source,
+        "gap_nats": rep.gap_nats,
+        "seconds": round(time.time() - t0, 1),
+    }
+
+
 def staged_calibrations() -> dict:
     out = {}
     for p in sorted(STAGING.glob("*.json")):
@@ -295,6 +438,14 @@ def main() -> int:
     data["fill"] = fill_fraction(plants=50 if a.quick else 200)
     print("8. width", flush=True)
     data["width"] = widths()
+    print("9. fcount", flush=True)
+    data["fcount"] = fcount(20 if a.quick else 50)
+    print("10. doublets", flush=True)
+    data["doublets"] = doublets(n=2000 if a.quick else 8000)
+    print("11. windows", flush=True)
+    data["windows"] = windows(n=500 if a.quick else 2000, n_fit=5000 if a.quick else 20_000)
+    print("12. template", flush=True)
+    data["template_control"] = template_control()
     data["staged_calibrations"] = [
         {
             "decoder": d,
@@ -309,7 +460,20 @@ def main() -> int:
         for (d, length), rec in sorted(staged.items())
     ]
     lp2 = canon.load_lp2().stream(canon.UNSOLVED_LP2_PAGES)
-    data["lp2_F"] = {"runes": int(lp2.size), "F": int((lp2 == 0).sum()), "uniform": lp2.size / 29}
+    n = int(lp2.size)
+    solved = np.concatenate([s.plain for s in canon.load_solved_sections()])
+    data["lp2_F"] = {"runes": n, "F": int((lp2 == 0).sum()), "uniform": n / 29}
+    # if every plaintext F were left unencrypted: E[F] = f N + (1 - f) N / 29
+    rates = {"solved_sections_plaintext": (int((solved == 0).sum()), int(solved.size))}
+    if raw_available():
+        from runeforge import corpus
+
+        c = corpus.load("cicada-english").runes
+        rates["cicada_english_corpus"] = (int((c == 0).sum()), int(c.size))
+    data["lp2_F"]["if_every_plaintext_F_unencrypted"] = {
+        k: {"F": f, "runes": m, "rate": f / m, "expected_F": f / m * n + (1 - f / m) * n / 29}
+        for k, (f, m) in rates.items()
+    }
     data["seconds"] = round(time.time() - t0, 1)
     a.out.write_text(json.dumps(data, indent=1, default=float) + "\n", encoding="utf-8")
     print(f"wrote {a.out} ({data['seconds']} s)")

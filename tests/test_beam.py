@@ -89,8 +89,8 @@ def test_decode_beam_needs_a_keystream_transform():
 def test_a_planted_divinity_key_the_rigid_decoder_rejects():
     """Spec P2: a synthetic Welcome page -- held-out Cicada-register text of WELCOME's length
     enciphered with DIVINITY under the interrupt rule (every plaintext F an interrupter) -- is
-    recovered by the beam and rejected by the rigid decoder (CLAUDE.md: -6.835 rigid vs
-    -4.170 beam under Dukotah's scorer)."""
+    recovered by the beam and rejected by the rigid decoder. (Dukotah's -6.835 rigid vs
+    -4.170 beam, which CLAUDE.md quotes, is the same contrast under the anti-repeat filter.)"""
     scorer = presets.get("lp-ngram3-heldout")
     text = canon.solved_section("a-koan-1").plain[:515]  # held out of this scorer
     chosen = np.flatnonzero(text == interrupts.F).tolist()
@@ -672,3 +672,47 @@ def test_a_small_n_lane_takes_its_bar_from_its_own_nulls(monkeypatch, tmp_path):
 def test_an_unknown_preset_is_an_invalid_lane_not_a_crash():
     with pytest.raises(ValidationError, match="unknown preset"):
         _lane(preset="lp-ngram3-heldout:beam_skip")
+
+
+@pytest.mark.slow  # a `runeforge null` subprocess: 200 replicates x 300 keys x 2 nulls
+def test_runeforge_null_records_what_a_small_n_bar_needs(tmp_path):
+    """End to end: `runeforge null` on a small-N lane writes a null.json that small_n_nulls
+    accepts, with the scorer fingerprint and decoder pin recorded (a mismatch of either is
+    refused: test_a_small_n_lane_takes_its_bar_from_its_own_nulls)."""
+    import os
+    import subprocess
+    import sys
+
+    from runeforge.paths import REPO_ROOT
+
+    spec = _lane(
+        lane_id="SMALL-N",
+        seed_range=[0, 300],
+        window=120,
+        pages=[0, 1],
+        preset="lp-ngram3-heldout:rigid",
+        interrupt_prob=0.0,
+    ).model_dump(mode="json")
+    path = tmp_path / "SMALL-N.yaml"
+    path.write_text(yaml.safe_dump(spec), encoding="utf-8")
+    env = dict(
+        os.environ, RUNEFORGE_LANES=str(tmp_path / "lanes"), RUNEFORGE_RUNS=str(tmp_path / "runs")
+    )
+    r = subprocess.run(
+        [sys.executable, "-m", "runeforge.cli", "null", str(path)],
+        capture_output=True,
+        text=True,
+        cwd=REPO_ROOT,
+        env=env,
+        timeout=600,
+    )
+    assert r.returncode == 0, r.stdout + r.stderr
+    written = json.loads((tmp_path / "lanes" / "SMALL-N" / "null.json").read_text())
+    assert written["scorer_fingerprint"] == presets.get("lp-ngram3-heldout").fingerprint()
+    assert written["decoder"] is None and written["same_trial_count"]
+    lane = load_lane(path)
+    got = lane.small_n_nulls(tmp_path / "lanes")
+    assert got == {
+        "null_max": written["null1_shuffle"]["max"],
+        "null2_max": written["null2_sha256"]["max"],
+    }

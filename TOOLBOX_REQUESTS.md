@@ -86,7 +86,14 @@ P(a plaintext F is interrupted) and defaulted `interrupt_prob` to 0.44; that is 
 (not frozen). The frozen `synthetic_page` docstring says "(the solved pages use 11/25, 2/5,
 1/5)" next to its `interrupt_prob` parameter and its test plants at 11/25: the same misreading.
 Proposed wording for both docstrings and CLAUDE.md: "not every ciphertext ᚠ is an interrupt
-(Welcome 11/25, Koan 2 2/5, An End 1/5), but every plaintext F is (14/14)". The consequence for
+(Welcome 11/25, Koan 2 2/5, An End 1/5), but every plaintext F is (14/14)".
+
+The same CLAUDE.md bullet (and spec §2.4 item 3) quotes Dukotah's "a planted key scores −6.835
+rigid vs −4.170 beam" under the F-interrupt rule. Dukotah measured that pair under the
+anti-repeat filter with a skip-aware beam (`data/raw/dukotah/PAPER.md` §3, 98.9 % rune
+accuracy), not with interrupters. Our interrupter-only analogue is in
+`reports/beam_decoder.md` §2 (rigid −6.644 vs beam −3.506 on a synthetic Welcome page).
+Proposed: move the pair to the anti-repeat sentence, or say which mechanism it measures. The consequence for
 LP2 is measured in `reports/beam_decoder.md` §3: under the every-F rule the template lane fails
 the fingerprint gate on C1 (LP2 0–55 holds 458 ᚠ against 447 uniform).
 
