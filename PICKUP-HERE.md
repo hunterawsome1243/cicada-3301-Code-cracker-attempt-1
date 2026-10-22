@@ -12,7 +12,7 @@ Not built: the Phase 2 Kneser-Ney scorer and power table (`reports/scorer_power.
 
 Waiting on Hunter (`TOOLBOX_REQUESTS.md`): TR-1 install the beam calibrations staged in `reports/calib-staging/` (until then no `:beam*` lane has a bar and the sweep refuses it); TR-2 freeze the beam files; TR-3 the oracle cannot take a beam decode record; TR-4 the 11-of-25 wording; TR-5 bind beam calibrations to their decoder inside the frozen `calib.load`.
 
-Next: after TR-1, the template lane (queue item 1, now `interrupt_prob: 0.0`, `lp-ngram3-heldout:beam-skip`) can be pre-registered, but at ~1,300 keys/s on the CPU a 2^32 sweep is ~38 core-days: it needs the Phase 3 beam kernel (GPU, parity against `beam.decode_batch`) or a bounded slice with its fraction stated. Otherwise spec §7 Session 3's scorer work. Corpora are built offline from the vendored texts (`scripts/build_corpus.py`); `latin` and `old-english` already back the per-decode non-English register stat.
+Next: after TR-1, the template lane (queue item 1, now `interrupt_prob: 0.0`, `lp-ngram3-heldout:beam-skip`) can be pre-registered, but at ~1,100 keys/s on the CPU (`reports/beam_decoder.md` §6) a 2^32 sweep is ~45 core-days: it needs the Phase 3 beam kernel (GPU, parity against `beam.decode_batch`) or a bounded slice with its fraction stated. Otherwise spec §7 Session 3's scorer work. Corpora are built offline from the vendored texts (`scripts/build_corpus.py`); `latin` and `old-english` already back the per-decode non-English register stat.
 
 ## Rejections
 
