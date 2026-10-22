@@ -1,0 +1,41 @@
+{
+ "preset": "lp-ngram3-heldout:beam",
+ "scorer": "lp-ngram3-heldout",
+ "decoder": "beam",
+ "decoder_params": {
+  "width": 8,
+  "interrupt_prob": 0.9375,
+  "p_keep": null,
+  "max_skip": 0
+ },
+ "beam_sha256": "488b5968f8665fe23a5bbd4f7abe249645f5beec93061a39c4c8c1166a5024e6",
+ "canonical_F": 14,
+ "L": 240,
+ "units": "mean log2-probability per rune (higher = more language-like)",
+ "scorer_fingerprint": "a144706ac65a67119a825883df063b5cac38c021818a298dc8becf07dcb58870",
+ "method": "Gumbel MoM fit to 1000 block maxima of 1000 beam decodes (beam) of a cipher with exactly 14 canonical F's at random positions (the most in any LP2 page-start window of 240 runes; a window with more is refused) under a fresh uniform key, both of length L; max of N = k*1000 is Gumbel(mu_b + beta ln k, beta)",
+ "null_source": "runeforge.scoring.beam_calib.measure",
+ "draws": 1000000,
+ "seed": 3301,
+ "null": {
+  "n": 10000,
+  "mean": -6.78569774932382,
+  "sd": 0.11159499498665297
+ },
+ "fit": {
+  "block": 1000,
+  "mu_block": -6.4229798560909614,
+  "beta": 0.03621174927594577,
+  "n_blocks": 1000
+ },
+ "check": {
+  "mean_max_25000": -6.292409800315896,
+  "predicted_mean_max_25000": -6.285516742834869,
+  "max_1000000": -6.14637520313263,
+  "predicted_mean_max_1000000": -6.1519359649333065,
+  "max_error": 0.006893057481027753
+ },
+ "created": "2026-10-22T15:17:29+00:00",
+ "git_sha": "289225efd7bd70dc258c9cc4a68f0e5fa67ca6ee",
+ "seconds": 165.4
+}
