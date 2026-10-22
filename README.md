@@ -12,8 +12,10 @@ session prompts call (`docs/BOOTSTRAP_CHECKLIST.md`) exists: calibrated family-w
 the planted control, murphy's fingerprint gate, a CPU sweep runner with detach, resume and
 crosser files, the results checker, the ledger validator, the frozen-file hooks and the
 stop gate. Not built yet: the Phase 2 Kneser-Ney scorer and beam interrupt decoder, and
-the Phase 3 CUDA kernels. Until the beam exists, a lane with a key-skip filter cannot pass
-its control and stays `INCONCLUSIVE (power)`.
+the Phase 3 CUDA kernels. Until the beam exists no lane passes both the gate and its control:
+LP2's doublet deficit needs the anti-repeat filter, and the rigid decoder cannot follow the
+filter's key skips, so a lane is either `EXCLUDED (gate)` or `INCONCLUSIVE (power)`
+(PICKUP-HERE.md, Lessons).
 
 ## The canon
 

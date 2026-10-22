@@ -1,2 +1,59 @@
-# Files the PreToolUse hook blocks Claude from editing. One path per line. Populate in Session 1.
+# FROZEN.txt -- files the PreToolUse hook (scripts/hooks/deny_frozen.sh) blocks Claude from
+# editing (CLAUDE.md, Frozen toolbox). One path or glob per line; dir/* covers everything under
+# dir; `#` starts a comment. Hunter edits this file; Claude writes a change request to
+# TOOLBOX_REQUESTS.md and stops the lane.
+#
+# Frozen in the commit that turned the Phase 1 tests and the session toolbox green. The tests
+# are listed one by one rather than as tests/* so that Phase 2 can add its own test files; each
+# phase adds its files here in the commit that turns its tests green (spec section 6).
+
+# the freeze itself and the hooks that enforce it
 FROZEN.txt
+.claude/settings.json
+scripts/hooks/*
+
+# the canon and the vendored sources
+data/canon/*
+data/raw/*
+
+# Rule 2 and Rule 3 instruments, the ledger and the bars
+runeforge/oracle.py
+runeforge/controls.py
+runeforge/ledger.py
+runeforge/stats/*
+runeforge/scoring/calib/*
+runeforge/runner/control.py
+runeforge/runner/null.py
+
+# the gates every session and lane runs
+scripts/check_results.py
+scripts/validate_ledger.py
+scripts/threshold_for.py
+.claude/agents/verify-lane.md
+
+# the tests
+tests/conftest.py
+tests/fixtures/*
+tests/test_calib.py
+tests/test_canon.py
+tests/test_check_results.py
+tests/test_cli.py
+tests/test_controls.py
+tests/test_corpus.py
+tests/test_fingerprint.py
+tests/test_gematria.py
+tests/test_generators.py
+tests/test_hooks.py
+tests/test_lane_control.py
+tests/test_lane_flow.py
+tests/test_lane_tools.py
+tests/test_ledger.py
+tests/test_oracle.py
+tests/test_oracle_cli.py
+tests/test_pipeline_model.py
+tests/test_python_only_hook.py
+tests/test_runner.py
+tests/test_solved_pages.py
+tests/test_stats.py
+tests/test_transforms.py
+tests/test_validate_ledger.py
