@@ -339,7 +339,7 @@ def doublets(n: int = 8000, length: int = 120, every: int = 4) -> dict:
     }
 
 
-def windows(n: int = 2000, n_fit: int = 20_000) -> list[dict]:
+def window_scan(n: int = 2000, n_fit: int = 20_000) -> list[dict]:
     """Every page-start lane window at L 120 and 240 under each beam decoder: the mean of n
     wrong-key decodes against the mean of the decoder's fit ciphers (beam_calib._chunk at
     the fit's canonical F count), as a z. A window well above its fit would get too low a bar."""
@@ -443,7 +443,7 @@ def main() -> int:
     print("10. doublets", flush=True)
     data["doublets"] = doublets(n=2000 if a.quick else 8000)
     print("11. windows", flush=True)
-    data["windows"] = windows(n=500 if a.quick else 2000, n_fit=5000 if a.quick else 20_000)
+    data["windows"] = window_scan(n=500 if a.quick else 2000, n_fit=5000 if a.quick else 20_000)
     print("12. template", flush=True)
     data["template_control"] = template_control()
     data["staged_calibrations"] = [
