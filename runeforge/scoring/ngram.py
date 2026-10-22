@@ -76,5 +76,37 @@ class NGramScorer:
         lp = self.logprobs(plain)
         return float(lp.mean()) if lp.size else float("nan")
 
+    def score_batch(self, plains) -> np.ndarray:
+        """Scores of every row of a (B, L) array, vectorised (the sweep's inner loop)."""
+        x = np.asarray(plains, dtype=np.int64)
+        if x.ndim != 2:
+            raise ValueError("expected a 2-D (batch, length) array")
+        b, length = x.shape
+        if length == 0:
+            return np.full(b, np.nan)
+        total = np.zeros(b, dtype=np.float64)
+        k_max = self.order - 1
+        for i in range(min(k_max, length)):
+            h = np.zeros(b, dtype=np.int64)
+            for j in range(i):
+                h = h * N + x[:, j]
+            total += self.tables[i][h, x[:, i]]
+        if length > k_max:
+            h = np.zeros((b, length - k_max), dtype=np.int64)
+            for j in range(k_max):
+                h = h * N + x[:, j : length - k_max + j]
+            # accumulate in float64, as score() does: replay parity is checked to 1e-9
+            total += self.tables[k_max][h, x[:, k_max:]].sum(axis=1, dtype=np.float64)
+        return total / length
+
+    def fingerprint(self) -> str:
+        """SHA-256 of the fitted tables: calibrations are pinned to exactly this model."""
+        import hashlib
+
+        h = hashlib.sha256(f"ngram/{self.order}".encode())
+        for t in self.tables:
+            h.update(np.ascontiguousarray(t).tobytes())
+        return h.hexdigest()
+
     def __call__(self, plain) -> float:
         return self.score(plain)

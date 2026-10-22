@@ -5,25 +5,37 @@ A candidate is a hit only if
   (a) every claimed page scores above the family-wise bar for the lane's trial count
       (and above a size-matched shuffle null),
   (b) the claim decodes ENTIRE pages -- no fragments -- and at least ``min_pages`` of them,
-  (c) the rig still reproduces every solved section through the same decode path.
+  (c) the rig still reproduces every solved section through the same decode path,
+  (d) the decoded plaintext re-enciphers to the canonical runes, rune for rune.
 
 Semantics follow Dukotah/cicada3301 ``verify_solution.py``: re-derive the known solves
 first and refuse to judge if that fails; require multiple pages; beat a shuffle null.
-The pass/fail bar is the higher of the family-wise bar and ``floor``.
+The pass/fail bar is the higher of the family-wise bar and ``floor``. An oracle PASS is
+one step of HIT_PROTOCOL.md, not a solve.
+
+    python -m runeforge.oracle --selftest
+    python -m runeforge.oracle --key-module key.py [--pages 10] [--n-trials N] [--json out.json]
+    python -m runeforge.oracle --keystream keys.txt
+    python -m runeforge.oracle --regression
 """
 
 from __future__ import annotations
 
+import argparse
+import importlib.util
+import json
+import sys
 from collections.abc import Callable, Mapping
-from dataclasses import dataclass, field
+from dataclasses import asdict, dataclass, field
+from pathlib import Path
 
 import numpy as np
 
 from runeforge import canon
-from runeforge.gematria import indices_to_latin
-from runeforge.interrupts import decode_skip_known
+from runeforge.gematria import N, indices_to_latin
+from runeforge.interrupts import decode_skip_known, encrypt_with_interrupts
 from runeforge.scoring.calibration import gaussian_max_bar, null_scores, shuffle_null
-from runeforge.transforms import from_method, from_spec
+from runeforge.transforms import StreamSubtract, from_method, from_spec
 
 Scorer = Callable[[np.ndarray], float]
 
@@ -84,6 +96,28 @@ def decode_claim(claim: Claim, cipher_pages: Mapping[int, np.ndarray]) -> dict[i
     inter = [offsets[k] + i for k, n in enumerate(claim.pages) for i in claim.interrupts.get(n, [])]
     out = decode_skip_known(flat, t, inter)
     return {n: out[offsets[k] : offsets[k + 1]] for k, n in enumerate(claim.pages)}
+
+
+def reencipher_matches(
+    claim: Claim, decoded: Mapping[int, np.ndarray], cipher_pages: Mapping[int, np.ndarray]
+) -> bool:
+    """Rule 3(d): encrypt the decoded plaintext forward with the claimed key and interrupt
+    positions; the result must equal the canonical ciphertext of every claimed page."""
+    t = _transform(claim.method)
+    if claim.key_scope == "per_page":
+        return all(
+            np.array_equal(
+                encrypt_with_interrupts(decoded[n], t, claim.interrupts.get(n, [])),
+                cipher_pages[n],
+            )
+            for n in claim.pages
+        )
+    lengths = [cipher_pages[n].size for n in claim.pages]
+    offsets = np.cumsum([0, *lengths])
+    plain = np.concatenate([decoded[n] for n in claim.pages])
+    inter = [offsets[k] + i for k, n in enumerate(claim.pages) for i in claim.interrupts.get(n, [])]
+    cipher = np.concatenate([cipher_pages[n] for n in claim.pages])
+    return np.array_equal(encrypt_with_interrupts(plain, t, inter), cipher)
 
 
 def verify(
@@ -163,6 +197,7 @@ def verify(
         "min_pages": enough,
         "familywise_bar": all(r["above_bar"] for r in rows),
         "beats_shuffle": all(r["beats_shuffle"] for r in rows),
+        "reencipher": reencipher_matches(claim, decoded, cipher_pages),
     }
     passed = all(criteria.values())
     return Verdict(
@@ -202,3 +237,126 @@ def selftest(
         out[name] = v
     ok = out["correct"].passed and not out["wrong"].passed
     return {"passed": ok, "correct": out["correct"], "wrong": out["wrong"]}
+
+
+# --------------------------------------------------------------------------- CLI
+
+
+def default_scorer() -> Scorer:
+    """The registered Phase 1 scorer: a 3-gram over all nine solved sections' plaintext.
+    Deterministic and always available; Phase 2's calibrated model replaces it."""
+    from runeforge.scoring import NGramScorer
+
+    return NGramScorer(3).fit([s.plain for s in canon.load_solved_sections()])
+
+
+def load_key_module(path: str | Path, n: int) -> np.ndarray:
+    """A claim's key module exposes ``keystream(n) -> list[int]`` (values 0..28) and
+    records how the key was made (HIT_PROTOCOL.md section 5)."""
+    spec = importlib.util.spec_from_file_location("candidate_key", path)
+    if spec is None or spec.loader is None:
+        raise SystemExit(f"cannot load key module {path}")
+    mod = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(mod)
+    if not hasattr(mod, "keystream"):
+        raise SystemExit(f"{path} must expose keystream(n) -> list[int] (values 0..28)")
+    return _check_keys(np.asarray(list(mod.keystream(n)), dtype=np.int64), n, str(path))
+
+
+def load_keystream_file(path: str | Path, n: int) -> np.ndarray:
+    """Whitespace- or comma-separated integers 0..28."""
+    text = Path(path).read_text(encoding="utf-8").replace(",", " ")
+    return _check_keys(np.array([int(t) for t in text.split()], dtype=np.int64), n, str(path))
+
+
+def _check_keys(keys: np.ndarray, n: int, where: str) -> np.ndarray:
+    if keys.size < n:
+        raise SystemExit(f"{where}: keystream has {keys.size:,} symbols; the claim needs {n:,}")
+    bad = keys[(keys < 0) | (keys >= N)]
+    if bad.size:
+        raise SystemExit(f"{where}: {bad.size} values outside 0..28 (first: {bad[0]})")
+    return keys
+
+
+def _print_verdict(v: Verdict) -> None:
+    for r in v.pages:
+        print(
+            f"  page {r['page']:2d}  n={r['n_runes']:3d}  score {r['score']:7.3f}"
+            f"  bar {r['bar']:7.3f}"
+            f"  shuffle max {r['shuffle_max']:7.3f}  {'ABOVE BAR' if r['above_bar'] else ''}"
+        )
+    for name, ok in v.criteria.items():
+        print(f"  {name:16s} {'PASS' if ok else 'FAIL'}")
+    for note in v.notes:
+        print(f"  note: {note}")
+
+
+def main(argv: list[str] | None = None) -> int:
+    ap = argparse.ArgumentParser(
+        prog="python -m runeforge.oracle",
+        description="Rule 3 oracle: regression, full pages, family-wise bar, shuffle null, "
+        "re-encipherment. numbering: LP2-0-57.",
+    )
+    g = ap.add_mutually_exclusive_group(required=True)
+    g.add_argument("--selftest", action="store_true", help="plant a key; PASS it, FAIL a wrong one")
+    g.add_argument("--key-module", help=".py exposing keystream(n) -> list[int]")
+    g.add_argument("--keystream", help="file of integers 0..28")
+    g.add_argument("--regression", action="store_true", help="only re-derive the solved sections")
+    ap.add_argument("--pages", type=int, default=10, help="first N rune-bearing unsolved pages")
+    ap.add_argument("--key-scope", choices=("continuous", "per_page"), default="continuous")
+    ap.add_argument("--n-trials", type=int, default=1, help="trials of the lane that produced it")
+    ap.add_argument("--json", help="write the verdict here")
+    a = ap.parse_args(argv)
+
+    if a.regression:
+        failures = regression_failures()
+        print(f"regression: {'PASS' if not failures else 'FAIL ' + ', '.join(failures)}")
+        return 0 if not failures else 2
+
+    if a.selftest:
+        r = selftest()
+        for name in ("correct", "wrong"):
+            print(f"{name} key -> {r[name].status}")
+            _print_verdict(r[name])
+        verdict = "PASS" if r["passed"] else "FAIL"
+        out = {"selftest": verdict, **{k: asdict(r[k]) for k in ("correct", "wrong")}}
+        code = 0 if r["passed"] else 2
+        line = f"ORACLE SELF-TEST: {verdict}"
+    else:
+        lp2 = canon.load_lp2()
+        pages = [n for n in canon.UNSOLVED_LP2_PAGES if lp2.page(n).n_runes][: a.pages]
+        cipher_pages = {n: lp2.page(n).runes for n in pages}
+        need = sum(c.size for c in cipher_pages.values())
+        if a.key_scope == "per_page":
+            need = max(c.size for c in cipher_pages.values())
+        keys = (
+            load_key_module(a.key_module, need)
+            if a.key_module
+            else load_keystream_file(a.keystream, need)
+        )
+        claim = Claim(
+            lane_id=Path(a.key_module or a.keystream).stem,
+            method=StreamSubtract(keys[:need]).spec(),
+            pages=pages,
+            n_trials=a.n_trials,
+            key_scope=a.key_scope,
+        )
+        v = verify(claim, default_scorer())
+        print(
+            f"claim {claim.lane_id}: {len(pages)} pages, key scope {a.key_scope}, N={a.n_trials:,}"
+        )
+        _print_verdict(v)
+        verdict = (
+            "PASS" if v.passed else ("REGRESSION BROKEN" if v.status == "rig-broken" else "FAIL")
+        )
+        out = {"verdict": verdict, "numbering": canon.LP2_NUMBERING, **asdict(v)}
+        code = 0 if v.passed else (2 if v.status == "rig-broken" else 1)
+        line = f"ORACLE: {verdict}"
+    if a.json:
+        Path(a.json).write_text(json.dumps(out, indent=1, default=float) + "\n", encoding="utf-8")
+    print(line)
+    return code
+
+
+if __name__ == "__main__":
+    sys.exit(main())

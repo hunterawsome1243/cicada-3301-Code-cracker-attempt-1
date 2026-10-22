@@ -1,20 +1,20 @@
-[submodule "data/raw/rtkd-iddqd"]
-	path = data/raw/rtkd-iddqd
+[submodule "data/raw/rtkd"]
+	path = data/raw/rtkd
 	url = https://github.com/rtkd/iddqd.git
 	shallow = true
-[submodule "data/raw/scream314-cicada3301"]
-	path = data/raw/scream314-cicada3301
+[submodule "data/raw/scream314"]
+	path = data/raw/scream314
 	url = https://github.com/scream314/cicada3301.git
 	shallow = true
-[submodule "data/raw/yo-yo-yo-jbo-cicada_tools"]
-	path = data/raw/yo-yo-yo-jbo-cicada_tools
+[submodule "data/raw/cicada_tools"]
+	path = data/raw/cicada_tools
 	url = https://github.com/yo-yo-yo-jbo/cicada_tools.git
 	shallow = true
-[submodule "data/raw/Dukotah-cicada3301"]
-	path = data/raw/Dukotah-cicada3301
+[submodule "data/raw/dukotah"]
+	path = data/raw/dukotah
 	url = https://github.com/Dukotah/cicada3301.git
 	shallow = true
-[submodule "data/raw/jens-wedin-liber-primus"]
-	path = data/raw/jens-wedin-liber-primus
+[submodule "data/raw/jens-wedin"]
+	path = data/raw/jens-wedin
 	url = https://github.com/jens-wedin/liber-primus.git
 	shallow = true

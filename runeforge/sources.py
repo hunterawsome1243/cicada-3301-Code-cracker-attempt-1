@@ -24,11 +24,11 @@ from pathlib import Path
 from runeforge import gematria as gm
 from runeforge.paths import RAW_DIR
 
-RTKD_DIR = "rtkd-iddqd"
-SCREAM_DIR = "scream314-cicada3301"
-CICADA_TOOLS_DIR = "yo-yo-yo-jbo-cicada_tools"
-DUKOTAH_DIR = "Dukotah-cicada3301"
-JENS_DIR = "jens-wedin-liber-primus"
+RTKD_DIR = "rtkd"
+SCREAM_DIR = "scream314"
+CICADA_TOOLS_DIR = "cicada_tools"
+DUKOTAH_DIR = "dukotah"
+JENS_DIR = "jens-wedin"
 
 RTKD_MASTER = (
     f"{RTKD_DIR}/liber-primus__transcription--master/liber-primus__transcription--master.txt"

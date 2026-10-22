@@ -69,7 +69,7 @@ def test_table_matches_scream314_a_warning():
     their published English 'A WARNING / BELIEVE NOTHING FROM THIS BOOK / ...'."""
     from runeforge.transforms import Atbash
 
-    text = (RAW_DIR / "scream314-cicada3301" / "liber_primus.md").read_text(encoding="utf-8")
+    text = (RAW_DIR / "scream314" / "liber_primus.md").read_text(encoding="utf-8")
     section = text[text.index("## Runes - 01.jpg") : text.index("## Intus - 02.jpg")]
     runes = "".join(
         ln
@@ -146,9 +146,9 @@ def test_english_spelling_reproduces_the_solved_pages():
     of every solved section except a short, explained list of differences."""
     import difflib
 
-    text = (
-        RAW_DIR / "rtkd-iddqd/liber-primus__translation/liber-primus__translation.txt"
-    ).read_text(encoding="utf-8")
+    text = (RAW_DIR / "rtkd/liber-primus__translation/liber-primus__translation.txt").read_text(
+        encoding="utf-8"
+    )
     blocks = re.split(r"^\+\+\n\+ (0\.\d+)\n\+\n", text, flags=re.M)
     english = {}
     for key, body in zip(blocks[1::2], blocks[2::2], strict=True):

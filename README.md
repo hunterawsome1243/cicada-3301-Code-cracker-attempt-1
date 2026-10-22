@@ -4,10 +4,16 @@ A control-validated, GPU-ready cryptanalysis pipeline for the 56 unsolved pages 
 Cicada 3301's *Liber Primus* (LP2 pages 0–55), built so that every result — positive or
 negative — is reproducible, pre-registered and publishable.
 
-**Status: Phase 1 (foundation) complete.** The canon is rebuilt from raw transcriptions
-and cross-checked against three other lineages, all nine solved sections reproduce
-rune-for-rune, the published statistical fingerprint is reproduced as tests, and the
-oracle and ledger work. No attack lane has run yet.
+**Status: Phase 1 (foundation) built; the session toolbox built; no attack lane has run.**
+The canon is rebuilt from raw transcriptions and cross-checked against three other
+lineages, all nine solved sections reproduce rune-for-rune, the published statistical
+fingerprint is reproduced as tests, and the oracle and ledger work. The toolbox the
+session prompts call (`docs/BOOTSTRAP_CHECKLIST.md`) exists: calibrated family-wise bars,
+the planted control, murphy's fingerprint gate, a CPU sweep runner with detach, resume and
+crosser files, the results checker, the ledger validator, the frozen-file hooks and the
+stop gate. Not built yet: the Phase 2 Kneser-Ney scorer and beam interrupt decoder, and
+the Phase 3 CUDA kernels. Until the beam exists, a lane with a key-skip filter cannot pass
+its control and stays `INCONCLUSIVE (power)`.
 
 ## The canon
 
@@ -53,19 +59,78 @@ one of them (DV-01) is on an unsolved page.
 
 ```bash
 git clone <this repo> && cd <this repo>
-pip install -e '.[dev]'            # Python >= 3.11
+bash scripts/setup.sh              # venv, pip install -e '.[dev]', fetch_raw, corpora, trust anchor
+```
+
+or by hand:
+
+```bash
+pip install -e '.[dev]' sympy      # Python >= 3.11
 bash scripts/fetch_raw.sh          # sparse, pinned checkouts of the 5 source repos (~MB)
+python scripts/build_corpus.py     # scorer/gate corpora from the vendored texts (offline)
 python scripts/build_canon.py --check
 pytest -q
-runeforge canon --verify           # pins + counts
-runeforge solved                   # the nine solved sections (Rule 1)
-runeforge stats                    # the LP2 fingerprint
-runeforge oracle --selftest        # the oracle accepts a planted key and rejects a wrong one
-runeforge status                   # the ledger
+```
+
+The trust anchor (SESSION_PROMPT.md section A; CI runs the same commands):
+
+```bash
+pytest -q -m "not slow"
+runeforge canon --verify                 # pins + counts
+python -m runeforge.oracle --selftest    # last line: ORACLE SELF-TEST: PASS
+runeforge status --short                 # open lanes, jobs, round budget split
+python scripts/validate_ledger.py        # last line: Unsound negatives = 0
 ```
 
 `scripts/fetch_raw.sh --full` fetches the complete source repos, page images included
-(about 900 MB). Phase 4 needs them.
+(about 900 MB). Phase 4 needs them, and the download needs Hunter's approval (CLAUDE.md).
+
+## Running a lane
+
+Every step writes into the ledger or `runs/<lane_id>/`, and every printed number comes
+with the command that regenerates it. The procedure is SESSION_PROMPT.md section C.
+
+```bash
+cp lanes/_template.yaml lanes/<id>.yaml                       # then edit
+runeforge lane lanes/<id>.yaml                                # schema + runnable problems
+python scripts/threshold_for.py --n <N> --preset lp-ngram3:rigid --L 240   # the bars
+runeforge ledger append --set lane_id=<id> --set hypothesis='...' --set family=prng
+runeforge gate lanes/<id>.yaml        # murphy fingerprint gate, >= 12 keys, majority rule
+runeforge control lanes/<id>.yaml     # >= 20 plants, rank 1, floor vs ceiling in nats
+runeforge ledger update <id> --set positive_control=passed --set control_detail='...'
+runeforge sweep lanes/<id>.yaml --detach              # setsid; resumes from checkpoint.json
+runeforge status --short                              # live jobs, seeds/s, crossers
+runeforge crosser list                                # FLAGGED-FOR-ORACLE files
+runeforge crosser replay <kid>                        # HIT_PROTOCOL.md step 2
+runeforge crosser escalate <kid>                      # step 3
+runeforge crosser reencipher <kid>                    # step 6
+python -m runeforge.oracle --key-module <key.py>      # step 5
+python scripts/check_results.py lanes/<id>/RESULTS.md # must print PASS
+```
+
+`sweep --backend gpu` is refused until the Phase 3 kernels exist. The CPU backend is
+the reference implementation the GPU kernels will be parity-tested against.
+
+`queue.json` is a top-level JSON array of
+`{"id", "category", "approved", "gpu_hours_cap", "prereg_ready", "note"}`; `overnight.sh`
+runs only entries Hunter has set `"approved": true` on (`runeforge queue` prints it).
+
+## The toolbox and FROZEN.txt
+
+| file | what |
+|---|---|
+| `scripts/threshold_for.py` | family-wise bar for N trials from a Gumbel fit to observed block maxima (`runeforge/scoring/calib/presets/*.json`), with an out-of-sample check; refuses an uncalibrated length |
+| `scripts/calibrate.py` | writes those calibration files (10⁶ null strings per preset and length) |
+| `scripts/check_results.py` | PASS/FAIL on a lane's RESULTS.md: sections, vocabulary, verdict arithmetic |
+| `scripts/validate_ledger.py` | ledger schema, append-only history, and `Unsound negatives = N` |
+| `scripts/hooks/deny_frozen.sh` | PreToolUse hook: blocks edits to anything listed in `FROZEN.txt` |
+| `scripts/hooks/stop_gate.sh` | Stop hook: no session ends with a red trust anchor or an unsound ledger |
+| `.claude/settings.json` | registers the two hooks |
+| `.claude/rules/*.md`, `.claude/agents/verify-lane.md` | lane, report and GPU conventions; the independent re-derivation subagent |
+
+`FROZEN.txt` lists the files the overnight loop may not edit: the canon, the vendored
+sources, the oracle, the controls, the ledger, the stats fingerprint, the Phase 1 tests
+and the three scripts above. Changing any of them is Hunter's call.
 
 ## What Phase 1 reproduces
 
@@ -102,19 +167,28 @@ runeforge/
                    stream_subtract, totient_prime_stream, running_key, chain, compose
   interrupts.py    F-interrupt rule: rigid and skip_known decoders (beam: Phase 2)
   stats/           IoC, entropy, chi2, doublets, periodic IoC/kappa scans, shared-key scan
-  scoring/         baseline rune n-gram scorer (Phase 2 replaces it); family-wise bars
+  stats/fingerprint.py  murphy's constraints C1-C6 and the fingerprint gate
+  scoring/         baseline rune n-gram scorer (Phase 2 replaces it), named presets,
+                   calib/ (family-wise bars from observed maxima)
+  generators/      keystream generators: sha256-ctr (nulls), mt19937-py27, numpy-pcg64
+  corpus.py        rune corpora built by scripts/build_corpus.py
   controls.py      plant-and-recover harness (Rule 2)
   oracle.py        full-page, multi-page, family-wise verification (Rule 3)
   ledger.py        append-only JSONL ledger, Dukotah-compatible export
   lanes.py         lane YAML schema
+  queue.py         queue.json (Hunter's approvals)
+  runner/          lane runtime: pipeline, control, gate, sweep (detach/resume), crossers
   gpu/             Phase 3 (CUDA kernels)
-data/raw/          5 git submodules (read-only)
+data/raw/          5 git submodules (read-only): rtkd, scream314, cicada_tools, dukotah, jens-wedin
 data/canon/        lp2_runes.json, lp1_runes.json, solved_sections.json, pins, divergences
 data/reference/    cicada_tools' own decode of the solved sections
+data/corpora/      built by scripts/build_corpus.py (not committed)
 lanes/             one YAML per attack lane (_template.yaml = queue item 1)
 ledger/            ledger.jsonl (created by the first pre-registration)
-scripts/           build_canon.py, extract_reference.py, fetch_raw.sh
-tests/             Rules 1-3
+runs/              sweep state per lane (not committed)
+scripts/           build_canon.py, extract_reference.py, fetch_raw.sh, setup.sh, build_corpus.py,
+                   calibrate.py, threshold_for.py, check_results.py, validate_ledger.py, hooks/
+tests/             Rules 1-3 and the toolbox
 ```
 
 ## Roadmap
@@ -124,8 +198,9 @@ tests/             Rules 1-3
   `float32` table; null distributions per page length and register; a power table
   (`reports/scorer_power.md`); and the beam interrupt decoder. That decoder must recover
   a planted DIVINITY key that the rigid decoder rejects.
-- **Phase 3: CUDA sweep engine.** `runeforge sweep lanes/<lane>.yaml` with
-  checkpoint/resume, ≥ 10⁷ seeds/s, and the Dukotah never-run/parked queue. The queue
+- **Phase 3: CUDA sweep engine.** GPU kernels behind `runeforge sweep --backend gpu`,
+  parity-tested against the CPU runner, at ≥ 10⁷ seeds/s, and the Dukotah never-run/parked
+  queue. The queue
   starts with the Python 2.7 MT "exact" lane (`lanes/_template.yaml`).
 - **Phase 4: open research lanes.** Doublet-site image audit (P-8, which also settles
   DV-01), a keyed-increment chain cipher, a Z340-style transform screener, and OutGuess

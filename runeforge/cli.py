@@ -12,6 +12,7 @@ from rich.console import Console
 from rich.table import Table
 
 from runeforge import canon
+from runeforge.ledger import LedgerUnreadable
 from runeforge.paths import LEDGER_PATH, REPO_ROOT
 
 console = Console(soft_wrap=True)
@@ -130,54 +131,222 @@ def cmd_solved(_: argparse.Namespace) -> int:
     return 0 if ok_all else 1
 
 
-def cmd_status(args: argparse.Namespace) -> int:
+def _ledger(args):
     from runeforge.ledger import Ledger
 
-    ledger = Ledger(args.ledger)
-    rows = ledger.latest()
-    if not rows:
-        console.print(f"ledger {ledger.path} is empty -- no lane has been pre-registered yet")
+    return Ledger(getattr(args, "ledger", None) or LEDGER_PATH)
+
+
+OPEN = ("never-run", "running", "parked", "hit-unverified")
+TARGET_SPLIT = {"instrument": 30, "bounded": 40, "redteam": 20, "closeout": 10}
+
+
+def cmd_status(args: argparse.Namespace) -> int:
+    from runeforge.runner.jobs import RUNS_DIR, pid_alive_runeforge
+
+    ledger = _ledger(args)
+    rows = ledger.rows()
+    latest = ledger.latest()
+    if args.grep:
+        needle = args.grep.lower()
+        hits = [r for r in rows if needle in r.model_dump_json().lower()]
+        for r in hits:
+            console.print(
+                f"{r.recorded}  {r.lane_id:28s} {r.status:15s} {r.verdict or '':22s} "
+                f"{(r.hypothesis or '')[:70]}"
+            )
+        console.print(f"{len(hits)} row(s) match {args.grep!r}")
         return 0
-    t = Table(title=f"Ledger ({ledger.path})")
-    for col in ("lane", "family", "status", "control", "trials", "best", "bar", "finished"):
-        t.add_column(col)
-    for r in rows.values():
-        t.add_row(
-            r.lane_id,
-            r.family,
-            r.status,
-            r.control_result,
-            f"{r.n_trials:,}",
-            "" if r.best_score is None else f"{r.best_score:.3f}",
-            "" if r.family_wise_bar is None else f"{r.family_wise_bar:.3f}",
-            r.finished or "",
+    if args.round:
+        rounds = [r.round for r in rows if r.round]
+        rnd = args.round if args.round != "latest" else (rounds[-1] if rounds else None)
+        lanes = [r for r in latest.values() if rnd is None or r.round == rnd]
+        counts = {c: 0 for c in TARGET_SPLIT}
+        hours = {c: 0.0 for c in TARGET_SPLIT}
+        for r in lanes:
+            if r.category:
+                counts[r.category] += 1
+                hours[r.category] += _hours(r)
+        total_h = sum(hours.values())
+        total_n = sum(counts.values())
+        console.print(f"round {rnd or '(all)'}: {total_n} lane(s), {total_h:.1f} h recorded")
+        for c, target in TARGET_SPLIT.items():
+            share = 100 * (
+                hours[c] / total_h if total_h else (counts[c] / total_n if total_n else 0)
+            )
+            console.print(
+                f"  {c:10s} {counts[c]:3d} lane(s) {hours[c]:7.1f} h  {share:5.1f} % "
+                f"(target {target} %, {share - target:+.1f})"
+            )
+        if total_n:
+            gaps = {
+                c: TARGET_SPLIT[c] - 100 * (hours[c] / total_h if total_h else counts[c] / total_n)
+                for c in TARGET_SPLIT
+            }
+            console.print(f"furthest below its share: {max(gaps, key=gaps.get)}")
+        else:
+            console.print("no categorised lanes yet: every category is below its share")
+        return 0
+    # default / --short
+    open_rows = [r for r in latest.values() if r.status in OPEN]
+    console.print(
+        f"ledger {ledger.path}: {len(rows)} row(s), {len(latest)} lane(s); numbering LP2-0-57"
+    )
+    console.print(f"open lanes: {len(open_rows)}")
+    for r in open_rows:
+        cursor = ""
+        if isinstance(r.parked_state, dict) and "cursor" in r.parked_state:
+            cursor = f" cursor {r.parked_state['cursor']}"
+        console.print(f"  {r.lane_id:28s} {r.status:14s} control={r.positive_control}{cursor}")
+    jobs = []
+    for pidfile in sorted(RUNS_DIR.glob("*/sweep.pid")):
+        try:
+            pid = int(pidfile.read_text().strip())
+        except (OSError, ValueError):
+            continue
+        st = pidfile.parent / "status.json"
+        info = json.loads(st.read_text()) if st.exists() else {}
+        alive = pid_alive_runeforge(pid)
+        jobs.append((pidfile.parent.name, pid, alive, info))
+    console.print(f"jobs: {sum(1 for j in jobs if j[2])} alive, {len(jobs)} with a sweep.pid")
+    for name, pid, alive, info in jobs:
+        console.print(
+            f"  {name:28s} pid {pid:<8d} {'ALIVE' if alive else 'dead '} "
+            f"cursor {info.get('cursor')} done {info.get('done')} kill {info.get('kill_condition')}"
         )
-    console.print(t)
+        if (
+            not alive
+            and not info.get("done")
+            and latest.get(name)
+            and latest[name].status == "running"
+        ):
+            console.print(
+                "    [yellow]dead PID with a running row: park it with its cursor[/yellow]"
+            )
+    if not args.short:
+        t = Table(title="last rows")
+        for col in ("recorded", "lane", "status", "verdict", "control", "threshold"):
+            t.add_column(col)
+        for r in rows[-5:]:
+            t.add_row(
+                r.recorded,
+                r.lane_id,
+                r.status,
+                r.verdict or "",
+                r.positive_control,
+                "" if r.threshold is None else str(r.threshold),
+            )
+        console.print(t)
+    else:
+        for r in rows[-5:]:
+            console.print(f"  {r.recorded} {r.lane_id} -> {r.status} {r.verdict or ''}")
+    return 0
+
+
+def _hours(r) -> float:
+    from datetime import datetime
+
+    if not (r.started and r.finished):
+        return 0.0
+    try:
+        return (
+            datetime.fromisoformat(r.finished) - datetime.fromisoformat(r.started)
+        ).total_seconds() / 3600
+    except ValueError:
+        return 0.0
+
+
+def _parse_sets(pairs: list[str]) -> dict:
+    out = {}
+    for item in pairs or []:
+        key, sep, value = item.partition("=")
+        if not sep:
+            raise SystemExit(f"--set expects key=value, got {item!r}")
+        try:
+            out[key] = json.loads(value)
+        except json.JSONDecodeError:
+            out[key] = value
+    return out
+
+
+def cmd_ledger(args: argparse.Namespace) -> int:
+    from pydantic import ValidationError
+
+    from runeforge.ledger import to_upstream
+
+    ledger = _ledger(args)
+    fields = {}
+    if getattr(args, "json", None):
+        if args.json == "-":
+            src = sys.stdin.read()
+        else:
+            with open(args.json, encoding="utf-8") as fh:
+                src = fh.read()
+        fields.update(json.loads(src))
+    fields.update(_parse_sets(getattr(args, "set", None)))
+    try:
+        if args.action == "append":
+            lane_id = args.lane_id or fields.pop("lane_id", None)
+            if not lane_id:
+                raise SystemExit("append needs a lane id")
+            fields.pop("lane_id", None)
+            hyp, fam = fields.pop("hypothesis", None), fields.pop("family", None)
+            if not hyp or not fam:
+                raise SystemExit("append needs hypothesis and family (--set or --json)")
+            row = ledger.new(lane_id, hyp, fam, **fields)
+        elif args.action == "update":
+            fields.pop("lane_id", None)
+            row = ledger.update(args.lane_id, **fields)
+        else:  # show
+            row = ledger.get(args.lane_id)
+            if row is None:
+                console.print(f"no lane {args.lane_id}")
+                return 1
+            data = to_upstream(row) if args.upstream else row.model_dump()
+            print(json.dumps(data, indent=1, default=str))
+            return 0
+    except (ValidationError, ValueError) as exc:
+        console.print(f"[red]refused[/red]: {exc}")
+        return 2
+    console.print(f"appended {row.lane_id} -> {row.status} ({ledger.path})")
+    return 0
+
+
+def cmd_queue(args: argparse.Namespace) -> int:
+    from runeforge.queue import load_queue
+
+    try:
+        entries = load_queue()
+    except ValueError as exc:
+        console.print(f"[red]queue.json invalid[/red]: {exc}")
+        return 2
+    latest = _ledger(args).latest()
+    if not entries:
+        console.print(
+            "queue.json: no entries (Hunter approves lanes here; the loop never invents one)"
+        )
+        return 0
+    for e in entries:
+        st = latest[e.id].status if e.id in latest else "no row"
+        console.print(
+            f"  {e.id:28s} {e.category:10s} approved={e.approved!s:5s} "
+            f"gpu_hours_cap={e.gpu_hours_cap} prereg_ready={e.prereg_ready} ledger={st}"
+        )
+    nxt = [
+        e
+        for e in entries
+        if e.approved
+        and (latest.get(e.id) is None or latest[e.id].status in ("never-run", "parked"))
+    ]
+    console.print(f"next runnable: {nxt[0].id if nxt else 'none'}")
     return 0
 
 
 def cmd_oracle(args: argparse.Namespace) -> int:
     from runeforge import oracle
 
-    if args.selftest:
-        r = oracle.selftest()
-        for name in ("correct", "wrong"):
-            v = r[name]
-            console.print(f"{name:7s} key -> {v.status:12s} {v.criteria}")
-        console.print(
-            f"ORACLE SELF-TEST: {'[green]PASS[/green]' if r['passed'] else '[red]FAIL[/red]'}"
-        )
-        return 0 if r["passed"] else 2
-    failures = oracle.regression_failures()
-    console.print(
-        "regression: "
-        + (
-            "[green]all solved sections reproduce[/green]"
-            if not failures
-            else f"[red]{failures}[/red]"
-        )
-    )
-    return 1 if failures else 0
+    argv = ["--selftest"] if args.selftest else ["--regression"]
+    return oracle.main(argv)
 
 
 def cmd_lane(args: argparse.Namespace) -> int:
@@ -188,6 +357,94 @@ def cmd_lane(args: argparse.Namespace) -> int:
     for p in lane.runnable_problems():
         console.print(f"  [yellow]not runnable[/yellow]: {p}")
     return 0
+
+
+def cmd_gate(args: argparse.Namespace) -> int:
+    from runeforge.lanes import load_lane
+    from runeforge.runner import gate
+    from runeforge.runner.sweep import run_dir
+
+    try:
+        lane = load_lane(args.lane)
+        res = gate.run_gate(lane, seeds=args.seeds, corpus=args.corpus)
+    except (ValueError, FileNotFoundError) as exc:
+        console.print(f"[red]REFUSED:[/red] {exc}")
+        return 2
+    mark = {"PASS": ".", "FAIL": "F", "FAIL(soft)": "f", "INFO": "i"}
+    first = res.per_seed_rows[0] if res.per_seed_rows else []
+    console.print(
+        f"{lane.lane_id}: fingerprint gate over {len(res.per_seed_rows)} keys (numbering: LP2-0-57)"
+    )
+    console.print("  per key: . pass  F fail  f soft fail  i info")
+    for j, r0 in enumerate(first):
+        marks = "".join(mark.get(rows[j].verdict, "?") for rows in res.per_seed_rows)
+        console.print(f"  {r0.id:36s} LP2 {r0.lp2!s:>8}  band {r0.band:38s} {marks}")
+    out = gate.write_report(lane, res, run_dir(lane))
+    console.print(
+        f"fails per constraint over {args.seeds} keys: {res.fails_per_constraint or 'none'}"
+    )
+    console.print(res.verdict_line)
+    if res.verdict_line.startswith("GATE FAIL"):
+        console.print("verdict: EXCLUDED (gate) -- excludes the typical key, not the family")
+    console.print(f"wrote {out}")
+    return 1 if res.verdict_line.startswith("GATE FAIL") else 0
+
+
+def cmd_control(args: argparse.Namespace) -> int:
+    from runeforge.lanes import load_lane
+    from runeforge.runner import control
+    from runeforge.runner.sweep import run_dir
+
+    try:
+        lane = load_lane(args.lane)
+        rep = control.run_control(lane, seed=args.seed)
+    except (ValueError, FileNotFoundError) as exc:
+        console.print(f"[red]REFUSED:[/red] {exc}")
+        return 2
+    for p in rep.plants:
+        console.print(
+            f"  seed {p.seed:>12d} offset {p.offset:5d} rank {p.rank:4d} recovery {p.recovery:.3f} "
+            f"planted {p.planted_score:.4f} best decoy {p.best_decoy:.4f} ceiling {p.ceiling:.4f}"
+        )
+    out = control.write_report(rep, run_dir(lane))
+    console.print(rep.summary())
+    for reason in rep.reasons:
+        console.print(f"  [yellow]{reason}[/yellow]")
+    if rep.status != "passed":
+        console.print(
+            f"lane verdict if it stops here: {rep.verdict_if_failed} (do not lower the bar)"
+        )
+    console.print(f"wrote {out}")
+    return 0 if rep.status == "passed" else 1
+
+
+def cmd_sweep(args: argparse.Namespace) -> int:
+    from pathlib import Path
+
+    from runeforge.runner import sweep
+
+    if args.backend == "gpu":
+        console.print("[red]the GPU backend is Phase 3 (runeforge/gpu); use --backend cpu[/red]")
+        return 2
+    ledger = Path(args.ledger) if args.ledger else None
+    if args.detach:
+        return sweep.launch_detached(
+            Path(args.lane), not args.no_resume, False, ledger, max_seeds=args.max_seeds
+        )
+    return sweep.run(Path(args.lane), not args.no_resume, False, ledger, max_seeds=args.max_seeds)
+
+
+def cmd_crosser(args: argparse.Namespace) -> int:
+    from runeforge.runner import crosser
+
+    if args.action == "list":
+        for p in crosser.pending_list():
+            console.print(str(p))
+        return 0
+    fn = {"replay": crosser.replay, "escalate": crosser.escalate, "reencipher": crosser.reencipher}
+    out = fn[args.action](args.kid)
+    console.print(json.dumps(out, indent=1, default=float))
+    return 0 if out["verdict"] in ("PARITY-OK", "passes step 3", "passes step 6") else 1
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -202,17 +459,59 @@ def main(argv: list[str] | None = None) -> int:
     p.set_defaults(fn=cmd_stats)
     p = sub.add_parser("solved", help="reproduce the nine solved sections")
     p.set_defaults(fn=cmd_solved)
-    p = sub.add_parser("status", help="print the ledger")
+    p = sub.add_parser("status", help="the ledger: open lanes, jobs, last rows")
+    p.add_argument("--short", action="store_true")
+    p.add_argument("--round", nargs="?", const="latest", help="budget split for a round")
+    p.add_argument("--grep", help="rows mentioning this text")
     p.add_argument("--ledger", default=str(LEDGER_PATH))
     p.set_defaults(fn=cmd_status)
+    p = sub.add_parser("ledger", help="append or update ledger rows (append-only)")
+    p.add_argument("action", choices=("append", "update", "show"))
+    p.add_argument("lane_id", nargs="?")
+    p.add_argument("--set", action="append", metavar="KEY=VALUE", help="JSON values allowed")
+    p.add_argument("--json", help="a JSON object of fields (file or - for stdin)")
+    p.add_argument("--upstream", action="store_true", help="show: Dukotah LEDGER.json shape")
+    p.add_argument("--ledger", default=str(LEDGER_PATH))
+    p.set_defaults(fn=cmd_ledger)
+    p = sub.add_parser("queue", help="queue.json joined with ledger status")
+    p.add_argument("--ledger", default=str(LEDGER_PATH))
+    p.set_defaults(fn=cmd_queue)
     p = sub.add_parser("oracle", help="oracle regression check / self-test")
     p.add_argument("--selftest", action="store_true")
     p.set_defaults(fn=cmd_oracle)
     p = sub.add_parser("lane", help="validate a lane YAML")
     p.add_argument("path")
     p.set_defaults(fn=cmd_lane)
+    p = sub.add_parser("gate", help="fingerprint pre-filter: simulate the family on English")
+    p.add_argument("lane")
+    p.add_argument("--seeds", type=int, default=12)
+    p.add_argument("--corpus", default="cicada-english")
+    p.set_defaults(fn=cmd_gate)
+    p = sub.add_parser("control", help="planted positive through the lane's exact pipeline")
+    p.add_argument("lane")
+    p.add_argument("--seed", type=int, default=3301)
+    p.set_defaults(fn=cmd_control)
+    p = sub.add_parser("sweep", help="run a lane (checkpoint/resume; --detach for long runs)")
+    p.add_argument("lane")
+    p.add_argument("--detach", action="store_true")
+    p.add_argument("--resume", action="store_true", help="(default)")
+    p.add_argument("--no-resume", action="store_true")
+    p.add_argument("--backend", choices=("cpu", "gpu"), default="cpu")
+    p.add_argument("--max-seeds", type=int)
+    p.add_argument("--ledger")
+    p.set_defaults(fn=cmd_sweep)
+    p = sub.add_parser("crosser", help="HIT_PROTOCOL steps: replay, escalate, reencipher")
+    p.add_argument("action", choices=("list", "replay", "escalate", "reencipher"))
+    p.add_argument("kid", nargs="?")
+    p.add_argument("--cpu", action="store_true", help="(replay always uses the CPU reference)")
+    p.set_defaults(fn=cmd_crosser)
     args = ap.parse_args(argv)
-    return args.fn(args)
+    try:
+        return args.fn(args)
+    except LedgerUnreadable as exc:
+        print(f"ledger unreadable: {exc}", file=sys.stderr)
+        print("run: python scripts/validate_ledger.py", file=sys.stderr)
+        return 1
 
 
 if __name__ == "__main__":

@@ -6,7 +6,8 @@ on:
 
 jobs:
   rules:
-    # Rule 1 (reproduce), Rule 2 (plant), Rule 3 (oracle) all live in the test suite.
+    # Rule 1 (reproduce), Rule 2 (plant), Rule 3 (oracle) all live in the test suite;
+    # the steps below are the session trust anchor (SESSION_PROMPT.md section A).
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -22,10 +23,13 @@ jobs:
         run: pip install -e '.[dev]' sympy
       - name: Fetch vendored sources (sparse, pinned commits)
         run: bash scripts/fetch_raw.sh
+      - name: Build corpora (offline, from the vendored texts)
+        run: python scripts/build_corpus.py
       - name: Lint
         run: |
           ruff check runeforge scripts tests
           black --check runeforge scripts tests
+          bash -n overnight.sh scripts/*.sh scripts/hooks/*.sh
       - name: Canon -- three-way cross-check and pinned SHA-256
         run: |
           python scripts/build_canon.py --check
@@ -34,5 +38,11 @@ jobs:
         run: python scripts/extract_reference.py --check
       - name: Tests
         run: pytest -q
-      - name: Oracle self-test
-        run: runeforge oracle --selftest
+      - name: Trust anchor (the exact commands CLAUDE.md names)
+        run: |
+          pytest -q -m "not slow" >/dev/null
+          python -m runeforge.oracle --selftest
+          python scripts/validate_ledger.py
+          python data/raw/dukotah/liber-primus/verify_solution.py --selftest
+      - name: Queue is readable by overnight.sh
+        run: jq -e '[.[] | select(.approved==true)] | length' queue.json

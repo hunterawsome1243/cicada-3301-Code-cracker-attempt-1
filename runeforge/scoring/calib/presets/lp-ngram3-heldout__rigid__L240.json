@@ -1,0 +1,32 @@
+{
+ "preset": "lp-ngram3-heldout:rigid",
+ "scorer": "lp-ngram3-heldout",
+ "decoder": "rigid",
+ "L": 240,
+ "units": "mean log2-probability per rune (higher = more language-like)",
+ "scorer_fingerprint": "a144706ac65a67119a825883df063b5cac38c021818a298dc8becf07dcb58870",
+ "method": "Gumbel MoM fit to 1000 block maxima of 1000 uniform random strings; max of N = k*1000 is Gumbel(mu_b + beta ln k, beta)",
+ "draws": 1000000,
+ "seed": 3301,
+ "null": {
+  "n": 10000,
+  "mean": -7.168395023996991,
+  "sd": 0.15107510024224058
+ },
+ "fit": {
+  "block": 1000,
+  "mu_block": -6.694223153564117,
+  "beta": 0.04374644822009847,
+  "n_blocks": 1000
+ },
+ "check": {
+  "mean_max_25000": -6.5331216674546395,
+  "predicted_mean_max_25000": -6.528157633768149,
+  "max_1000000": -6.395178604125976,
+  "predicted_mean_max_1000000": -6.366782259738568,
+  "max_error": 0.028396344387408234
+ },
+ "created": "2026-10-22T02:25:22+00:00",
+ "git_sha": "3d7328a31baabda9b8cbffe5450c3e49a2fb0b3c",
+ "seconds": 11.9
+}

@@ -1,31 +1,57 @@
 # Lane template -- copy to lanes/<lane_id>.yaml. Files starting with "_" are never run.
-# Every field is validated by runeforge.lanes.LaneSpec; the sweep runner writes the
-# pre-registration ledger row from this file BEFORE the first seed is scored, and
-# refuses to start while the bars are null or the control is not required to recover.
+# Every field is validated by runeforge.lanes.LaneSpec. Before a lane runs it needs a
+# ledger row (`runeforge ledger append`), a passing control (`runeforge control`), the
+# fingerprint gate (`runeforge gate`) and family-wise bars from scripts/threshold_for.py
+# at the lane's true N. `runeforge sweep` refuses to start without all of them.
 #
 # Example below: queue item 1 of spec section 4.2, Python 2.7 random (MT19937) seeded
 # 32-bit, the "exact" key-skip relation. Dukotah/cicada3301 parked this lane at 44.14 %
 # (1,895,728,884 of 2^32 seeds, six worker bands, 2026-09-15). Their run/ state is not
 # in a clone, so it restarts from seed 0 here; the cursor below is OURS.
+#
+# Its control is expected to come back INCONCLUSIVE (power) until the Phase 2 beam
+# decoder exists: the rigid decoder cannot follow anti-repeat key skips.
 lane_id: P3-MT19937-PY27-EXACT
 hypothesis: >-
   The LP2 0-55 keystream is Python 2.7 random.Random(seed) output reduced mod 29 for a
   32-bit seed, combined under the "exact" key-skip relation.
 family: prng
-generator: mt19937-py27
+category: bounded          # instrument | bounded | redteam | closeout (budget split 30/40/20/10)
+prereg: null               # path of the pre-registration note, e.g. reports/prereg/<lane>.md
+generator: mt19937-py27    # runeforge.generators.names()
+generator_params:
+  mode: random29
 seed_range: [0, 4294967296]
 chunk_size: 16777216
-ciphertext_view: raw
-filter_model: anti-repeat
+ciphertext_view: raw       # raw | atbash | chain-increment | first-difference
+combine: vigenere          # vigenere (c = p + k) | variant-beaufort (c = p - k) | beaufort (c = k - p)
+key_offset: 0
+filter_model: anti-repeat  # off | anti-repeat
+p_keep: 0.17               # anti-repeat: a repeated cipher rune survives with this probability
+interrupt_prob: 0.44       # plaintext F left as an unencrypted interrupter (11 of 25 in WELCOME)
 scorer_register: english
+preset: lp-ngram3-heldout:rigid  # <scorer>:<decoder>; calibrated: runeforge.scoring.calib.available()
+window: 240                # runes of the selected stream that are scored
 pages: [0, 1, 2, 3, 4, 5]
-claim_bar: null        # computed by the Phase 2 calibration -- never copied from upstream
-family_wise_bar: null  # bar(N = 2^32) from our own null, see runeforge.scoring.calibration
+claim_bar: null        # screening bar, <= family_wise_bar; never copied from upstream
+family_wise_bar: null  # scripts/threshold_for.py --n 4294967296 --preset lp-ngram3-heldout:rigid --L 240
 control:
   planted_seed: 3301
-  synthetic_page: solved:a-koan-1
+  synthetic_page: solved:a-koan-1   # must be held out of the preset's training text (checked)
   n_runes: 250
   must_recover: true
+  n_plants: 20
+  decoys: 999
+  min_recovery: 0.90
+  min_identified: 0.90
+budget:
+  wall_clock_hours: null
+  gpu_hours_cap: 0.0
+  max_seeds: null
+kill_condition:            # Q5 of the Aiming Test, checked once at at_fraction of the slice
+  at_fraction: 0.10
+  min_seeds_per_s: null
+  max_crossers: null
 resume_cursor: null
 params:
   reduction: mod29

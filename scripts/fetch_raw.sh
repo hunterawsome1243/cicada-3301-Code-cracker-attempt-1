@@ -17,17 +17,27 @@ fi
 
 sparse_paths() {
   case "$1" in
-    rtkd-iddqd) printf '%s\n' \
+    rtkd) printf '%s\n' \
       /liber-primus__transcription--master/ /liber-primus__translation/ \
       /liber-primus__keys/ /liber-primus__index/ ;;
-    scream314-cicada3301) printf '%s\n' /liber_primus.md /gematria_primus.md /pages_and_ciphers.md /README.md ;;
-    yo-yo-yo-jbo-cicada_tools) printf '%s\n' '/*.py' '/*.txt' /liber_primus/ /README.md ;;
-    Dukotah-cicada3301) printf '%s\n' \
+    scream314) printf '%s\n' /liber_primus.md /gematria_primus.md /pages_and_ciphers.md /README.md ;;
+    cicada_tools) printf '%s\n' '/*.py' '/*.txt' /liber_primus/ /README.md ;;
+    dukotah) printf '%s\n' \
       /README.md /liber-primus/PROBLEM.json /liber-primus/LEDGER.json /liber-primus/SOLVED-PAGES.json \
-      /liber-primus/verify_solution.py /liber-primus/ELIMINATION-LEDGER.md \
-      /liber-primus/SOLVERS-DOSSIER.md /liber-primus/handoff/ /liber-primus/benchmark/ \
-      /liber-primus/data/krisyotam_runes.txt /corpus/B-liber-primus/CONFLICTS-B.md ;;
-    jens-wedin-liber-primus) printf '%s\n' /README.md /validate_solved.py /src/core/ ;;
+      /liber-primus/ELIMINATION-LEDGER.md /liber-primus/SOLVERS-DOSSIER.md /liber-primus/ARMADA-DOCTRINE.md \
+      /liber-primus/handoff/ /liber-primus/benchmark/ /corpus/B-liber-primus/CONFLICTS-B.md \
+      /liber-primus/verify_solution.py /liber-primus/src/ /liber-primus/tests/ \
+      /liber-primus/analysis/run_stats.py /liber-primus/analysis/round11/lib_numchannel.py \
+      /liber-primus/analysis/campaign18_skip/skipdecode.py /liber-primus/analysis/handoff/validate_ledger.py \
+      /liber-primus/analysis/round19/G3/gen_py27.py /liber-primus/analysis/round19/G3/validation.json \
+      /liber-primus/data/krisyotam_runes.txt /liber-primus/data/english_quadgrams.txt \
+      /liber-primus/data/scream314_lp.md \
+      /liber-primus/data/keys/self_reliance.txt \
+      /liber-primus/data/keys/armada18/emerson_essays_first_series.txt \
+      /liber-primus/data/keys/armada18/melville_moby_dick.txt \
+      /liber-primus/analysis/latin/latin_218.txt \
+      /liber-primus/analysis/round10b/B6-non-english-plaintext/corpora/oe_beowulf.txt ;;
+    jens-wedin) printf '%s\n' /README.md /validate_solved.py /src/core/ ;;
     *) echo "unknown source $1" >&2; return 1 ;;
   esac
 }
