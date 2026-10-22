@@ -149,6 +149,7 @@ def threshold_for(
     alpha: float = 0.01,
     floor: float | None = None,
     null_max: float | None = None,
+    null2_max: float | None = None,
 ) -> Threshold:
     """The family-wise bar for the best of ``n_trials`` decodes at length ``length``.
 
@@ -156,17 +157,30 @@ def threshold_for(
     1 - alpha quantile of the max of N, so P(any null crosses) = alpha and the expected number
     of null crossers N * P(single clears) is -ln(1 - alpha) (about alpha, < 1).
     For smaller N the rule is max(floor, null_max + 0.5) with a size-matched shuffle null of
-    the real runes (n >= 200), which the caller must supply as ``null_max``.
+    the real runes (n >= 200), supplied as ``null_max``, raised to null2_max + 0.5 when the
+    second null (a domain-separated SHA-256 stream) is given. The preset must still be
+    calibrated at this length: the expected false positives N * P(clear) at that bar come from
+    its Gumbel fit, and are a number, never NaN.
     """
     if n_trials < 1:
         raise ValueError("n_trials must be >= 1")
+    rec = load(preset, length)  # an unknown preset or length is refused in both regimes
+    mu_b, beta = rec["fit"]["mu_block"], rec["fit"]["beta"]
     if n_trials < BLOCK:
         if null_max is None:
             raise ValueError(
                 f"N={n_trials} < {BLOCK}: small-N rule max(floor, null_max + 0.5) needs "
                 "--null-max from a size-matched shuffle null (n >= 200) of the real runes"
             )
-        bar = null_max + 0.5 if floor is None else max(floor, null_max + 0.5)
+        parts = [null_max + 0.5] + ([] if null2_max is None else [null2_max + 0.5])
+        bar = max(parts) if floor is None else max(floor, *parts)
+        p_block = 1 - math.exp(-math.exp(-(bar - mu_b) / beta))  # P(max of 1,000 > bar)
+        p_single = 1 - (1 - p_block) ** (1 / BLOCK)
+        note = (
+            "small N: max("
+            + ("floor, " if floor is not None else "no floor, ")
+            + ("null_max + 0.5" + (", null2_max + 0.5)" if null2_max is not None else ")"))
+        )
         return Threshold(
             preset,
             length,
@@ -175,11 +189,9 @@ def threshold_for(
             "small-n",
             bar,
             null_max,
-            float("nan"),
-            "small N: max(floor, null_max + 0.5)",
+            n_trials * p_single,
+            f"{note}; P(clear) from {path_for(preset, length).name}",
         )
-    rec = load(preset, length)
-    mu_b, beta = rec["fit"]["mu_block"], rec["fit"]["beta"]
     mu_n = mu_b + beta * math.log(n_trials / BLOCK)
     bar = mu_n - beta * math.log(-math.log(1 - alpha))
     if floor is not None:

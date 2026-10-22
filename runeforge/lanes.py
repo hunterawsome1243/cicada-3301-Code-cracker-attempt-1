@@ -13,12 +13,37 @@ from typing import Any, Literal
 import yaml
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
+# SESSION_PROMPT.md section C2's pass bar. A lane may raise it, never lower it.
+MIN_PLANTS = 20
+MIN_DECOYS = 99
+MIN_RECOVERY = 0.90
+MIN_IDENTIFIED = 0.90
+
 
 class ControlSpec(BaseModel):
     """The planted positive (SESSION_PROMPT.md section C2): >= 20 plants in the real shape,
     each recovered at rank 1 among ``decoys`` wrong seeds with rune-index recovery >= 0.90."""
 
     model_config = ConfigDict(extra="forbid")
+
+    @model_validator(mode="after")
+    def _pass_bar(self) -> ControlSpec:
+        low = [
+            f"{k} {v} < {floor}"
+            for k, v, floor in (
+                ("n_plants", self.n_plants, MIN_PLANTS),
+                ("decoys", self.decoys, MIN_DECOYS),
+                ("min_recovery", self.min_recovery, MIN_RECOVERY),
+                ("min_identified", self.min_identified, MIN_IDENTIFIED),
+            )
+            if v < floor
+        ]
+        if low:
+            raise ValueError(
+                "the control's pass bar may be raised, never lowered (SESSION_PROMPT.md C2): "
+                + ", ".join(low)
+            )
+        return self
 
     planted_seed: int | str
     synthetic_page: str = Field(
@@ -106,8 +131,6 @@ class LaneSpec(BaseModel):
             out.append("claim_bar (screening) must not exceed family_wise_bar")
         if not self.control.must_recover:
             out.append("control does not require recovery (Rule 2)")
-        if self.control.n_plants < 20:
-            out.append("the control needs >= 20 plants (SESSION_PROMPT.md section C2)")
         return out
 
 

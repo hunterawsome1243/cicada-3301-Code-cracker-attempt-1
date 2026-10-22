@@ -14,7 +14,7 @@ import json
 from pathlib import Path
 from typing import Literal
 
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, StrictBool, StrictFloat, StrictInt
 
 from runeforge.paths import REPO_ROOT
 
@@ -22,13 +22,16 @@ QUEUE_PATH = REPO_ROOT / "queue.json"
 
 
 class QueueEntry(BaseModel):
+    """Strict types: overnight.sh approves only a literal JSON ``true`` (``.approved==true``),
+    so ``"yes"`` or ``1`` must be refused here rather than read as approved."""
+
     model_config = ConfigDict(extra="forbid")
 
     id: str
     category: Literal["instrument", "bounded", "redteam", "closeout"]
-    approved: bool = False
-    gpu_hours_cap: float = 0.0
-    prereg_ready: bool = False
+    approved: StrictBool = False
+    gpu_hours_cap: StrictInt | StrictFloat = 0.0
+    prereg_ready: StrictBool = False
     note: str | None = None
 
 

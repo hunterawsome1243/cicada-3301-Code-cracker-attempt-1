@@ -15,6 +15,8 @@ CONDITIONALS = {
     "decoder": "rigid screen, keyskip1 beam adjudication",
     "register": "cicada-english n-gram",
 }
+# what `runeforge control` records for a passing control
+CONTROL = {"path": "lanes/L-1/control-0123456789ab.json", "sha256": "0" * 64, "status": "passed"}
 
 
 def test_status_vocabulary_matches_claude_md():
@@ -46,6 +48,7 @@ def test_preregister_then_result(tmp_path):
         "L-1",
         "negative",
         positive_control="passed",
+        control_detail=CONTROL,
         n_trials=10,
         best_score=-7.1,
         conditionals=CONDITIONALS,
@@ -81,21 +84,23 @@ def test_rule2_no_negative_without_a_passing_control():
     good = dict(threshold=-6.0, threshold_fixed_in_advance=True, conditionals=CONDITIONALS)
     with pytest.raises(ValidationError, match="inconclusive"):
         LedgerRow(**base, status="negative", **good)
+    passed = dict(positive_control="passed", control_detail=CONTROL)
     with pytest.raises(ValidationError, match="threshold"):
-        LedgerRow(**base, status="negative", positive_control="passed", conditionals=CONDITIONALS)
+        LedgerRow(**base, status="negative", **passed, conditionals=CONDITIONALS)
     with pytest.raises(ValidationError, match="conditionals"):
         LedgerRow(
-            **base,
-            status="negative",
-            positive_control="passed",
-            threshold=-6.0,
-            threshold_fixed_in_advance=True,
+            **base, status="negative", **passed, threshold=-6.0, threshold_fixed_in_advance=True
         )
     with pytest.raises(ValidationError, match="passing control"):
         LedgerRow(**base, status="hit-verified", positive_control="failed")
+    with pytest.raises(ValidationError, match="must cite its evidence"):
+        LedgerRow(**base, status="negative", positive_control="passed", **good)
+    # a verified hit needs the same frozen bar and conditionals as a negative
+    with pytest.raises(ValidationError, match="threshold"):
+        LedgerRow(**base, status="hit-verified", **passed)
     row = LedgerRow(**base, status="inconclusive", positive_control="failed")
     assert to_upstream(row)["status"] == "open"
-    ok = LedgerRow(**base, status="negative", positive_control="passed", **good)
+    ok = LedgerRow(**base, status="negative", **passed, **good)
     assert ok.status == "negative"
 
 
@@ -112,6 +117,7 @@ def test_upstream_mapping_uses_dukotah_field_names():
         family="prng",
         status="negative",
         positive_control="passed",
+        control_detail=CONTROL,
         n_trials=2**32,
         threshold=-6.1,
         threshold_fixed_in_advance=True,
@@ -191,3 +197,38 @@ def test_a_repaired_lane_keeps_its_bad_row_readable(tmp_path):
     led.update("L-1", status="superseded", superseded_by=["R-1"])  # the CLI's path
     assert [r.status for r in led.rows()] == ["negative", "inconclusive", "superseded"]
     assert led.get("L-1").status == "superseded"
+
+
+def test_a_concluded_threshold_must_be_on_record_before_the_result(tmp_path):
+    """'Fixed in advance' declared on the result row itself is not in advance."""
+    led = Ledger(tmp_path / "ledger.jsonl")
+    led.new("L-1", "h", "prng")
+    result = dict(
+        positive_control="passed",
+        control_detail=CONTROL,
+        threshold=-6.0,
+        threshold_fixed_in_advance=True,
+        conditionals=CONDITIONALS,
+    )
+    with pytest.raises(ValueError, match="EARLIER row"):
+        led.update("L-1", status="negative", **result)
+    with pytest.raises(ValueError, match="EARLIER row"):  # nor as a lane's first row
+        led.new("L-2", "h", "prng", status="negative", **result)
+    led.update("L-1", threshold=-6.0, threshold_fixed_in_advance=True)  # pre-registration
+    assert led.update("L-1", status="negative", **result).status == "negative"
+
+
+def test_append_revalidates_a_copied_row(tmp_path):
+    led = Ledger(tmp_path / "ledger.jsonl")
+    row = led.new("API-A", "h", "prng")
+    with pytest.raises(ValidationError, match="inconclusive"):
+        led.append(row.model_copy(update={"status": "negative"}))
+    assert [r.status for r in led.rows()] == ["never-run"]
+
+
+def test_a_restart_counts_hours_from_the_restart(tmp_path):
+    led = Ledger(tmp_path / "ledger.jsonl")
+    led.new("L-P", "h", "prng", status="running", started="2026-10-01T00:00:00+00:00")
+    led.update("L-P", status="parked", finished="2026-10-01T02:00:00+00:00")
+    again = led.update("L-P", status="running")
+    assert again.finished is None and again.started > "2026-10-01T02:00:00+00:00"

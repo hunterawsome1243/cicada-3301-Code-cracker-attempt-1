@@ -39,6 +39,7 @@ from __future__ import annotations
 
 import argparse
 import glob
+import hashlib
 import itertools
 import json
 import os
@@ -79,6 +80,7 @@ NUMBERING = "LP2-0-57"
 REQUIRED = ("lane_id", "hypothesis", "family", "status")
 OPEN = ("never-run", "running", "parked")
 CONCLUDED = ("negative", "inconclusive", "hit-unverified", "hit-verified")
+RESULT_SEEN = ("negative", "hit-unverified", "hit-verified")  # a bar here was used on a result
 
 NUM = (int, float)
 NONE = type(None)
@@ -316,6 +318,8 @@ def _check_row(
         err(
             f"{at} hit-verified but positive_control={pc!r}; a verified hit needs a passing control"
         )
+    if pc == "passed":
+        _check_control_evidence(at, row.get("control_detail"), root, err)
     if row.get("verdict") == "CANDIDATE" and status not in ("hit-unverified", "hit-verified"):
         err(f"{at} verdict CANDIDATE goes with hit-unverified or hit-verified, not {status!r}")
     if status == "running" and row.get("started") in (None, ""):
@@ -328,20 +332,20 @@ def _check_row(
             "in later is a post-hoc bar"
         )
 
-    # 2. thresholds and the conditionals every negative carries
-    if status == "negative":
+    # 2. thresholds and the conditionals every negative (and verified hit) carries
+    if status in ("negative", "hit-verified"):
         thr, fixed = row.get("threshold"), row.get("threshold_fixed_in_advance")
         if thr in (None, "") or fixed is not True:
             err(
-                f"{at} negative without a threshold fixed in advance (threshold={thr!r}, "
+                f"{at} {status} without a threshold fixed in advance (threshold={thr!r}, "
                 f"threshold_fixed_in_advance={fixed!r}); a post-hoc bar is not a test"
             )
         have = cond if isinstance(cond, dict) else {}
         missing = [k for k in CONDITIONALS if not have.get(k)]
         if missing:
             err(
-                f"{at} negative without its conditionals {missing}; every negative states "
-                "key space, decoder and register"
+                f"{at} {status} without its conditionals {missing}; every negative and verified "
+                "hit states key space, decoder and register"
             )
 
     # 3. evidence
@@ -371,6 +375,34 @@ def _check_row(
         err(f"{at} superseded without `superseded_by` naming its successor")
 
 
+def _check_control_evidence(at: str, detail: object, root: Path, err) -> None:
+    """Rule 2's evidence: positive_control 'passed' cites the committed control report
+    (``lanes/<id>/control-<sha12>.json``) by path and SHA-256, and that report passed."""
+    if not isinstance(detail, dict) or not detail.get("path") or not detail.get("sha256"):
+        err(
+            f"{at} positive_control 'passed' without control_detail {{path, sha256}}: a passing "
+            "control is the report `runeforge control` wrote, not a word in the ledger"
+        )
+        return
+    path = root / str(detail["path"])
+    try:
+        data = path.read_bytes()
+    except OSError:
+        err(
+            f"{at} control report {detail['path']!r} does not exist (commit it with the lane)"
+        )
+        return
+    if hashlib.sha256(data).hexdigest() != detail["sha256"]:
+        err(f"{at} control report {detail['path']!r} does not match the recorded sha256")
+        return
+    try:
+        status = json.loads(data).get("status")
+    except (ValueError, AttributeError):
+        status = None
+    if status != "passed":
+        err(f"{at} the cited control report says status={status!r}, not 'passed'")
+
+
 def _check_lanes(rows: list[tuple[int, dict]], rep: Report, repaired: dict[str, str]) -> None:
     hist: dict[str, list[tuple[int, dict]]] = {}
     for n, row in rows:
@@ -381,8 +413,23 @@ def _check_lanes(rows: list[tuple[int, dict]], rep: Report, repaired: dict[str, 
         # 2. the first row that fixes a threshold in advance freezes it for every later row
         frozen: tuple[int, object] | None = None
         unfixed_warned = False
+        fixed_before: list[object] = []  # thresholds fixed in advance by earlier rows
         for n, row in lane_rows:
             thr, fixed = row.get("threshold"), row.get("threshold_fixed_in_advance") is True
+            if row.get("status") in RESULT_SEEN and fixed and thr not in fixed_before:
+                msg = (
+                    f"[{lane}] line {n}: {row.get('status')} with threshold {thr!r} 'fixed in "
+                    "advance', but no earlier row of the lane records it; pre-register the bar "
+                    "before the run"
+                )
+                if lane in repaired and n != lane_rows[-1][0]:
+                    rep.warnings.append(
+                        f"{msg} [historical row; repaired: superseded by {repaired[lane]}]"
+                    )
+                else:
+                    rep.errors.append(msg)
+            if fixed:
+                fixed_before.append(thr)
             if frozen is not None:
                 if thr != frozen[1]:
                     msg = (

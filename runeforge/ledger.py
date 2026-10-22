@@ -54,6 +54,7 @@ VERDICTS = (
 )
 CATEGORIES = ("instrument", "bounded", "redteam", "closeout")
 CONDITIONALS = ("key_space", "decoder", "register")
+CONCLUDED = ("negative", "hit-unverified", "hit-verified")  # a result was seen
 NUMBERING = "LP2-0-57"
 
 Status = Literal[
@@ -157,23 +158,31 @@ class LedgerRow(BaseModel):
 
     @model_validator(mode="after")
     def _rules(self) -> LedgerRow:
-        if self.status == "negative":
+        if self.status in ("negative", "hit-verified"):
+            what = "a negative" if self.status == "negative" else "a verified hit"
             if self.positive_control != "passed":
                 raise ValueError(
                     "Rule 2: a lane without a passing control is 'inconclusive', not 'negative'"
+                    if self.status == "negative"
+                    else "a verified hit needs a passing control"
                 )
             if not self.threshold_fixed_in_advance or self.threshold in (None, ""):
-                raise ValueError("a negative needs a threshold fixed in advance")
+                raise ValueError(f"{what} needs a threshold fixed in advance")
             missing = [k for k in CONDITIONALS if not (self.conditionals or {}).get(k)]
             if missing:
-                raise ValueError(f"a negative carries its three conditionals; missing {missing}")
+                raise ValueError(f"{what} carries its three conditionals; missing {missing}")
+        if self.positive_control == "passed":
+            d = self.control_detail
+            if not isinstance(d, dict) or not d.get("path") or not d.get("sha256"):
+                raise ValueError(
+                    "positive_control 'passed' must cite its evidence: control_detail "
+                    "{path, sha256} as `runeforge control` records it"
+                )
         if self.threshold_fixed_in_advance and self.threshold in (None, ""):
             raise ValueError(
                 "threshold_fixed_in_advance is true but no threshold is recorded "
                 "(a bar filled in later is a post-hoc bar)"
             )
-        if self.status == "hit-verified" and self.positive_control != "passed":
-            raise ValueError("a verified hit needs a passing control")
         if self.positive_control == "failed" and self.status in ("negative", "hit-verified"):
             raise ValueError("a failed control can only be 'inconclusive'")
         if self.status == "running" and self.started is None:
@@ -215,7 +224,9 @@ class Ledger:
         self.path = Path(path)
 
     def append(self, row: LedgerRow) -> LedgerRow:
+        row = LedgerRow.model_validate(row.model_dump())  # a model_copy/construct skips the rules
         self._check_threshold_frozen(row)
+        self._check_threshold_preceded(row)
         self.path.parent.mkdir(parents=True, exist_ok=True)
         line = row.model_dump_json() + "\n"
         with open(self.path, "a", encoding="utf-8") as fh:
@@ -282,6 +293,22 @@ class Ledger:
                 "never edit a threshold after seeing a result -- append a dated addendum instead"
             )
 
+    def _check_threshold_preceded(self, row: LedgerRow) -> None:
+        """A concluded row's 'fixed in advance' must be on record before it: an earlier row of
+        the lane carries the same threshold with threshold_fixed_in_advance true."""
+        if row.status not in CONCLUDED or not row.threshold_fixed_in_advance:
+            return
+        earlier = [
+            r
+            for r in self.rows(strict=False)
+            if r.lane_id == row.lane_id and r.threshold_fixed_in_advance
+        ]
+        if not any(r.threshold == row.threshold for r in earlier):
+            raise ValueError(
+                f"lane {row.lane_id}: a {row.status} row's threshold {row.threshold!r} must be "
+                "fixed in advance by an EARLIER row (pre-register it before the run)"
+            )
+
     def new(self, lane_id: str, hypothesis: str, family: str, status: Status = "never-run", **kw):
         """Append the first row of a lane."""
         if self.get(lane_id, strict=False) is not None:
@@ -299,6 +326,13 @@ class Ledger:
             raise ValueError(f"lane {lane_id} has no row yet; use new()")
         base = prior.model_dump(exclude=set(_VOLATILE))
         base.update(changes)
+        if base.get("status") == "running" and prior.status != "running":
+            # a (re)start: hours are counted per running -> final interval
+            base.setdefault("started", None)
+            if "started" not in changes:
+                base["started"] = _now()
+            if "finished" not in changes:
+                base["finished"] = None
         if base.get("status") == "running" and not base.get("started"):
             base["started"] = _now()
         final = ("negative", "inconclusive", "hit-verified", "parked")

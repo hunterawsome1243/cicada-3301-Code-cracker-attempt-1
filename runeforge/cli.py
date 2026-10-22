@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import argparse
+import contextlib
 import json
 import subprocess
 import sys
@@ -149,16 +150,16 @@ def cmd_status(args: argparse.Namespace) -> int:
     latest = ledger.latest()
     if args.grep:
         needle = args.grep.lower()
-        hits = [r for r in rows if needle in r.model_dump_json().lower()]
+        hits = [r for r in rows if needle in _values_text(r)]
         for r in hits:
             console.print(
                 f"{r.recorded}  {r.lane_id:28s} {r.status:15s} {r.verdict or '':22s} "
                 f"{(r.hypothesis or '')[:70]}"
             )
-        console.print(f"{len(hits)} row(s) match {args.grep!r}")
+        console.print(f"{len(hits)} row(s) match {args.grep!r} (values only); numbering LP2-0-57")
         return 0
     if args.round:
-        rounds = [r.round for r in rows if r.round]
+        rounds = sorted({r.round for r in rows if r.round}, key=_natural)
         rnd = args.round if args.round != "latest" else (rounds[-1] if rounds else None)
         lanes = [r for r in latest.values() if rnd is None or r.round == rnd]
         counts = {c: 0 for c in TARGET_SPLIT}
@@ -166,10 +167,13 @@ def cmd_status(args: argparse.Namespace) -> int:
         for r in lanes:
             if r.category:
                 counts[r.category] += 1
-                hours[r.category] += _hours(r)
+                hours[r.category] += _lane_hours([x for x in rows if x.lane_id == r.lane_id])
         total_h = sum(hours.values())
         total_n = sum(counts.values())
-        console.print(f"round {rnd or '(all)'}: {total_n} lane(s), {total_h:.1f} h recorded")
+        console.print(
+            f"round {rnd or '(all)'}: {total_n} lane(s), {total_h:.1f} h recorded; "
+            "numbering LP2-0-57"
+        )
         for c, target in TARGET_SPLIT.items():
             share = 100 * (
                 hours[c] / total_h if total_h else (counts[c] / total_n if total_n else 0)
@@ -210,9 +214,15 @@ def cmd_status(args: argparse.Namespace) -> int:
         jobs.append((pidfile.parent.name, pid, alive, info))
     console.print(f"jobs: {sum(1 for j in jobs if j[2])} alive, {len(jobs)} with a sweep.pid")
     for name, pid, alive, info in jobs:
+        rate = info.get("seeds_per_s")
+        frac = info.get("fraction")
+        best = info.get("best_score")
         console.print(
             f"  {name:28s} pid {pid:<8d} {'ALIVE' if alive else 'dead '} "
-            f"cursor {info.get('cursor')} done {info.get('done')} kill {info.get('kill_condition')}"
+            f"cursor {info.get('cursor')} ({'?' if frac is None else f'{100 * frac:.2f} %'}) "
+            f"{'?' if rate is None else f'{rate:,.0f}'} seeds/s crossers {info.get('crossers')} "
+            f"best {'?' if best is None else f'{best:.4f}'} done {info.get('done')} "
+            f"kill {info.get('kill_condition')}"
         )
         if (
             not alive
@@ -243,17 +253,40 @@ def cmd_status(args: argparse.Namespace) -> int:
     return 0
 
 
-def _hours(r) -> float:
+def _values_text(row) -> str:
+    """A row's values (not its field names) as lowercase text, for --grep."""
+
+    def flat(v):
+        if isinstance(v, dict):
+            return " ".join(flat(x) for x in v.values())
+        if isinstance(v, list):
+            return " ".join(flat(x) for x in v)
+        return "" if v is None else str(v)
+
+    return flat(row.model_dump()).lower()
+
+
+def _natural(s: str):
+    import re
+
+    return [int(t) if t.isdigit() else t for t in re.split(r"(\d+)", s)]
+
+
+def _lane_hours(lane_rows) -> float:
+    """Hours of compute: each running row's start to the next final row's finish."""
     from datetime import datetime
 
-    if not (r.started and r.finished):
-        return 0.0
-    try:
-        return (
-            datetime.fromisoformat(r.finished) - datetime.fromisoformat(r.started)
-        ).total_seconds() / 3600
-    except ValueError:
-        return 0.0
+    total, start = 0.0, None
+    for r in lane_rows:
+        if r.status == "running" and r.started:
+            start = r.started
+        elif start and r.finished and r.status != "running":
+            with contextlib.suppress(ValueError):
+                total += (
+                    datetime.fromisoformat(r.finished) - datetime.fromisoformat(start)
+                ).total_seconds() / 3600
+            start = None
+    return total
 
 
 def _parse_sets(pairs: list[str]) -> dict:
@@ -321,10 +354,12 @@ def cmd_queue(args: argparse.Namespace) -> int:
         console.print(f"[red]queue.json invalid[/red]: {exc}")
         return 2
     latest = _ledger(args).latest()
+    console.print(
+        f"queue.json: {len(entries)} entr{'y' if len(entries) == 1 else 'ies'}; "
+        "numbering LP2-0-57"
+    )
     if not entries:
-        console.print(
-            "queue.json: no entries (Hunter approves lanes here; the loop never invents one)"
-        )
+        console.print("  none (Hunter approves lanes here; the loop never invents one)")
         return 0
     for e in entries:
         st = latest[e.id].status if e.id in latest else "no row"
@@ -406,7 +441,7 @@ def cmd_control(args: argparse.Namespace) -> int:
             f"  seed {p.seed:>12d} offset {p.offset:5d} rank {p.rank:4d} recovery {p.recovery:.3f} "
             f"planted {p.planted_score:.4f} best decoy {p.best_decoy:.4f} ceiling {p.ceiling:.4f}"
         )
-    out = control.write_report(rep, run_dir(lane))
+    detail = control.write_report(rep, lane, run_dir(lane))
     console.print(rep.summary())
     for reason in rep.reasons:
         console.print(f"  [yellow]{reason}[/yellow]")
@@ -414,8 +449,45 @@ def cmd_control(args: argparse.Namespace) -> int:
         console.print(
             f"lane verdict if it stops here: {rep.verdict_if_failed} (do not lower the bar)"
         )
-    console.print(f"wrote {out}")
+    console.print(f"wrote {detail['path']} (sha256 {detail['sha256'][:12]}); commit it")
+    ledger = _ledger(args)
+    if ledger.get(lane.lane_id, strict=False) is None:
+        console.print(
+            f"[yellow]not recorded: no ledger row for {lane.lane_id}; append one "
+            "(`runeforge ledger append`) and re-run the control[/yellow]"
+        )
+    else:
+        ledger.update(
+            lane.lane_id,
+            positive_control=rep.status,
+            control_detail=detail,
+            control_spec=lane.control.model_dump(),
+        )
+        console.print(f"ledger: {lane.lane_id} positive_control={rep.status}")
     return 0 if rep.status == "passed" else 1
+
+
+def cmd_score(args: argparse.Namespace) -> int:
+    from runeforge.lanes import load_lane
+    from runeforge.runner import rescore
+
+    lane = load_lane(args.lane)
+    lo, hi = rescore.parse_seeds(args.seeds)
+    out = rescore.score_range(lane, lo, hi, top=args.top)
+    if args.json:
+        console.print(json.dumps(out, indent=1))
+        return 0
+    console.print(
+        f"{lane.lane_id} seeds {lo}:{hi} ({hi - lo:,}) window {lane.window} preset {lane.preset}; "
+        "numbering LP2-0-57"
+    )
+    for t in out["top"]:
+        console.print(f"  seed {t['seed']:>12d}  score {t['score']:.10f}")
+    console.print(
+        f"above claim bar {lane.claim_bar}: {out['above_claim_bar']}; "
+        f"above family-wise bar {lane.family_wise_bar}: {out['above_family_wise_bar']}"
+    )
+    return 0
 
 
 def cmd_sweep(args: argparse.Namespace) -> int:
@@ -490,7 +562,15 @@ def main(argv: list[str] | None = None) -> int:
     p = sub.add_parser("control", help="planted positive through the lane's exact pipeline")
     p.add_argument("lane")
     p.add_argument("--seed", type=int, default=3301)
+    p.add_argument("--ledger", help="record the result in this ledger (default ledger/)")
     p.set_defaults(fn=cmd_control)
+    p = sub.add_parser("score", help="re-score seeds with the lane's sweep pipeline")
+    p.add_argument("lane")
+    p.add_argument("seeds", help="a seed, or lo:hi")
+    p.add_argument("--top", type=int, default=5)
+    p.add_argument("--json", action="store_true")
+    p.set_defaults(fn=cmd_score)
+
     p = sub.add_parser("sweep", help="run a lane (checkpoint/resume; --detach for long runs)")
     p.add_argument("lane")
     p.add_argument("--detach", action="store_true")

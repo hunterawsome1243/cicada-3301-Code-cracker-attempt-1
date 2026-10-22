@@ -61,10 +61,13 @@ Vocabulary: a crosser is `FLAGGED-FOR-ORACLE` from the moment it crosses; it bec
 
 ## 5. Oracle (ours, then the community's)
 
-- `python -m runeforge.oracle --key-module runs/<id>/crossers/<kid>_key.py` (the module exposes
-  `keystream(n) -> list[int]` and records *how* the key was made). The oracle re-decodes all solved
-  pages under the same code path first; if that regression fails, the rig is broken and the verdict
-  is void.
+- `python -m runeforge.oracle --key-module runs/<id>/crossers/<kid>_key.py --lane lanes/<id>.yaml
+  --json runs/<id>/crossers/<kid>_runeforge_oracle.json` (the module exposes
+  `keystream(n) -> list[int]`, the generator's own stream from its first symbol, and records *how* the
+  key was made). `--lane` decodes with the lane's combine, view, pages and key offset and judges every
+  page against a bar at the lane's true N (its seed range unless `--n-trials` says otherwise). The
+  oracle re-decodes all solved pages under the same code path first; if that regression fails, the rig
+  is broken and the verdict is void.
 - `python data/raw/dukotah/liber-primus/verify_solution.py --selftest` then
   `--key-module … --pages 10 --json runs/<id>/crossers/<kid>_oracle.json`. Their PASS requires the
   English band on more than one page independently, a stated margin over a size-matched shuffle null,

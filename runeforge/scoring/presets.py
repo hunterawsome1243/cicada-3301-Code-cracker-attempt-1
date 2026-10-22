@@ -68,11 +68,35 @@ def split_preset(preset: str) -> tuple[str, str]:
     return scorer, decoder
 
 
+def check_corpus_name(name: str) -> None:
+    """A plant source names a corpus, never a path: 'corpus:./lp-solved' would load the
+    scorer's own training text past check_held_out."""
+    from runeforge import corpus
+
+    if name not in corpus.names():
+        raise ValueError(f"unknown corpus {name!r}; one of {sorted(corpus.names())}")
+
+
+def _check_not_a_copy(name: str, trained_on: list[str]) -> None:
+    """The same text under another corpus name is still training text."""
+    from runeforge import corpus
+
+    sha = corpus.load(name).meta.get("indices_sha256")
+    for src in trained_on:
+        if src in corpus.names() and corpus.load(src).meta.get("indices_sha256") == sha:
+            raise ValueError(f"corpus {name!r} has the same runes as training corpus {src!r}")
+
+
 def check_held_out(scorer: str, plant_source: str) -> None:
     """Refuse a control whose planted plaintext is part of the scorer's training data."""
     trained_on = PRESETS[scorer]["train"]
     excluded = PRESETS[scorer].get("exclude", [])
     base, _, name = plant_source.partition(":")
+    if base == "corpus":
+        check_corpus_name(name)
+        _check_not_a_copy(name, trained_on)
+    elif base != "solved":
+        raise ValueError(f"plant source must be 'solved[:<id>]' or 'corpus:<name>', got {base!r}")
     family = "lp-solved" if base == "solved" else name
     if base == "solved" and name and name in excluded:
         return

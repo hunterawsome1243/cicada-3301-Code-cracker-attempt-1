@@ -7,6 +7,7 @@ whatever runeforge writes, the validator accepts.
 
 from __future__ import annotations
 
+import hashlib
 import importlib.util
 import json
 import shutil
@@ -28,6 +29,14 @@ CONDITIONALS = {
     "decoder": "rigid screen, keyskip1 beam adjudication",
     "register": "cicada-english n-gram",
 }
+# the committed report `runeforge control` writes and a passing row cites
+CONTROL_PATH = "lanes/L-1/control-0123456789ab.json"
+CONTROL_TEXT = '{"status": "passed", "summary": "control PASSED: recovered 20/20 at rank 1"}\n'
+CONTROL_DETAIL = {
+    "path": CONTROL_PATH,
+    "sha256": hashlib.sha256(CONTROL_TEXT.encode()).hexdigest(),
+    "status": "passed",
+}
 needs_git = pytest.mark.skipif(shutil.which("git") is None, reason="git not on PATH")
 
 
@@ -45,9 +54,15 @@ def row(lane_id: str = "L-1", status: str = "never-run", **kw) -> dict:
     return {**base, **kw}
 
 
+def prereg(lane_id: str = "L-1", threshold: float = -5.5) -> dict:
+    """The row that fixes the bar before the run (a concluded row must have one before it)."""
+    return row(lane_id, "running", threshold=threshold, threshold_fixed_in_advance=True)
+
+
 def negative(lane_id: str = "L-1", **kw) -> dict:
     sound = {
         "positive_control": "passed",
+        "control_detail": CONTROL_DETAIL,
         "threshold": -5.5,
         "threshold_fixed_in_advance": True,
         "conditionals": CONDITIONALS,
@@ -62,6 +77,7 @@ def repo(tmp_path: Path) -> Path:
     """A repo root holding the evidence the sound rows point at."""
     (tmp_path / "lanes" / "L-1").mkdir(parents=True)
     (tmp_path / "lanes" / "L-1" / "RESULTS.md").write_text("Verdict: NULL\n")
+    (tmp_path / CONTROL_PATH).write_text(CONTROL_TEXT)
     (tmp_path / "runs" / "L-1").mkdir(parents=True)
     (tmp_path / "runs" / "L-1" / "sweep.jsonl").write_text("{}\n")
     return tmp_path
@@ -133,10 +149,47 @@ def test_unsound_negatives_are_errors_and_counted(repo):
 
 
 def test_failed_or_missing_control_cannot_carry_a_verified_hit(repo):
-    hit = row("L-1", "hit-verified", evidence=["lanes/L-1/RESULTS.md"], verdict="CANDIDATE")
-    rep = check(repo, {**hit, "positive_control": "failed"})
+    hit = row(
+        "L-1",
+        "hit-verified",
+        evidence=["lanes/L-1/RESULTS.md"],
+        verdict="CANDIDATE",
+        threshold=-5.5,
+        threshold_fixed_in_advance=True,
+        conditionals=CONDITIONALS,
+    )
+    rep = check(repo, prereg(), {**hit, "positive_control": "failed"})
     assert has(rep.errors, "hit-verified", "'failed'") and rep.unsound_negatives == 0
-    assert check(repo, {**hit, "positive_control": "passed"}).errors == []
+    passed = {**hit, "positive_control": "passed", "control_detail": CONTROL_DETAIL}
+    assert check(repo, prereg(), passed).errors == []
+    # a verified hit carries the frozen bar and the conditionals, like a negative
+    bare = {k: v for k, v in passed.items() if k not in ("threshold", "conditionals")}
+    errors = check(repo, prereg(), bare).errors
+    assert has(errors, "hit-verified without a threshold fixed in advance")
+    assert has(errors, "hit-verified without its conditionals")
+
+
+def test_a_passing_control_must_cite_its_committed_report(repo):
+    assert has(
+        check(repo, prereg(), negative(control_detail=None)).errors, "without control_detail"
+    )
+    missing = {**CONTROL_DETAIL, "path": "lanes/L-1/control-ffffffffffff.json"}
+    assert has(check(repo, prereg(), negative(control_detail=missing)).errors, "does not exist")
+    wrong = {**CONTROL_DETAIL, "sha256": "0" * 64}
+    assert has(check(repo, prereg(), negative(control_detail=wrong)).errors, "sha256")
+    failed_text = '{"status": "failed"}\n'
+    (repo / "lanes/L-1/control-failed.json").write_text(failed_text)
+    failed = {
+        "path": "lanes/L-1/control-failed.json",
+        "sha256": hashlib.sha256(failed_text.encode()).hexdigest(),
+    }
+    assert has(check(repo, prereg(), negative(control_detail=failed)).errors, "status='failed'")
+
+
+def test_a_concluded_bar_must_be_fixed_by_an_earlier_row(repo):
+    assert has(check(repo, negative()).errors, "no earlier row of the lane records it")
+    assert check(repo, prereg(), negative()).errors == []
+    assert has(check(repo, prereg(threshold=-7.0), negative()).errors, "no earlier row")
 
 
 def test_a_failed_control_is_inconclusive(repo):
@@ -165,7 +218,7 @@ def test_absent_threshold_and_zero_threshold(repo):
     bad = negative()
     del bad["threshold"]
     assert has(check(repo, bad).errors, "threshold=None")
-    assert check(repo, negative(threshold=0)).errors == []  # zero is a bar, not a missing one
+    assert check(repo, prereg(threshold=0), negative(threshold=0)).errors == []  # zero is a bar
 
 
 def test_threshold_is_frozen_once_fixed_in_advance(repo):
@@ -185,8 +238,9 @@ def test_threshold_is_frozen_once_fixed_in_advance(repo):
         row("L-2", "running", threshold=-4.5, threshold_fixed_in_advance=True),
         row("L-2", "running", threshold=-4.5, threshold_fixed_in_advance=True),
     )
-    assert len(rep.errors) == 1
+    assert len(rep.errors) == 2
     assert has(rep.errors, "[L-1] line 3", "threshold changed from -5.5", "line 1", "-6.0")
+    assert has(rep.errors, "[L-1] line 3", "threshold -6.0", "no earlier row")
 
 
 def test_dropping_or_unfixing_a_frozen_threshold(repo):
@@ -218,7 +272,7 @@ def test_missing_evidence_on_an_open_row_is_a_warning(repo):
 
 def test_evidence_anchors_and_globs_resolve(repo):
     ev = ["lanes/L-1/RESULTS.md#section-5", "lanes/*/RESULTS.md", "runs/**/sweep.jsonl"]
-    assert check(repo, negative(evidence=ev)).errors == []
+    assert check(repo, prereg(), negative(evidence=ev)).errors == []
     assert has(check(repo, negative(evidence=["lanes/*/NOPE.md"])).errors, "NOPE.md")
 
 
@@ -247,10 +301,10 @@ def test_superseded_rows_name_their_successor(repo):
     fix = row("L-2", "inconclusive", supersedes=["L-1"], evidence=["runs/L-1"])
     fix["verdict"] = "FOUND-ERROR"
     marked = {**negative("L-1"), "status": "superseded", "superseded_by": ["L-2"]}
-    rep = check(repo, negative("L-1"), fix, marked)
+    rep = check(repo, prereg(), negative("L-1"), fix, marked)
     assert rep.errors == [] and rep.notes == []
     # until the old lane is marked, the link is one-sided: a note, not an error
-    rep = check(repo, negative("L-1"), fix)
+    rep = check(repo, prereg(), negative("L-1"), fix)
     assert rep.errors == [] and has(rep.notes, "[L-2] supersedes 'L-1'", "still 'negative'")
 
 
@@ -408,7 +462,7 @@ def test_evidence_under_a_gitignored_path_is_a_warning_not_a_permanent_error(rep
     _git(repo, "init", "-q")
     (repo / ".gitignore").write_text("runs/\n")
     shutil.rmtree(repo / "runs")  # a fresh clone has no runs/
-    rep = check(repo, negative("L-1", evidence=["runs/L-1/sweep.jsonl"]))
+    rep = check(repo, prereg(), negative("L-1", evidence=["runs/L-1/sweep.jsonl"]))
     assert rep.errors == [] and has(rep.warnings, "gitignored path")
 
 
@@ -490,7 +544,7 @@ def test_rows_written_by_runeforge_ledger_validate_cleanly(repo):
         "negative",
         verdict="NULL",
         positive_control="passed",
-        control_detail={"recovered": "20/20"},
+        control_detail=CONTROL_DETAIL,
         conditionals=CONDITIONALS,
         n_trials=2**32,
         best_score=-7.1,

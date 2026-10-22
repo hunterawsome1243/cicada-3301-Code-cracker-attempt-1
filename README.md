@@ -78,7 +78,7 @@ The trust anchor (SESSION_PROMPT.md section A; CI runs the same commands):
 pytest -q -m "not slow"
 runeforge canon --verify                 # pins + counts
 python -m runeforge.oracle --selftest    # last line: ORACLE SELF-TEST: PASS
-runeforge status --short                 # open lanes, jobs, round budget split
+runeforge status --short                 # open lanes, jobs, last rows (--round: budget split)
 python scripts/validate_ledger.py        # last line: Unsound negatives = 0
 ```
 
@@ -92,21 +92,29 @@ with the command that regenerates it. The procedure is SESSION_PROMPT.md section
 
 ```bash
 cp lanes/_template.yaml lanes/<id>.yaml                       # then edit
+python scripts/threshold_for.py --n <N> --preset lp-ngram3-heldout:rigid --L 240  # the bars
 runeforge lane lanes/<id>.yaml                                # schema + runnable problems
-python scripts/threshold_for.py --n <N> --preset lp-ngram3:rigid --L 240   # the bars
-runeforge ledger append --set lane_id=<id> --set hypothesis='...' --set family=prng
+runeforge ledger append <id> --set hypothesis='...' --set family=prng \
+    --set threshold=<bar> --set threshold_fixed_in_advance=true   # pre-registration
 runeforge gate lanes/<id>.yaml        # murphy fingerprint gate, >= 12 keys, majority rule
-runeforge control lanes/<id>.yaml     # >= 20 plants, rank 1, floor vs ceiling in nats
-runeforge ledger update <id> --set positive_control=passed --set control_detail='...'
-runeforge sweep lanes/<id>.yaml --detach              # setsid; resumes from checkpoint.json
-runeforge status --short                              # live jobs, seeds/s, crossers
-runeforge crosser list                                # FLAGGED-FOR-ORACLE files
-runeforge crosser replay <kid>                        # HIT_PROTOCOL.md step 2
-runeforge crosser escalate <kid>                      # step 3
-runeforge crosser reencipher <kid>                    # step 6
-python -m runeforge.oracle --key-module <key.py>      # step 5
-python scripts/check_results.py lanes/<id>/RESULTS.md # must print PASS
+runeforge control lanes/<id>.yaml     # >= 20 plants; writes lanes/<id>/control*.json and
+                                      # records positive_control + its sha256 in the ledger
+git add lanes/<id> && git commit      # the control report is the Rule 2 evidence
+runeforge sweep lanes/<id>.yaml --detach   # refuses without that control and the frozen bar
+runeforge status --short              # live jobs with seeds/s, crossers, best score
+runeforge score lanes/<id>.yaml <seed>     # re-score any sweep row (its reproduce command)
+runeforge crosser list                # FLAGGED-FOR-ORACLE files
+runeforge crosser replay <kid>        # HIT_PROTOCOL.md step 2
+runeforge crosser escalate <kid>      # step 3
+python -m runeforge.oracle --key-module <key.py> --lane lanes/<id>.yaml   # step 5
+runeforge crosser reencipher <kid>    # step 6
+python scripts/check_results.py lanes/<id>/RESULTS.md   # must print PASS
 ```
+
+A lane's control is evidence only for the lane spec it ran on: the sweep compares a hash of
+the pipeline-defining fields (generator, view, combine, filter, preset, window, pages, bars,
+control) with the one in `lanes/<id>/control.json`, and the bar in the YAML with the
+threshold the ledger froze. Edit the lane and the control must be re-run.
 
 `sweep --backend gpu` is refused until the Phase 3 kernels exist. The CPU backend is
 the reference implementation the GPU kernels will be parity-tested against.

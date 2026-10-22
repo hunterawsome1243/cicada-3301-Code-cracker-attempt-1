@@ -109,7 +109,8 @@ def test_sweep_preflight_refusals(tmp_path):
     Ledger(led).new(lane.lane_id, lane.hypothesis, lane.family)
     probs = sweep.preflight(lane, led, smoke=False, base=tmp_path / "runs")
     assert any("Rule 2" in p for p in probs)
-    Ledger(led).update(lane.lane_id, positive_control="passed")
+    evidence = {"path": "lanes/x/control-0.json", "sha256": "0" * 64}  # shape only
+    Ledger(led).update(lane.lane_id, positive_control="passed", control_detail=evidence)
     assert sweep.preflight(lane, led, smoke=False, base=tmp_path / "runs") == []
     uncal = load_lane(_lane(tmp_path, claim_bar=None, family_wise_bar=None))
     assert any("calibrated" in p for p in sweep.preflight(uncal, led, True, tmp_path / "runs"))

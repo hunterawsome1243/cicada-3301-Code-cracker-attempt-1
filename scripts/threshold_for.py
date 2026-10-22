@@ -30,10 +30,15 @@ def main() -> int:
     ap.add_argument("--alpha", type=float, default=0.01, help="family-wise error rate")
     ap.add_argument("--floor", type=float, help="optional absolute floor for the bar")
     ap.add_argument("--null-max", type=float, help="small-N rule: shuffle-null max (n >= 200)")
+    ap.add_argument(
+        "--null2-max", type=float, help="small-N rule: second null's max (SHA-256 stream)"
+    )
     ap.add_argument("--json", action="store_true")
     args = ap.parse_args()
     try:
-        t = threshold_for(int(args.n), args.preset, args.L, args.alpha, args.floor, args.null_max)
+        t = threshold_for(
+            int(args.n), args.preset, args.L, args.alpha, args.floor, args.null_max, args.null2_max
+        )
     except (FileNotFoundError, ValueError) as exc:
         print(f"ERROR: {exc}", file=sys.stderr)
         return 2

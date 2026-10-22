@@ -3,17 +3,16 @@
 #
 # By default each submodule is a shallow, blobless, sparse checkout of only the files
 # runeforge reads (a few MB instead of ~900 MB of page images and archives). Use --full
-# for complete shallow checkouts (needed for the Phase 4 image work).
+# for complete shallow checkouts (needed for the Phase 4 image work; a download over
+# 100 MB is Hunter's call, CLAUDE.md). --full also widens an existing sparse checkout.
 #
 #   scripts/fetch_raw.sh          # sparse (what CI uses)
-#   scripts/fetch_raw.sh --full   # everything, via git submodule update
+#   scripts/fetch_raw.sh --full   # everything
 set -euo pipefail
 cd "$(git rev-parse --show-toplevel)"
 
-if [[ "${1:-}" == "--full" ]]; then
-  git submodule update --init --depth 1
-  exit 0
-fi
+full=0
+[[ "${1:-}" == "--full" ]] && full=1
 
 sparse_paths() {
   case "$1" in
@@ -48,16 +47,25 @@ git config -f .gitmodules --get-regexp '^submodule\..*\.path$' | while read -r k
   sha="$(git ls-files -s "$path" | awk '{print $2}')"
   base="$(basename "$path")"
   if [[ -e "$path/.git" ]] && [[ "$(git -C "$path" rev-parse HEAD 2>/dev/null)" == "$sha" ]]; then
-    echo "ok       $path @ ${sha:0:12}"
+    if (( full )) && [[ "$(git -C "$path" config --get core.sparseCheckout || true)" == "true" ]]; then
+      echo "widening $path @ ${sha:0:12} to a full checkout"
+      git -C "$path" sparse-checkout disable  # the blobless clone fetches the missing blobs now
+    else
+      echo "ok       $path @ ${sha:0:12}"
+    fi
     continue
   fi
-  echo "fetching $path @ ${sha:0:12} (sparse)"
+  echo "fetching $path @ ${sha:0:12} ($( (( full )) && echo full || echo sparse))"
   rm -rf "$path"
   mkdir -p "$path"
   git -C "$path" init -q
   git -C "$path" remote add origin "$url"
-  git -C "$path" config core.sparseCheckout true
-  sparse_paths "$base" > "$path/.git/info/sparse-checkout"
-  git -C "$path" fetch -q --depth 1 --filter=blob:none origin "$sha"
+  if (( full )); then
+    git -C "$path" fetch -q --depth 1 origin "$sha"
+  else
+    git -C "$path" config core.sparseCheckout true
+    sparse_paths "$base" > "$path/.git/info/sparse-checkout"
+    git -C "$path" fetch -q --depth 1 --filter=blob:none origin "$sha"
+  fi
   git -C "$path" checkout -q --detach FETCH_HEAD
 done

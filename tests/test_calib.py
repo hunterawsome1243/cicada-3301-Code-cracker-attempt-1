@@ -39,6 +39,12 @@ def test_small_n_rule_needs_a_real_shuffle_null():
     assert t.regime == "small-n" and t.bar == -5.0
     t = calib.threshold_for(300, "lp-ngram3:rigid", 240, null_max=-6.9)
     assert t.bar == pytest.approx(-6.4)
+    # the expected false positives are a number (from the preset's fit), never NaN
+    assert math.isfinite(t.expected_false_positives) and t.expected_false_positives < 1
+    t2 = calib.threshold_for(300, "lp-ngram3:rigid", 240, null_max=-6.9, null2_max=-6.5)
+    assert t2.bar == pytest.approx(-6.0)
+    with pytest.raises(FileNotFoundError):  # an uncalibrated preset gets no bar either
+        calib.threshold_for(300, "nonexistent:rigid", 999, null_max=-6.9)
 
 
 def test_unknown_length_is_refused_not_interpolated():
