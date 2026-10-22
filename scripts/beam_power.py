@@ -3,8 +3,9 @@
 
     python scripts/beam_power.py [--out reports/beam_decoder.json] [--quick]
 
-Read-only with respect to lane evidence and the ledger: controls and gates run in memory on
-toy lane specs (lane id BEAM-POWER) and nothing is written but ``--out``. Sections:
+Read-only with respect to lane evidence and the ledger: the controls run in memory on toy lane
+specs (lane id BEAM-POWER), the gate and the template control in memory on lanes/_template.yaml,
+and nothing is written but ``--out``. Sections:
 
 1. solved sections: given only the key, does the beam re-derive the published interrupt set?
 2. a planted DIVINITY key on a synthetic Welcome page: rigid vs beam (spec P2)
@@ -173,8 +174,8 @@ def controls(windows, staged: dict) -> list[dict]:
 
 
 def noise(length: int, n: int) -> list[dict]:
-    """Wrong-key scores per decoder; throughput is decode + score, best of two timings (the
-    first call of a rigid decode is dominated by allocation)."""
+    """Wrong-key scores per decoder; throughput is decode + score: best of two timings for the
+    rigid decoder (its first call is dominated by allocation), one timing per beam decoder."""
     scorer = presets.get(SCORER)
     rng = np.random.default_rng(3301)
     cipher = rng.integers(0, 29, (n, length))

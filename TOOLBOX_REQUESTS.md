@@ -27,8 +27,10 @@ check (TR-5): `decoder_params` (pinned per decoder name in `presets.DECODER_PARA
 SHA-256 of `runeforge/beam.py` it was fitted with, and, for the interrupt decoders,
 `canonical_F`. An interrupt decoder's wrong-key null rises with the window's canonical F count
 (review, 2026-10-22), so `beam` and `beam-skip-int` are fitted at the most F's of any LP2
-page-start window (L = 120: 10; L = 240: 14), which is conservative for every window holding at
-most that many; `beam-skip` ignores F's. All six are fitted on doublet-free ciphers (LP2 has
+page-start window (L = 120: 10; L = 240: 14). Every compared window sits at or below its fit
+(the 54 page-start windows per L; 2,563 of 2,875 L = 240 windows in review round 3); where the
+F's fall matters as well as how many, so the 312 four-page L = 240 and 160 of 214 L = 120
+windows not compared are a stated gap (`reports/beam_decoder.md` §7), not covered by proof; `beam-skip` ignores F's. All six are fitted on doublet-free ciphers (LP2 has
 86 doublets in 12,956 runes; at a doublet a skip offers the beam no new choice, so fewer
 doublets mean a higher null), and a path that uses up its key wraps round it, so no window's
 own runes reach a wrong-key decode. All 54 page-start windows at L = 120 and 240 sit at or below

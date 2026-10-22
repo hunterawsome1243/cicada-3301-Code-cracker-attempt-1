@@ -515,7 +515,7 @@ def test_an_lp2_windows_beam_skip_null_is_covered_by_the_fit_ciphers():
         assert got - fit < 0.012, (first, got, fit)  # se ~0.004; the old fill gave ~+0.05
 
 
-def test_an_exhausted_path_wraps_round_the_key():
+def test_a_path_that_uses_up_its_key_wraps_round_it():
     """Fill decodes with k[j mod K], never with a key-free rule that copies the cipher. A key
     planted under the anti-repeat filter spends more symbols than the window has runes, so
     decoding with exactly L symbols must run out; the ops are replayed here, independently of

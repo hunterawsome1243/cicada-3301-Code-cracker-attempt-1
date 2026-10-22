@@ -16,8 +16,11 @@ the choices it offers the beam (adversarial review rounds 1 and 2, 2026-10-22):
   -6.57 at 4 F's, -6.32 at 20; scripts/beam_power.py fcount). Their fits draw ciphers with
   exactly ``canonical_F`` canonical F's, the most in any lane window of this length that
   starts at an unsolved LP2 page and runs on in canonical order (L = 120: 10, page 43;
-  L = 240: 14, page 11): conservative for every window holding at most that many, and
-  ``LaneSpec.runnable_problems`` refuses one with more.
+  L = 240: 14, page 11). Every compared window sits at or below its fit: the 54 page-start
+  windows per L (scripts/beam_power.py windows) and 2,563 of the 2,875 L = 240 lane windows
+  (review round 3); F positions matter too, so this is a measured bound for those windows,
+  not a proof for all (reports/beam_decoder.md section 7 lists the ones not compared).
+  ``LaneSpec.runnable_problems`` refuses a window with more F's than the fit.
   ``beam-skip`` ignores F's.
 * canonical doublets: at a repeat a one-symbol skip deciphers the same rune as no skip, so a
   doublet offers the skip decoders no new choice. LP2 has almost none (86 in 12,956), uniform
@@ -26,7 +29,7 @@ the choices it offers the beam (adversarial review rounds 1 and 2, 2026-10-22):
   scripts/beam_power.py doublets). All
   fits therefore draw DOUBLET-FREE ciphers (F's never adjacent), which offer the beam at least
   the choices of any LP2 window.
-* nothing else: with exhausted paths wrapping round the key (``runeforge.beam``) no cipher
+* nothing else: with paths that use up their key wrapping round it (``runeforge.beam``) no cipher
   rune reaches a decode except through ``combine^-1(cipher, key)``, and the null is the same
   in every ciphertext view and combine (a repeat is ``d_i == d_rep`` in all of them).
 

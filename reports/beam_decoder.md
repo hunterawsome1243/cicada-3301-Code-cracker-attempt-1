@@ -5,7 +5,8 @@ and anti-repeat key skips, and how hard it is for a wrong key to look like a rig
 No key space of the unsolved pages was searched, and nothing here is a decode of LP2.
 
 numbering: "LP2-0-57" · canon SHA-256 `023312066df471005264b9cbe7997cb77d2a9a6a2dc9b3316d22674023af1585`
-(12,956 runes, LP2 pages 0–55) · decoder `runeforge/beam.py` SHA-256 `a855814af3…` · numbers from
+(12,956 runes, LP2 pages 0–55) · decoder `runeforge/beam.py` SHA-256 `64348587f9…` (the numbers
+below were computed at `a855814af3…`; the two differ in comments only) · numbers from
 `python scripts/beam_power.py` at git `6faf29d` → [`beam_decoder.json`](beam_decoder.json) (780 s,
 one process, on a 4-core host; the JSON section is named after each number) unless a line says
 otherwise.
@@ -313,7 +314,7 @@ bounded slice whose fraction is stated.
 ## 7. Review record and what is not covered
 
 The decoder and its integration went through three adversarial review rounds, and this report
-through a claim-by-claim audit. Each round used independent reviewers by dimension. Each finding
+through three claim-by-claim audits. Each round used independent reviewers by dimension. Each finding
 faced three refuters, and it stood if at least two did not refute it.
 
 | round | findings | upheld | of which major | examples |
@@ -321,7 +322,9 @@ faced three refuters, and it stood if at least two did not refute it.
 | 1 | 22 | 15 | 3 | F-rich windows under interrupt-decoder bars; max_skip 2 could not follow 3+ drops at one rune; no test against the forward model outside raw/vigenere |
 | 2 | 9 | 7 | 2 | the key-free fill made each window's null its own; a decoder modelling more than its lane could file a true key NOISE-CROSSER |
 | 3 | 8 | 8 | 0 | a vacuous wrap test; the null not bound to the decoder; stale wording |
-| report audit | 23 | 20 | 3 | the scale checks overstated; an unbacked template-control figure; Dukotah's pair misattributed |
+| report audit 1 (`956cd28`, `56bdbe5`) | 23 | 20 | 3 | the scale checks overstated; an unbacked template-control figure; Dukotah's pair misattributed |
+| report audit 2 (`0201052`) | 22 | 20 | 0 | at L = 120 the F-richest window sits ~0.65 β below its fit; TR-5 open, not fixed; a test pins 14/14 |
+| report audit 3 | 10 | 9 | 0 | the audit record itself; conservativeness claimed beyond the compared windows; a banned word in code comments |
 
 Round 2 also reported two round-1 fixes as unresolved:
 - `beam-skip`'s cipher independence was fixed in round 2 (wrap-round, doublet-free fits; `2e4519d`).

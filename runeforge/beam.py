@@ -259,7 +259,7 @@ def decode_batch(cipher, keys, scorer, model: BeamModel) -> BeamResult:
             jj = j + s
             has_key = jj <= k_last
             if s == 0:
-                # an exhausted path wraps round to the start of the key
+                # a path that has used up its key wraps round to the start of it
                 kk = np.take_along_axis(k, jj % kn, axis=1)
                 x = decrypt_sym(model.combine, di, kk)
                 op = np.where(has_key, 0, OP_FILL)
@@ -462,7 +462,7 @@ def decode_reference(cipher, key, scorer, model: BeamModel) -> DecodeRecord:
                     s = opt
                     jj = j + s
                     if s == 0:
-                        x = decrypt_sym(model.combine, d[i], k[jj % kn])  # wraps when exhausted
+                        x = decrypt_sym(model.combine, d[i], k[jj % kn])  # wraps once used up
                         op, j2 = (0 if jj < kn else OP_FILL), jj + 1
                         sc = base
                     else:
