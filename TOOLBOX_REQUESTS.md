@@ -30,11 +30,14 @@ SHA-256 of `runeforge/beam.py` it was fitted with, and, for the interrupt decode
 page-start window (L = 120: 10; L = 240: 14), which is conservative for every window holding at
 most that many; `beam-skip` ignores F's. All six are fitted on doublet-free ciphers (LP2 has
 86 doublets in 12,956 runes; at a doublet a skip offers the beam no new choice, so fewer
-doublets mean a higher null), and exhausted paths wrap round the key so no window's own
-runes reach a wrong-key decode (review rounds 2-3: every one of 2,563 L = 240 lane windows sits
-at or below its fit within sampling error, the one 15-F window is refused). `LaneSpec.runnable_problems` refuses a lane whose window holds more F's than its
-calibration, or whose calibration no longer matches the decoder. Fit numbers and out-of-sample
-checks: `reports/beam_decoder.md`. After installing, re-run any `:beam*` control so its ceiling
+doublets mean a higher null), and a path that uses up its key wraps round it, so no window's
+own runes reach a wrong-key decode. All 54 page-start windows at L = 120 and 240 sit at or below
+their fits for every decoder within sampling error (`scripts/beam_power.py`, windows); review
+round 3 found the same for 2,563 of the 2,875 distinct L = 240 lane windows (the 312 four-page
+ones were not compared), and the one 15-F window is refused. `LaneSpec.runnable_problems`
+refuses a lane whose window holds more F's than its calibration, or whose calibration no
+longer matches the decoder. Fit numbers and scale checks (on the fit's own draws; bars good to
+about 1.5 beta): `reports/beam_decoder.md` §4. After installing, re-run any `:beam*` control so its ceiling
 uses the calibrated beta. Any later edit of `runeforge/beam.py` or `DECODER_PARAMS` needs a
 refit (the lane check says so).
 

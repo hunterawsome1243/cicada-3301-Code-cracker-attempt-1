@@ -65,7 +65,7 @@ def main() -> int:
         print(
             f"{out.name}: mu_b={rec['fit']['mu_block']:.4f} beta={rec['fit']['beta']:.4f} "
             f"null mean={rec['null']['mean']:.4f} sd={rec['null']['sd']:.4f} "
-            f"out-of-sample error={chk['max_error']:.4f} ({rec['seconds']} s)"
+            f"scale-check error={chk['max_error']:.4f} ({rec['seconds']} s)"
         )
     return 0
 

@@ -133,7 +133,7 @@ runs only entries Hunter has set `"approved": true` on (`runeforge queue` prints
 
 | file | what |
 |---|---|
-| `scripts/threshold_for.py` | family-wise bar for N trials from a Gumbel fit to observed block maxima (`runeforge/scoring/calib/presets/*.json`), with an out-of-sample check; refuses an uncalibrated length |
+| `scripts/threshold_for.py` | family-wise bar for N trials from a Gumbel fit to observed block maxima (`runeforge/scoring/calib/presets/*.json`), with a scale check on the fit's own draws; refuses an uncalibrated length |
 | `scripts/calibrate.py` | writes those calibration files (10⁶ null strings per preset and length) |
 | `scripts/check_results.py` | PASS/FAIL on a lane's RESULTS.md: sections, vocabulary, verdict arithmetic |
 | `scripts/validate_ledger.py` | ledger schema, append-only history, and `Unsound negatives = N` |
