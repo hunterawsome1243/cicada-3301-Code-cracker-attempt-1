@@ -6,8 +6,9 @@ No key space of the unsolved pages was searched, and nothing here is a decode of
 
 numbering: "LP2-0-57" · canon SHA-256 `023312066df471005264b9cbe7997cb77d2a9a6a2dc9b3316d22674023af1585`
 (12,956 runes, LP2 pages 0–55) · decoder `runeforge/beam.py` SHA-256 `a855814af3…` · numbers from
-`python scripts/beam_power.py` at git `6faf29d` → [`beam_decoder.json`](beam_decoder.json) (780 s
-on 4 CPU cores; the JSON section is named after each number) unless a line says otherwise.
+`python scripts/beam_power.py` at git `6faf29d` → [`beam_decoder.json`](beam_decoder.json) (780 s,
+one process, on a 4-core host; the JSON section is named after each number) unless a line says
+otherwise.
 
 ## 0. Reusable parts
 
@@ -18,7 +19,7 @@ on 4 CPU cores; the JSON section is named after each number) unless a line says 
 | beam nulls and their fits | `runeforge/scoring/beam_calib.py`, `scripts/calibrate.py --out-dir` |
 | six staged calibrations (lp-ngram3-heldout × 3 decoders × L 120, 240) | `reports/calib-staging/` (to install: `TOOLBOX_REQUESTS.md` TR-1) |
 | the forward model it inverts | `runeforge/runner/pipeline.py` `encrypt` |
-| tests | `tests/test_beam.py` (86; one marked slow, six cases need `data/raw`) |
+| tests | `tests/test_beam.py` (87; one marked slow, six cases need `data/raw`) |
 | every number below, regenerated | `scripts/beam_power.py` |
 
 ## 1. What the decoder models
@@ -97,8 +98,9 @@ and CLAUDE.md's attribution of that pair to the interrupt rule is TR-4.
 ## 3. The interrupt rule and LP2's ᚠ count
 
 "WELCOME 11 of 25" counts **ciphertext** ᚠ's that are interrupters. Every **plaintext** F in
-the keyed solved sections is an interrupter: 14 of 14 (11/11, 2/2, 1/1; the
-`test_not_every_f_is_an_interrupter` section data). This project's lanes had defaulted
+the keyed solved sections is an interrupter: 14 of 14 (11/11, 2/2, 1/1;
+`test_every_plaintext_f_in_the_keyed_sections_is_an_interrupter`, from
+`canon.load_solved_sections()`). This project's lanes had defaulted
 `interrupt_prob` to 0.44, reading the first figure as the second. The default is now 1.0, and
 the frozen texts that carry the misreading are TR-4.
 
@@ -146,7 +148,7 @@ Each fit is a Gumbel fit to the block maxima (block 1,000) of 10⁶ beam decodes
 |---|---|---|---|---|---|---|
 | beam | 240 | −6.4215 | 0.0372 | −6.7819 | −0.005 | **+0.016** |
 | beam | 120 | −6.1766 | 0.0511 | −6.7058 | −0.015 | −0.066 |
-| beam-skip | 240 | −6.4767 | 0.0377 | −6.8693 | +0.000 | −0.027 |
+| beam-skip | 240 | −6.4767 | 0.0377 | −6.8693 | **+0.0003** | −0.027 |
 | beam-skip | 120 | −6.3037 | 0.0563 | −6.9038 | −0.007 | **+0.011** |
 | beam-skip-int | 240 | −6.2949 | 0.0365 | −6.6535 | **+0.003** | **+0.052** |
 | beam-skip-int | 120 | −6.0713 | 0.0502 | −6.5941 | −0.011 | −0.039 |
@@ -202,12 +204,18 @@ draws of that fit's ciphers.
 | beam-skip | 240 | +2.44 | 2 | +0.42 |
 | beam-skip | 120 | +1.95 | 0 | −0.10 |
 
-The interrupt decoders sit at or below their fits in every window. The most F-rich windows sit
-at the fit, as built.
+The interrupt decoders sit at or below their fits in every window.
+
+- **L = 240:** the most F-rich window (page 11, 14 F's) sits at the fit, as built.
+- **L = 120:** even the most F-rich window (page 43, 10 F's, the count the fit uses) sits well
+  below it (z −9.5 and −8.6, about 0.03 in score, ~0.65 β). Where the F's fall matters as well as
+  how many there are, so at L = 120 these bars are conservative by that much: less power, not
+  more false positives.
 
 Under `beam-skip`, about 1.2 windows above z = 2 would be expected by chance. The +0.42 mean z
-lies within the uncertainty all 54 windows share through the one fit mean (about ±0.3 z). Its
-size is about 0.001 in score, 0.03 β.
+is about 1.3 times its own uncertainty, so it is not significant. That uncertainty is ±0.33 z:
+±0.30 from the one fit mean all 54 windows share, ±0.13 from the windows' own 2,000-key samples.
+Its size is about 0.001 in score, 0.03 β.
 
 Two further comparisons are review-round scratch measurements, with no regenerator committed:
 
@@ -271,9 +279,10 @@ Reading the table:
   beam lane whose control did not use the installed fit's β (`sweep.beam_control_problems`).
 - **A filtered lane** (the family the gate needs) was `INCONCLUSIVE (power)` by construction under
   the rigid decoder. Under `beam-skip` its control now passes.
-- **Recovery is about 97 %, not 100 %, under the skip models.** About 2.8 % (`beam-skip`) or 1.2 %
-  (`beam-skip-int`) of the window is lost at its end to the key budget (fill, §6). The rest is
-  genuine ambiguity, where two paths fit the ciphertext equally well.
+- **Recovery is about 97 % under `beam-skip` and about 98 % under `beam-skip-int`, not 100 %.**
+  (`beam-skip`: 0.967–0.973 in controls, 0.971 in `fill`; `beam-skip-int`: 0.979–0.988 and
+  0.983.) About 2.8 % or 1.2 % of the window is lost at its end to the key budget (fill, §6). The
+  rest is genuine ambiguity, where two paths fit the ciphertext equally well.
 - **The template lane's own control** (`template_control`: `lanes/_template.yaml` in memory,
   mt19937-py27, `lp-ngram3-heldout:beam-skip`, 999 decoys per plant, L = 240): 20/20 identified,
   median recovery 0.975, floor −4.306, observed ceiling −6.376 over 20,000 null keys.
@@ -314,9 +323,11 @@ faced three refuters, and it stood if at least two did not refute it.
 | 3 | 8 | 8 | 0 | a vacuous wrap test; the null not bound to the decoder; stale wording |
 | report audit | 23 | 20 | 3 | the scale checks overstated; an unbacked template-control figure; Dukotah's pair misattributed |
 
-Round 2 also reported two round-1 fixes as unresolved, and both were fixed in round 2:
-- `beam-skip`'s cipher independence, fixed by the wrap-round and the doublet-free fits;
-- the calibration binding outside the lane check, filed as TR-5.
+Round 2 also reported two round-1 fixes as unresolved:
+- `beam-skip`'s cipher independence was fixed in round 2 (wrap-round, doublet-free fits; `2e4519d`).
+- The calibration binding outside the lane check is still open. It was filed as TR-5 right after
+  round 1 (`a881f1c`). Round 2 added `sweep.beam_control_problems`, so the control's β is bound,
+  but `calib.load` and `threshold_for` stay unbound until TR-5 is installed.
 
 How the findings were handled:
 - every upheld code finding is fixed with a test;
@@ -335,8 +346,10 @@ not_covered:
 
 - **Scorers:** the six fits cover `lp-ngram3-heldout` only. Other scorers' beam presets have no
   bar. The Phase 2 Kneser-Ney scorer does not exist yet.
-- **Windows:** only L = 120 and 240 are fitted. The 312 four-page L = 240 lane windows were not
-  compared with their fits.
+- **Windows:** only L = 120 and 240 are fitted. Not compared with their fits:
+  - the 312 four-page L = 240 lane windows;
+  - at L = 120, 160 of the 214 distinct lane windows (two-page windows outside canonical order,
+    after pages 49, 51 or 55). Only the 54 page-start windows were compared (`windows`).
 - **Oracle:** a beam crosser cannot pass the frozen oracle until TR-3, and stops at HIT_PROTOCOL
   step 5.
 - **Re-encipher step:** step 6 replays the beam's own record. For the beam's output it is a
@@ -353,8 +366,8 @@ this model does not express.
 ## 8. Reproduce
 
 ```bash
-pytest -q tests/test_beam.py                    # 86 tests (-m "not slow" skips one)
-python scripts/beam_power.py                    # writes reports/beam_decoder.json (~13 min, 4 cores)
+pytest -q tests/test_beam.py                    # 87 tests (-m "not slow" skips one)
+python scripts/beam_power.py                    # writes reports/beam_decoder.json (~13 min, one process)
 python scripts/calibrate.py --preset lp-ngram3-heldout:beam-skip --L 240 --workers 4 \
     --out-dir reports/calib-staging              # one staged fit (~5 min)
 ```

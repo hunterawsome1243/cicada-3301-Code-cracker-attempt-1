@@ -716,3 +716,16 @@ def test_runeforge_null_records_what_a_small_n_bar_needs(tmp_path):
         "null_max": written["null1_shuffle"]["max"],
         "null2_max": written["null2_sha256"]["max"],
     }
+
+
+def test_every_plaintext_f_in_the_keyed_sections_is_an_interrupter():
+    """The rule the beam's 15/16 prior and the lane default interrupt_prob 1.0 rest on: 14 of
+    14 plaintext F's in WELCOME, A KOAN 2 and AN END are interrupters. "11 of 25" counts the
+    ciphertext's F's (test_solved_pages.test_not_every_f_is_an_interrupter)."""
+    counts = {}
+    for sid in KEYED:
+        s = _section(sid)
+        plain_f = np.flatnonzero(s.plain == interrupts.F).tolist()
+        assert plain_f == sorted(s.interrupts), sid
+        counts[sid] = len(plain_f)
+    assert counts == {"welcome": 11, "a-koan-2": 2, "an-end": 1}

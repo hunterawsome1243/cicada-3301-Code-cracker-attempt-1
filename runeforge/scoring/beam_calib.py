@@ -4,7 +4,7 @@
 key under a rigid additive decoder turns any ciphertext into exactly such a string. A wrong key
 under a beam decoder does not: the beam picks the best of its interrupt and skip paths through
 the wrong key, so its decodes score higher than uniform strings (lp-ngram3-heldout, L = 240:
-wrong-key mean -6.90 ``beam``, -6.88 ``beam-skip``, -6.74 ``beam-skip-int`` against -7.17
+wrong-key mean -6.90 ``beam``, -6.87 ``beam-skip``, -6.74 ``beam-skip-int`` against -7.17
 rigid; ``scripts/beam_power.py``) and need their own null. Every draw is the preset's beam
 decode of a cipher under a fresh uniform key of the cipher's length (the decoder's key budget
 in every caller), scored by the preset's scorer. Under a uniform key every decoded rune is
@@ -21,8 +21,9 @@ the choices it offers the beam (adversarial review rounds 1 and 2, 2026-10-22):
   ``beam-skip`` ignores F's.
 * canonical doublets: at a repeat a one-symbol skip deciphers the same rune as no skip, so a
   doublet offers the skip decoders no new choice. LP2 has almost none (86 in 12,956), uniform
-  ciphers one in 29, and a uniform-cipher fit sat 0.004 below every LP2 window's null (14
-  page-start windows: offset +0.0043, spread 0.0023; scripts/beam_power.py doublets). All
+  ciphers one in 29, and a uniform-cipher fit sat on average 0.0043 below the null of the 14
+  page-start windows measured (every fourth; +0.001 to +0.008, spread 0.0023;
+  scripts/beam_power.py doublets). All
   fits therefore draw DOUBLET-FREE ciphers (F's never adjacent), which offer the beam at least
   the choices of any LP2 window.
 * nothing else: with exhausted paths wrapping round the key (``runeforge.beam``) no cipher

@@ -54,8 +54,9 @@ DECODERS = ("rigid", "beam", "beam-skip", "beam-skip-int")
 # path that deciphers a plaintext F pays 4 bits rather than dying (a wrong key's beam would
 # otherwise run out of paths). p_keep 0.19 is LP2's 86 / 447 doublets. max_skip 6: more drops at
 # one rune has probability ~(0.81/29)**7 ~ 1e-11 per rune under a uniform key (runeforge.beam).
-# width 8: the planted-key controls and the solved sections recover the same at widths 4-16,
-# and the null barely moves with it (scripts/beam_power.py, section width).
+# width 8: the anti-repeat planted-key control (beam-skip, L = 240) recovers the same at widths
+# 4, 8 and 16 and the null barely moves with it (scripts/beam_power.py, section width); the keyed
+# solved sections decode exactly at widths 4-16 too (tests/test_beam.py covers 4 and 8).
 DECODER_PARAMS: dict[str, dict] = {
     "rigid": {},
     "beam": {"width": 8, "interrupt_prob": 15 / 16, "p_keep": None, "max_skip": 0},

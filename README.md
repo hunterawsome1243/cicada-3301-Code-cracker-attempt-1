@@ -153,7 +153,8 @@ and the three scripts above. Changing any of them is Hunter's call.
 |---|---|---|
 | nine solved sections, from canon runes | exact, all nine | `test_solved_pages.py` |
 | our transforms on cicada_tools' ciphertext | exact, all nine | `test_pipeline_matches_cicada_tools_reference` |
-| WELCOME / KOAN 2 / AN END interrupters | 11 of 25, 2 of 5, 1 of 5 ciphertext ᚠ; every plaintext F (14 of 14) | `test_not_every_f_is_an_interrupter` |
+| WELCOME / KOAN 2 / AN END interrupters | 11 of 25, 2 of 5, 1 of 5 ciphertext ᚠ | `test_not_every_f_is_an_interrupter` |
+| ... and every plaintext F is one | 14 of 14 (11, 2, 1) | `test_every_plaintext_f_in_the_keyed_sections_is_an_interrupter` |
 | the same interrupt sets from the key alone (beam) | exact, all three, two non-LP scorers | `test_the_beam_rederives_the_solved_interrupt_sets_from_the_key_alone` |
 | A WARNING sentence GP-sums | 757 1009 691 353 769 911 1051 859 677, all prime | `test_a_warning_sentences_have_prime_gp_sums` |
 | KNOW THIS squares | magic, 1033 and 3301 (rows, columns, diagonals) | `test_know_this_squares_are_magic` |

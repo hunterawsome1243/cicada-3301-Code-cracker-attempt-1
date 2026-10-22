@@ -11,8 +11,9 @@ new or refitted calibration there is Hunter's to install, TOOLBOX_REQUESTS.md). 
 decoder's null is uniform random strings (runeforge/scoring/calib); a beam decoder's is beam
 decodes under uniform keys of doublet-free ciphers, with the most canonical F's of any LP2
 page-start window for the interrupt decoders (runeforge/scoring/beam_calib). Re-run whenever
-the scorer's training data or a decoder's parameters change; scripts/threshold_for.py refuses
-a calibration fitted on a different model.
+the scorer's training data or a decoder's parameters change. scripts/threshold_for.py refuses a
+calibration fitted on a different scorer model; a stale beam fit (other decoder_params or
+runeforge/beam.py) is refused only by LaneSpec.runnable_problems until TOOLBOX_REQUESTS.md TR-5.
 """
 
 from __future__ import annotations
