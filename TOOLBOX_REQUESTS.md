@@ -22,11 +22,18 @@ for d in beam-skip beam-skip-int beam; do
 done   # writes straight into runeforge/scoring/calib/presets/
 ```
 
-Each file records `decoder_params` (pinned per decoder name in
-`runeforge/scoring/presets.py` `DECODER_PARAMS`, tested in `tests/test_beam.py`) and the
-scorer fingerprint `calib.load` checks. Fit numbers and the out-of-sample checks are in
-`reports/beam_decoder.md` §4. After installing, re-run any `:beam*` control so its ceiling uses
-the calibrated beta.
+Each file records the scorer fingerprint `calib.load` checks, plus what `calib.load` does not
+check (TR-5): `decoder_params` (pinned per decoder name in `presets.DECODER_PARAMS`), the
+SHA-256 of `runeforge/beam.py` it was fitted with, and, for the interrupt decoders,
+`canonical_F`. An interrupt decoder's wrong-key null rises with the window's canonical F count
+(review, 2026-10-22), so `beam` and `beam-skip-int` are fitted at the most F's of any LP2
+page-start window (L = 120: 10; L = 240: 14), which is conservative for every window holding at
+most that many; `beam-skip`'s null does not depend on the cipher and is fitted on uniform
+ciphers. `LaneSpec.runnable_problems` refuses a lane whose window holds more F's than its
+calibration, or whose calibration no longer matches the decoder. Fit numbers and out-of-sample
+checks: `reports/beam_decoder.md`. After installing, re-run any `:beam*` control so its ceiling
+uses the calibrated beta. Any later edit of `runeforge/beam.py` or `DECODER_PARAMS` needs a
+refit (the lane check says so).
 
 ## TR-2 (2026-10-22): freeze the beam decoder with its tests — open
 
@@ -79,3 +86,17 @@ Proposed wording for both docstrings and CLAUDE.md: "not every ciphertext ᚠ is
 (Welcome 11/25, Koan 2 2/5, An End 1/5), but every plaintext F is (14/14)". The consequence for
 LP2 is measured in `reports/beam_decoder.md` §3: under the every-F rule the template lane fails
 the fingerprint gate on C1 (LP2 0–55 holds 458 ᚠ against 447 uniform).
+
+## TR-5 (2026-10-22): bind beam calibrations to their decoder in `calib.load` — open
+
+**Frozen path:** `runeforge/scoring/calib/__init__.py`.
+
+`calib.load` checks only the scorer fingerprint. A beam calibration is valid only for the
+decoder parameters, the `runeforge/beam.py` and (interrupt decoders) the canonical F count it
+was fitted with. The unfrozen `beam_calib.calibration_problems` checks all three, from
+`LaneSpec.runnable_problems` (the sweep preflight and `runeforge lane`), but two callers
+reach `calib.load` without it: `scripts/threshold_for.py` (prints a bar for any window) and the
+frozen control's `_beta` (the ceiling's extrapolation slope). Proposed: `calib.load` refuses a
+record whose `decoder_params` differ from `presets.DECODER_PARAMS` or whose `beam_sha256`
+differs from `runeforge/beam.py`, as it refuses a changed scorer; `threshold_for` takes an
+optional window and refuses one with more canonical F's than `canonical_F`.
