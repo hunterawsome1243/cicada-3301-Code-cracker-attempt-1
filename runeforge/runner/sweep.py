@@ -50,7 +50,8 @@ The files (the ops contract overnight.sh and OVERNIGHT_LOOP.md rely on):
   the last checkpointed seed), ``scoring_at``, ``smoke``, the bars and progress fields.
 * ``runs/<id>/checkpoint.json`` -- ``cursor``, ``seeds_done``, the running top-k, the crosser
   count, the cumulative ``elapsed_s`` over every launch, the pins (``claim_bar``,
-  ``family_wise_bar``, ``lane_pipeline_sha256``, ``smoke``) and the Q5 state
+  ``family_wise_bar``, ``lane_pipeline_sha256``, ``smoke`` and, for a beam decoder,
+  ``decoder``: its ``DECODER_PARAMS`` and the SHA-256 of runeforge/beam.py) and the Q5 state
   (``kill_condition``, ``kill_detail``, ``q5_overrides``). ``--resume`` is the default: a
   killed run continues from the last completed chunk with no gap and no double count.
 * ``runs/<id>/sweep.jsonl`` -- SWEEPROWs, each with ``smoke`` and a ``reproduce`` command. A

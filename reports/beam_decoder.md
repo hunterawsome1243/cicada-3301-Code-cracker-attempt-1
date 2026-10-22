@@ -26,7 +26,9 @@ otherwise.
 ## 1. What the decoder models
 
 The rigid decoder spends one key symbol per rune. The first interrupter or skip puts every later
-rune out of step with the key, so a correct key scores like noise.
+rune out of step with the key. When that happens early in the window, a correct key scores near
+noise. Rigid controls identify 0/20 at L = 240, and 7/20 at L = 120 under interrupters
+(`controls`).
 
 The beam follows `pipeline.encrypt` position by position. The ciphertext fixes the canonical
 runes, so two kinds of position are known: the candidate interrupt positions (every canonical
@@ -210,8 +212,9 @@ The interrupt decoders sit at or below their fits in every window.
 - **L = 240:** the most F-rich window (page 11, 14 F's) sits at the fit, as built.
 - **L = 120:** even the most F-rich window (page 43, 10 F's, the count the fit uses) sits well
   below it (z −9.5 and −8.6, about 0.03 in score, ~0.65 β). Where the F's fall matters as well as
-  how many there are, so at L = 120 these bars are conservative by that much: less power, not
-  more false positives.
+  how many there are. For the 54 page-start windows at L = 120 these bars are conservative by at
+  least that much: less power, not more false positives. The other 160 of the 214 L = 120 lane
+  windows were not compared (§7).
 
 Under `beam-skip`, about 1.2 windows above z = 2 would be expected by chance. The +0.42 mean z
 is about 1.3 times its own uncertainty, so it is not significant. That uncertainty is ±0.33 z:
@@ -247,6 +250,16 @@ what `run_control` uses today: the per-plant maxima for `:beam*` rows, and the i
 calibration for rigid rows. "id." is the number of plants identified, out of 20. The pass bar
 is ≥ 18/20 identified and a gap ≥ 0.25 nats. "Lane" says whether `LaneSpec.decoder_problems`
 allows the pairing.
+
+The pass bar is ≥ 18/20 plants identified (rank 1 and recovery ≥ 0.90) and a gap ≥ 0.25 nats.
+Two more conditions apply:
+- the decoys' maximum is within 5 β of the null maximum over as many keys;
+- the floor is above the lane's family-wise bar, when one is set.
+
+The staged-β column applies the identification and gap conditions only. Review round 4 re-ran
+the six matched pairings and the template lane with `control._beta` returning the staged β:
+every one passes all conditions (gaps 1.089, 0.747, 1.113, 0.645, 1.100, 0.716 and 1.114). That
+re-run is a scratch measurement; `run_control` does it itself once TR-1 installs the fits.
 
 | forward model | L | decoder | id. | median recovery | floor | gap, staged β (nats) | gap, control's β (nats) | lane |
 |---|---|---|---|---|---|---|---|---|
@@ -353,6 +366,8 @@ not_covered:
   - the 312 four-page L = 240 lane windows;
   - at L = 120, 160 of the 214 distinct lane windows (two-page windows outside canonical order,
     after pages 49, 51 or 55). Only the 54 page-start windows were compared (`windows`).
+  - the one L = 240 window with 15 canonical F's (pages 22, 43). `beam` and `beam-skip-int`
+    refuse it, since no bar is fitted above canonical_F 14.
 - **Oracle:** a beam crosser cannot pass the frozen oracle until TR-3, and stops at HIT_PROTOCOL
   step 5.
 - **Re-encipher step:** step 6 replays the beam's own record. For the beam's output it is a
