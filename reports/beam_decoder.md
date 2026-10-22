@@ -5,8 +5,8 @@ and anti-repeat key skips, and how hard it is for a wrong key to look like a rig
 No key space of the unsolved pages was searched, and nothing here is a decode of LP2.
 
 numbering: "LP2-0-57" · canon SHA-256 `023312066df471005264b9cbe7997cb77d2a9a6a2dc9b3316d22674023af1585`
-(12,956 runes, LP2 pages 0–55) · decoder `runeforge/beam.py` SHA-256 `64348587f9…` (the numbers
-below were computed at `a855814af3…`; the two differ in comments only) · numbers from
+(12,956 runes, LP2 pages 0–55) · decoder `runeforge/beam.py` SHA-256 `4cd3d7ba59…` (the numbers
+below were computed at `a855814af3…`; the two differ in comments and docstrings only) · numbers from
 `python scripts/beam_power.py` at git `6faf29d` → [`beam_decoder.json`](beam_decoder.json) (780 s,
 one process, on a 4-core host; the JSON section is named after each number) unless a line says
 otherwise.
@@ -21,7 +21,7 @@ otherwise.
 | six staged calibrations (lp-ngram3-heldout × 3 decoders × L 120, 240) | `reports/calib-staging/` (to install: `TOOLBOX_REQUESTS.md` TR-1) |
 | the forward model it inverts | `runeforge/runner/pipeline.py` `encrypt` |
 | tests | `tests/test_beam.py` (87; one marked slow, six cases need `data/raw`) |
-| every number below, regenerated | `scripts/beam_power.py` |
+| every number below, unless a line says otherwise | `scripts/beam_power.py`; the staged fits: `scripts/calibrate.py --out-dir reports/calib-staging`; review-round and audit scratch figures (§4, §5) have no committed regenerator |
 
 ## 1. What the decoder models
 
@@ -256,7 +256,7 @@ Two more conditions apply:
 - the decoys' maximum is within 5 β of the null maximum over as many keys;
 - the floor is above the lane's family-wise bar, when one is set.
 
-The staged-β column applies the identification and gap conditions only. Review round 4 re-ran
+The staged-β column applies the identification and gap conditions only. Report audit 4 (`b68f006`) re-ran
 the six matched pairings and the template lane with `control._beta` returning the staged β:
 every one passes all conditions (gaps 1.089, 0.747, 1.113, 0.645, 1.100, 0.716 and 1.114). That
 re-run is a scratch measurement; `run_control` does it itself once TR-1 installs the fits.
@@ -327,7 +327,9 @@ bounded slice whose fraction is stated.
 ## 7. Review record and what is not covered
 
 The decoder and its integration went through three adversarial review rounds, and this report
-through three claim-by-claim audits. Each round used independent reviewers by dimension. Each finding
+through repeated claim-by-claim audits. The table records each round that changed the code or
+the report. A later round that upholds nothing changes nothing, and appears only in the commit
+log (`git log --grep 'audit'`). Each round used independent reviewers by dimension. Each finding
 faced three refuters, and it stood if at least two did not refute it.
 
 | round | findings | upheld | of which major | examples |
@@ -337,7 +339,9 @@ faced three refuters, and it stood if at least two did not refute it.
 | 3 | 8 | 8 | 0 | a vacuous wrap test; the null not bound to the decoder; stale wording |
 | report audit 1 (`956cd28`, `56bdbe5`) | 23 | 20 | 3 | the scale checks overstated; an unbacked template-control figure; Dukotah's pair misattributed |
 | report audit 2 (`0201052`) | 22 | 20 | 0 | at L = 120 the F-richest window sits ~0.65 β below its fit; TR-5 open, not fixed; a test pins 14/14 |
-| report audit 3 | 10 | 9 | 0 | the audit record itself; conservativeness claimed beyond the compared windows; a banned word in code comments |
+| report audit 3 (`c29edd8`) | 10 | 9 | 0 | the audit record itself; conservativeness claimed beyond the compared windows; a banned word in code comments |
+| report audit 4 (`b68f006`) | 8 | 6 | 0 | L = 120 conservativeness scoped to the 54 page-start windows; the control's full pass bar and the staged-β re-run; the 15-F window in not_covered |
+| report audit 5 | 10 | 8 | 0 | this table's own rows; §0's "every number regenerated"; the gate-passing family stated too narrowly |
 
 Round 2 also reported two round-1 fixes as unresolved:
 - `beam-skip`'s cipher independence was fixed in round 2 (wrap-round, doublet-free fits; `2e4519d`).

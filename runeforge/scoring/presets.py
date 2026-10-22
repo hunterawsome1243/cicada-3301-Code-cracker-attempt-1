@@ -46,9 +46,10 @@ DECODERS = ("rigid", "beam", "beam-skip", "beam-skip-int")
 # gate, the decoder's priors stay these:
 #   beam           F-interrupters only (spec section 2.4 beam(scorer, width)): every canonical F
 #                  is an interrupt-or-not choice; filter_model off
-#   beam-skip      the anti-repeat filter's key skips only, no interrupters: the family that
-#                  passes the fingerprint gate (LP2 0-55 holds 458 F's against 447 uniform, no
-#                  room for unencrypted plaintext F's at English rates; PICKUP-HERE.md Lessons)
+#   beam-skip      the anti-repeat filter's key skips only, no interrupters: the template lane's
+#                  family, which passes the fingerprint gate cleanly (interrupt rates 0.1 and
+#                  0.44 pass marginally, 1.0 fails: LP2 0-55 holds 458 F's against 447 uniform;
+#                  reports/beam_decoder.md section 3)
 #   beam-skip-int  both: pipeline.encrypt's model, truncated at max_skip drops per rune
 # interrupt_prob 15/16: every plaintext F in the keyed solved sections is an interrupter
 # (14 of 14), so the rule of succession gives (14 + 1) / (14 + 2). It is kept below 1 so a

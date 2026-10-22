@@ -1,11 +1,12 @@
 """The beam interrupt decoder (spec section 2.4 ``beam(scorer, width)``; Phase 2).
 
 The rigid decoder spends one key symbol per rune, so the first F-interrupter or anti-repeat
-key skip throws every later rune out of step with the key, and a correct key scores like noise
-(Dukotah, PAPER.md section 3: under the anti-repeat filter a correct key scores -6.835 rigid
-and -4.170 under a skip-aware beam; for interrupters see reports/beam_decoder.md section 2).
-This decoder follows the forward model of ``runeforge.runner.pipeline.encrypt``, position by
-position:
+key skip throws every later rune out of step with the key; when that happens early in the
+window a correct key scores near noise (rigid controls identify 0/20 at L = 240, 7/20 at
+L = 120 under interrupters: reports/beam_decoder.md section 1; Dukotah, PAPER.md section 3:
+under the anti-repeat filter a correct key scores -6.835 rigid and -4.170 under a skip-aware
+beam; for interrupters see reports/beam_decoder.md section 2). This decoder follows the
+forward model of ``runeforge.runner.pipeline.encrypt``, position by position:
 
 * **interrupt** -- allowed only where the canonical rune is F: the plaintext is F and the key
   does not advance; prior ``interrupt_prob``. A plaintext F that is enciphered instead pays
