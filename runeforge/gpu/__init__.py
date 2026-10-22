@@ -1,8 +1,10 @@
-"""Phase 3: CUDA sweep engine (CuPy RawKernel / Numba).
+"""Phase 3: the CUDA sweep engine (numba.cuda).
 
-Planned: ``kernels/decrypt_mod29.cu``, ``kernels/score_ngram.cu`` and one
-``kernels/prng_<family>.cu`` per generator, each validated against a CPU reference in
-``tests/test_prng.py``; ``sweep.py`` runs a lane with chunking, checkpoint/resume and
-the family-wise threshold, piping survivors to the oracle. Install with
-``pip install -e '.[gpu]'``.
+Built: ``beam_kernel`` -- the beam decoder (``runeforge.beam.decode_batch`` + the n-gram score)
+as one CUDA thread per key, with a CPU njit twin compiled from the same function, and
+``parity`` -- ``python -m runeforge.gpu.parity <lane.yaml>``, the parity record (>= 10^4 of the
+lane's own keys against the numpy reference) and the benchmark that ``runeforge sweep
+--backend gpu`` requires (.claude/rules/gpu.md). Keystreams still come from the CPU
+generators; a GPU generator per family, each with its own parity test, is not built.
+Install with ``pip install -e '.[gpu]'``.
 """

@@ -1,4 +1,10 @@
-"""``runeforge sweep <lane.yaml> [--detach]``: the lane runner (CPU backend; GPU in Phase 3).
+"""``runeforge sweep <lane.yaml> [--detach] [--backend cpu|gpu]``: the lane runner.
+
+``--backend gpu`` scores a beam lane's keys with the CUDA kernel (``runeforge.gpu.beam_kernel``);
+keystreams still come from the CPU generator, and every survivor, crosser and chunk best is
+re-decoded and re-scored on the CPU reference (a disagreement over 1e-6 stops the sweep with a
+crash row). It is refused without a passing real-device parity record for this lane, beam.py,
+kernel and device (``runeforge.gpu.parity.record_problems``; .claude/rules/gpu.md).
 
 Refusals -- exit 2, nothing scored, the reasons on stderr. The runner checks them itself,
 under an exclusive ``flock`` on ``<runs>/.sweep.lock`` held across its preflight, its PID
@@ -276,6 +282,7 @@ def preflight(
     base: Path | None,
     lanes_dir: Path | None = None,
     max_seeds: int | None = None,
+    backend: str = "cpu",
 ) -> list[str]:
     """Every reason this lane may not start now (empty = it may). A smoke run (test harness)
     skips only the family_wise_bar-vs-threshold_for comparison, so toy lanes can force
@@ -300,6 +307,12 @@ def preflight(
             problems += beam_control_problems(lane, lanes_dir)
             problems += threshold_problems(lane, row)
         problems += gate_problems(lane, base, lanes_dir)
+    if backend == "gpu":
+        from runeforge.gpu import parity
+
+        problems += parity.record_problems(lane, run_dir(lane, base) / "parity.json", smoke)
+    elif backend != "cpu":
+        problems.append(f"unknown backend {backend!r} (cpu | gpu)")
     alive = live_sweeps(base, exclude_pid=os.getpid())
     if alive:
         problems.append(f"another sweep is alive: {alive} (never two jobs at once)")
@@ -433,11 +446,12 @@ class _Sweep:
         lanes_dir: Path | None,
         override_q5: str | None,
         stop: dict,
+        backend: str = "cpu",
     ):
         self.lane, self.lane_path, self.base = lane, Path(lane_path), base
         self.resume, self.smoke, self.ledger_path = resume, smoke, ledger_path
         self.max_seeds, self.lanes_dir, self.override_q5 = max_seeds, lanes_dir, override_q5
-        self.stop = stop
+        self.stop, self.backend = stop, backend
         self.rd = run_dir(lane, base)
         self.pid_path = self.rd / "sweep.pid"
         self.status_path = self.rd / "status.json"
@@ -501,7 +515,7 @@ class _Sweep:
                 "numbering": canon.LP2_NUMBERING,
                 "pid": self.pid,
                 "pid_starttime": self.starttime,
-                "backend": "cpu",
+                "backend": self.backend,
                 "smoke": self.smoke,
                 "updated_epoch": int(time.time()),
                 "deadline_epoch": int(self.deadline),
@@ -554,6 +568,7 @@ class _Sweep:
             self.base,
             lanes_dir=self.lanes_dir,
             max_seeds=self.max_seeds,
+            backend=self.backend,
         )
         if problems:
             return _refuse(problems)
@@ -644,10 +659,8 @@ class _Sweep:
                         break
                     # Python ints: 64-bit seed spaces reach past int64 (seeds up to 2**64 - 1)
                     seeds = list(range(b, min(b + BATCH, c_hi)))
-                    plains = pipeline.decrypt(
-                        lane, cipher[None, :], pipeline.keys_batch(lane, seeds, cipher.size)
-                    )
-                    scores = pipeline.score_batch(scorer, plains)
+                    keys = pipeline.keys_batch(lane, seeds, cipher.size)
+                    scores, plains = self.decode(cipher, keys, scorer)
                     for s, v in zip(seeds, scores.tolist(), strict=True):
                         if len(top) < TOP_K:
                             heapq.heappush(top, (v, s))
@@ -658,11 +671,11 @@ class _Sweep:
                         chunk_best = (
                             float(scores[i_best]),
                             seeds[i_best],
-                            plains[i_best].copy(),
+                            plains(i_best).copy(),
                         )
                     for idx in np.flatnonzero(scores > lane.claim_bar):
                         # language-agnostic stats for the decodes worth re-reading, never per trial
-                        s, v, stats = seeds[idx], float(scores[idx]), decode_stats(plains[idx])
+                        s, v, stats = seeds[idx], float(scores[idx]), decode_stats(plains(idx))
                         is_crosser = v > lane.family_wise_bar
                         kind = "crosser" if is_crosser else "survivor"
                         found.append(
@@ -731,6 +744,34 @@ class _Sweep:
             return 0
         return 143 if stop["why"] in ("SIGTERM", "SIGINT") else 1
 
+    def decode(self, cipher, keys, scorer):
+        """(scores, plain_of(row)). CPU: the reference decodes every row. GPU: the kernel
+        scores every row; a row's plaintext is re-decoded on the CPU reference when asked for
+        (survivors, crossers, the chunk best), and its CPU score must equal the kernel's."""
+        if self.backend == "cpu":
+            plains = pipeline.decrypt(self.lane, cipher[None, :], keys)
+            return pipeline.score_batch(scorer, plains), lambda i: plains[i]
+        from runeforge.gpu import beam_kernel as bk
+
+        scores, _obj = bk.score_gpu(cipher, keys, scorer, pipeline.beam_model(self.lane))
+        if np.isnan(scores).any():
+            raise RuntimeError("the GPU kernel returned NaN scores (no live path): parity broken")
+        cache: dict[int, np.ndarray] = {}
+
+        def plain_of(i: int) -> np.ndarray:
+            i = int(i)
+            if i not in cache:
+                p = pipeline.decrypt(self.lane, cipher[None, :], keys[i : i + 1])
+                cpu = float(pipeline.score_batch(scorer, p)[0])
+                if abs(cpu - float(scores[i])) > 1e-6:
+                    raise RuntimeError(
+                        f"GPU/CPU disagree on row {i}: {scores[i]!r} vs {cpu!r} (parity broken)"
+                    )
+                cache[i] = p[0]
+            return cache[i]
+
+        return scores, plain_of
+
     def _check_q5(self, cursor: int) -> None:
         st, kc = self.state, self.lane.kill_condition
         frac = (cursor - self.lo) / max(self.hi - self.lo, 1)
@@ -768,6 +809,7 @@ def run(
     max_seeds: int | None = None,
     lanes_dir: Path | None = None,
     override_q5: str | None = None,
+    backend: str = "cpu",
 ) -> int:
     lane = load_lane(lane_path)
     base_dir = Path(base) if base is not None else RUNS_DIR
@@ -792,6 +834,7 @@ def run(
         lanes_dir=lanes_dir,
         override_q5=override_q5,
         stop=stop,
+        backend=backend,
     )
     previous = {s: signal.signal(s, _stop) for s in (signal.SIGTERM, signal.SIGINT)}
     try:
@@ -938,6 +981,7 @@ def launch_detached(
     lanes_dir: Path | None = None,
     override_q5: str | None = None,
     wait_s: float = LAUNCH_WAIT_S,
+    backend: str = "cpu",
 ) -> int:
     """setsid + nohup equivalent: the runner survives the shell and Claude's process tree.
 
@@ -950,7 +994,7 @@ def launch_detached(
     lanes_dir = Path(lanes_dir).resolve() if lanes_dir else None
     base_dir = Path(base).resolve() if base is not None else RUNS_DIR
     lane = load_lane(lane_path)
-    problems = preflight(lane, ledger_path, smoke, base_dir, lanes_dir, max_seeds)
+    problems = preflight(lane, ledger_path, smoke, base_dir, lanes_dir, max_seeds, backend)
     if override_q5 is not None and not override_q5.strip():
         problems.append("--override-q5 needs a reason (it is recorded in sweep.jsonl)")
     if problems:
@@ -970,6 +1014,8 @@ def launch_detached(
         cmd += ["--max-seeds", str(max_seeds)]
     if override_q5 is not None:
         cmd += ["--override-q5", override_q5]
+    if backend != "cpu":
+        cmd += ["--backend", backend]
     env = dict(os.environ)
     env["RUNEFORGE_RUNS"] = str(base_dir)
     log_path = rd / "sweep.log"
@@ -1044,6 +1090,7 @@ def main(argv: list[str] | None = None) -> int:
         metavar="REASON",
         help="resume a lane whose Q5 kill condition fired (a human decision; recorded)",
     )
+    ap.add_argument("--backend", choices=("cpu", "gpu"), default="cpu")
     a = ap.parse_args(argv)
     kw = {
         "resume": not a.no_resume,
@@ -1052,6 +1099,7 @@ def main(argv: list[str] | None = None) -> int:
         "max_seeds": a.max_seeds,
         "lanes_dir": Path(a.lanes_dir) if a.lanes_dir else None,
         "override_q5": a.override_q5,
+        "backend": a.backend,
     }
     if a.mode == "launch":
         return launch_detached(Path(a.lane), **kw)

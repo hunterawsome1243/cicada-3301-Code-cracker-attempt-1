@@ -115,3 +115,20 @@ frozen control's `_beta` (the ceiling's extrapolation slope). Proposed: `calib.l
 record whose `decoder_params` differ from `presets.DECODER_PARAMS` or whose `beam_sha256`
 differs from `runeforge/beam.py`, as it refuses a changed scorer; `threshold_for` takes an
 optional window and refuses one with more canonical F's than `canonical_F`.
+
+## TR-6 (2026-10-22): freeze the GPU beam kernel once it passes on the device — open
+
+Spec §6 freezes a phase's files in the commit that turns its tests green. The kernel's tests are
+green on its CPU twin and numba's simulator, but its device tests
+(`test_the_cuda_kernel_on_the_device`) skip here, because this container has no GPU. After
+`pytest -q tests/test_gpu_beam.py` and `python -m runeforge.gpu.parity lanes/_template.yaml`
+pass on the RTX, the proposed lines for FROZEN.txt are:
+
+```
+runeforge/gpu/beam_kernel.py
+runeforge/gpu/parity.py
+tests/test_gpu_beam.py
+```
+
+Until then a later edit of the kernel only invalidates its parity records: `sweep --backend gpu`
+compares the record's `kernel_sha256` with the file. It does not touch any lane evidence.

@@ -20,7 +20,7 @@ jobs:
         with:
           python-version: ${{ matrix.python }}
       - name: Install
-        run: pip install -e '.[dev]' sympy
+        run: pip install -e '.[dev]' sympy numba  # numba: the GPU kernel's CPU twin and simulator tests
       - name: Fetch vendored sources (sparse, pinned commits)
         run: bash scripts/fetch_raw.sh
       - name: Build corpora (offline, from the vendored texts)

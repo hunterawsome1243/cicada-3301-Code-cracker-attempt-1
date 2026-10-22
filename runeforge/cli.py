@@ -584,11 +584,8 @@ def cmd_score(args: argparse.Namespace) -> int:
 def cmd_sweep(args: argparse.Namespace) -> int:
     from runeforge.runner import sweep
 
-    if args.backend == "gpu":
-        console.print("[red]the GPU backend is Phase 3 (runeforge/gpu); use --backend cpu[/red]")
-        return 2
     ledger = Path(args.ledger) if args.ledger else None
-    kw = {"max_seeds": args.max_seeds, "override_q5": args.override_q5}
+    kw = {"max_seeds": args.max_seeds, "override_q5": args.override_q5, "backend": args.backend}
     if args.detach:
         return sweep.launch_detached(Path(args.lane), not args.no_resume, False, ledger, **kw)
     return sweep.run(Path(args.lane), not args.no_resume, False, ledger, **kw)

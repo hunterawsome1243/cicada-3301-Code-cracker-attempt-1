@@ -324,6 +324,15 @@ A 2³² `beam-skip` sweep at ~1,240 keys/s is about 40 core-days on the CPU (2³
 needs the Phase 3 GPU kernel (parity against `beam.decode_batch`, per `.claude/rules/gpu.md`), or a
 bounded slice whose fraction is stated.
 
+The kernel is built (`runeforge/gpu/beam_kernel.py`) but has not run on a GPU, so it has no
+throughput number yet. On the template lane's own keystreams (10⁴ seeds: both ends of the
+range, planted seed 3301, random seeds; the lane's window and a planted synthetic page), its
+CPU twin matches the numpy decoder with max |Δscore| = 0 and identical survivor sets
+(`python -m runeforge.gpu.parity lanes/_template.yaml --backend cpu-twin`). The CUDA kernel
+matches on numba's simulator too (`tests/test_gpu_beam.py`). The parity run that counts, and
+the benchmark, must be made on the RTX:
+`python -m runeforge.gpu.parity lanes/<id>.yaml --bench 1048576`.
+
 ## 7. Review record and what is not covered
 
 The decoder and its integration went through three adversarial review rounds, and this report

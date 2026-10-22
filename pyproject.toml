@@ -24,6 +24,8 @@ dev = [
     "pre-commit>=3.5",
 ]
 # Phase 3. Install the CuPy wheel that matches your CUDA toolkit (cupy-cuda12x for CUDA 12.x).
+# The beam kernel (runeforge/gpu/beam_kernel.py) is numba.cuda; numba alone runs its CPU twin and
+# the simulator (NUMBA_ENABLE_CUDASIM=1) without a GPU.
 gpu = [
     "cupy-cuda12x>=13.0",
     "numba>=0.59",
