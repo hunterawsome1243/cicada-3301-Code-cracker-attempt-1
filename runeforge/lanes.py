@@ -178,6 +178,11 @@ class LaneSpec(BaseModel):
                         f"{t.bar:.4f}; at that bar the slice expects more false positives than "
                         "the rule allows"
                     )
+            from runeforge import canon
+            from runeforge.scoring import beam_calib
+
+            window = canon.load_lp2().stream(self.pages)[: self.window]
+            out.extend(beam_calib.calibration_problems(self.preset, self.window, window))
         if not self.control.must_recover:
             out.append("control does not require recovery (Rule 2)")
         return out

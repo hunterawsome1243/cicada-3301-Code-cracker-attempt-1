@@ -48,16 +48,19 @@ DECODERS = ("rigid", "beam", "beam-skip", "beam-skip-int")
 #   beam-skip      the anti-repeat filter's key skips only, no interrupters: the family that
 #                  passes the fingerprint gate (LP2 0-55 holds 458 F's against 447 uniform, no
 #                  room for unencrypted plaintext F's at English rates; PICKUP-HERE.md Lessons)
-#   beam-skip-int  both (pipeline.encrypt's full model)
+#   beam-skip-int  both: pipeline.encrypt's model, truncated at max_skip drops per rune
 # interrupt_prob 15/16: every plaintext F in the keyed solved sections is an interrupter
 # (14 of 14), so the rule of succession gives (14 + 1) / (14 + 2). It is kept below 1 so a
 # path that deciphers a plaintext F pays 4 bits rather than dying (a wrong key's beam would
-# otherwise run out of paths). p_keep 0.19 is LP2's 86 / 447 doublets.
+# otherwise run out of paths). p_keep 0.19 is LP2's 86 / 447 doublets. max_skip 6: more drops at
+# one rune has probability ~(0.81/29)**7 ~ 1e-11 per rune under a uniform key (runeforge.beam).
+# width 8: the planted-key controls and the solved sections recover the same at widths 4-16
+# (reports/beam_decoder.md), and the null barely moves with it.
 DECODER_PARAMS: dict[str, dict] = {
     "rigid": {},
     "beam": {"width": 8, "interrupt_prob": 15 / 16, "p_keep": None, "max_skip": 0},
-    "beam-skip": {"width": 8, "interrupt_prob": 0.0, "p_keep": 0.19, "max_skip": 2},
-    "beam-skip-int": {"width": 8, "interrupt_prob": 15 / 16, "p_keep": 0.19, "max_skip": 2},
+    "beam-skip": {"width": 8, "interrupt_prob": 0.0, "p_keep": 0.19, "max_skip": 6},
+    "beam-skip-int": {"width": 8, "interrupt_prob": 15 / 16, "p_keep": 0.19, "max_skip": 6},
 }
 
 

@@ -15,8 +15,9 @@ Conventions (mod 29):
   is a fact about LP2's doublets, and an interrupter is an unencrypted canonical F (CLAUDE.md).
   The view symbol of each canonical rune follows from it and the previous canonical rune.
   The rigid decoder cannot follow skips or interrupters, so such lanes fail a rigid control
-  (INCONCLUSIVE (power)); the beam decoders (``runeforge.beam``, presets ``<scorer>:beam``
-  for interrupters, ``<scorer>:beam-skip`` for interrupters and skips) follow this model.
+  (INCONCLUSIVE (power)); the beam decoders (``runeforge.beam``) follow this model: presets
+  ``<scorer>:beam`` for the interrupters, ``<scorer>:beam-skip`` for the anti-repeat skips and
+  ``<scorer>:beam-skip-int`` for both.
 """
 
 from __future__ import annotations

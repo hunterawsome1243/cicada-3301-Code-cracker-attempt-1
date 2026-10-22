@@ -15,6 +15,13 @@ forward model of ``runeforge.runner.pipeline.encrypt``, position by position:
   on the key, not a guess -- and pays ``1 - p_keep``. A rune that does repeat the previous
   canonical rune survived the filter and pays ``p_keep``.
 
+``pipeline.encrypt`` puts no bound on the drops at one rune; the decoder stops at
+``max_skip``, so it models the forward model truncated there (part of its "decoder transition
+model" conditional). Under a uniform key, more than s drops at a rune has probability about
+(0.81 / 29) ** (s + 1) per rune: with the presets' max_skip = 6, about 1e-11, against 2.2e-5
+(a quarter of all 12,956-rune streams) at max_skip = 2. A skip option no row of the batch can
+take is not built, so a larger max_skip costs little.
+
 The canonical runes are fixed by the ciphertext (``pipeline.unview``), so the interrupt and
 repeat positions are known; only the plaintext and the key position are hidden. A hypothesis is
 (key position, the scorer's n-gram history). Each step every hypothesis expands into its
@@ -32,8 +39,15 @@ null -- control plants, decoys and ceiling, ``runeforge null``, the sweep, ``run
 -- passes exactly the window length, so they all decode under the same budget. A path that has
 used its last symbol (more skips than interrupts so far) continues with the fixed, key-free
 fill ``combine^-1(view symbol, 0)`` (noise for any cipher) and is marked in the record; a
-planted key under the anti-repeat model loses its last few runes that way (about 1.8 % of the
-window), which costs power, never adds any.
+planted key under the anti-repeat model loses its last runes that way -- the skips' net excess
+over the interrupters: about 2.8 % of the window on Cicada-register text without interrupters,
+about 1.3 % with every plaintext F an interrupter (``scripts/beam_power.py``) -- which costs
+power, never adds any.
+
+Priors must stay strictly inside (0, 1) where they act: ``interrupt_prob = 1`` would kill every
+path that deciphers an F and ``p_keep = 0`` every path through a kept repeat, and a wrong key's
+beam would run out of paths, so ``BeamModel`` refuses both and a beam with no live path raises
+instead of returning a path traced through dead slots.
 
 The scorer must expose ``order`` and ``tables`` (``runeforge.scoring.ngram.NGramScorer``):
 ``tables[i]`` is log2 P(x | i-symbol history) with shape (29**i, 29).
@@ -60,14 +74,15 @@ OP_FILL = 101
 @dataclass(frozen=True)
 class BeamModel:
     """The decoder's transition model. ``p_keep=None`` disables the anti-repeat skips;
-    ``interrupt_prob=0`` disables the interrupts (the decoder is then rigid with fill)."""
+    ``interrupt_prob=0`` disables the interrupts (the decoder is then rigid with fill).
+    Otherwise both priors lie strictly inside (0, 1): see the module docstring."""
 
     combine: str = "vigenere"
     view: str = "raw"
     width: int = 8
     interrupt_prob: float = 15 / 16
     p_keep: float | None = None
-    max_skip: int = 2
+    max_skip: int = 6
 
     def __post_init__(self):
         if self.combine not in COMBINES:
@@ -76,10 +91,13 @@ class BeamModel:
             raise ValueError(f"unknown ciphertext view {self.view!r}")
         if self.width < 1:
             raise ValueError("beam width must be >= 1")
-        if not 0 <= self.interrupt_prob <= 1:
-            raise ValueError("interrupt_prob is a probability")
-        if self.p_keep is not None and not 0 <= self.p_keep <= 1:
-            raise ValueError("p_keep is a probability")
+        if not 0 <= self.interrupt_prob < 1:
+            raise ValueError(
+                "interrupt_prob must be in [0, 1): at 1 every path that deciphers an F dies "
+                "(the presets use 15/16, the rule of succession on 14 of 14)"
+            )
+        if self.p_keep is not None and not 0 < self.p_keep <= 1:
+            raise ValueError("p_keep must be in (0, 1]: at 0 every path through a repeat dies")
         if self.max_skip < 0:
             raise ValueError("max_skip must be >= 0")
 
@@ -138,11 +156,14 @@ def repeat_symbol(c_prev: np.ndarray, view: str) -> np.ndarray:
 
 
 def _tables(scorer) -> list[np.ndarray]:
-    cached = getattr(scorer, "_beam_tables64", None)
-    if cached is None or len(cached) != len(scorer.tables):
+    """float64 copies of the scorer's tables, cached on the scorer and keyed on the identity of
+    its ``tables`` list (``fit`` replaces the list, so a refit scorer is never decoded with its
+    old model)."""
+    src, cached = getattr(scorer, "_beam_tables64", (None, None))
+    if src is not scorer.tables:
         cached = [np.ascontiguousarray(t, dtype=np.float64) for t in scorer.tables]
         with contextlib.suppress(AttributeError):  # a slotted scorer just recomputes them
-            scorer._beam_tables64 = cached
+            scorer._beam_tables64 = (scorer.tables, cached)
     return cached
 
 
@@ -234,11 +255,17 @@ def decode_batch(cipher, keys, scorer, model: BeamModel) -> BeamResult:
                 ok = alive
                 sc = base
             else:
-                ok = alive & has_key & (i > 0)
+                if i == 0:
+                    continue
+                ok = alive & has_key
                 need = repeat_key(model.combine, x, drep_i)
                 for t in range(s):
                     kt = np.take_along_axis(k, np.minimum(j + t, k_last), axis=1)
                     ok = ok & (kt == need)
+                if not ok.any():
+                    # no row can take s skips here: omitting an all-dead option block keeps
+                    # every live candidate's relative index, so the selection is unchanged
+                    continue
                 op = np.full((b, w), s)
                 sc = base + s * pri.skip
             if use_int:
@@ -286,6 +313,8 @@ def decode_batch(cipher, keys, scorer, model: BeamModel) -> BeamResult:
 
     best = np.argmax(score, axis=1)  # first max: ties -> lowest slot
     objective = score[np.arange(b), best]
+    if not np.isfinite(objective).all():
+        raise RuntimeError("the beam has no live path (a prior of 0 or 1 where it acts)")
     keys_used = j[np.arange(b), best]
     plain = np.empty((b, length), dtype=np.int64)
     ops = np.empty((b, length), dtype=np.int16)
@@ -452,6 +481,8 @@ def decode_reference(cipher, key, scorer, model: BeamModel) -> DecodeRecord:
             nxt.append((sc, j2, h2, [*path, (x, op)]))
             if len(nxt) == w:
                 break
+        if not nxt:
+            raise RuntimeError("the beam has no live path (a prior of 0 or 1 where it acts)")
         beam = nxt
     best = max(range(len(beam)), key=lambda s: (beam[s][0], -s))
     score, j, _h, path = beam[best]

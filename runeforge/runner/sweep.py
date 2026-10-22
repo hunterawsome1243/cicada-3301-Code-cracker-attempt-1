@@ -843,8 +843,10 @@ def _write_pending(
 
 def record_budget(n: int) -> int:
     """Key symbols a crosser's decode record over ``n`` runes may use: n plus room for the
-    anti-repeat skips (about 1.8 % of the runes under p_keep = 0.19 net of interrupts), so a
-    true key's path never runs out (fill) before the last page ends."""
+    anti-repeat skips (under p_keep = 0.19 their net excess over the interrupters is about
+    2.8 % of the runes without interrupters, 1.3 % with every plaintext F one; n/8 covers
+    either many times over), so a true key's path does not run out (fill) before the last
+    page ends."""
     return n + n // 8 + 16
 
 

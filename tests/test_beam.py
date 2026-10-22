@@ -159,8 +159,8 @@ def test_the_decoder_parameters_are_pinned_to_their_names():
     assert presets.DECODER_PARAMS == {
         "rigid": {},
         "beam": {"width": 8, "interrupt_prob": 15 / 16, "p_keep": None, "max_skip": 0},
-        "beam-skip": {"width": 8, "interrupt_prob": 0.0, "p_keep": 0.19, "max_skip": 2},
-        "beam-skip-int": {"width": 8, "interrupt_prob": 15 / 16, "p_keep": 0.19, "max_skip": 2},
+        "beam-skip": {"width": 8, "interrupt_prob": 0.0, "p_keep": 0.19, "max_skip": 6},
+        "beam-skip-int": {"width": 8, "interrupt_prob": 15 / 16, "p_keep": 0.19, "max_skip": 6},
     }
     assert presets.split_preset("lp-ngram3:beam-skip") == ("lp-ngram3", "beam-skip")
     with pytest.raises(KeyError):
@@ -283,11 +283,11 @@ def test_beam_calibration_draws_are_fixed_per_chunk():
     many worker processes ran them."""
     from runeforge.scoring import beam_calib
 
-    job = ("lp-ngram3-heldout", "beam-skip", 60, 3301, 4, 40)
+    job = ("lp-ngram3-heldout", "beam-skip", 60, 3301, 4, 40, None)
     a, b = beam_calib._chunk(job), beam_calib._chunk(job)
     assert np.array_equal(a, b) and a.shape == (40,)
     assert not np.array_equal(
-        a, beam_calib._chunk(("lp-ngram3-heldout", "beam-skip", 60, 3301, 5, 40))
+        a, beam_calib._chunk(("lp-ngram3-heldout", "beam-skip", 60, 3301, 5, 40, None))
     )
     with pytest.raises(ValueError, match="rigid decoder"):
         beam_calib.measure("lp-ngram3-heldout", "rigid", 60, draws=25_000)
@@ -304,5 +304,180 @@ def test_a_beam_null_sits_above_the_rigid_null():
     rng = np.random.default_rng(0)
     rigid = scorer.score_batch(rng.integers(0, 29, (400, 120))).mean()
     for dec in ("beam", "beam-skip", "beam-skip-int"):
-        s = beam_calib._chunk(("lp-ngram3-heldout", dec, 120, 3301, 0, 400))
+        s = beam_calib._chunk(("lp-ngram3-heldout", dec, 120, 3301, 0, 400, None))
         assert s.mean() > rigid + 0.1, dec
+
+
+def test_an_interrupt_decoders_null_rises_with_the_canonical_f_count():
+    """Why interrupt-decoder bars are fitted at the most F-rich window's count: under ``beam``
+    a wrong key's best path climbs with the number of canonical F's; under ``beam-skip`` it
+    does not depend on the cipher."""
+    from runeforge.scoring import beam_calib
+
+    def block_max(dec, n_f):
+        s = beam_calib._chunk(("lp-ngram3-heldout", dec, 240, 7, 0, 1000, n_f))
+        return s.max(), s.mean()
+
+    lo, hi = block_max("beam", 4), block_max("beam", 20)
+    assert hi[1] > lo[1] + 0.2 and hi[0] > lo[0]
+    flat = [block_max("beam-skip", n)[1] for n in (4, 20)]
+    assert abs(flat[0] - flat[1]) < 0.02
+
+
+def test_calibration_ciphers_hold_exactly_the_conditioned_f_count():
+    from runeforge.scoring import beam_calib
+
+    c = beam_calib._cipher(np.random.default_rng(1), 50, 240, 14)
+    assert ((c == 0).sum(axis=1) == 14).all() and c.min() >= 0 and c.max() <= 28
+    assert beam_calib.canonical_f(240) == 14 and beam_calib.canonical_f(120) == 10
+    assert not beam_calib.uses_interrupts("beam-skip")
+    assert beam_calib.uses_interrupts("beam") and beam_calib.uses_interrupts("beam-skip-int")
+
+
+def _install(monkeypatch, tmp_path, preset, length, **over):
+    """A stand-in calibration file in a temporary calibration directory."""
+    from runeforge.scoring import beam_calib, calib
+
+    monkeypatch.setattr(calib, "CALIB_DIR", tmp_path)
+    scorer, decoder = presets.split_preset(preset)
+    rec = {
+        "preset": preset,
+        "decoder": decoder,
+        "L": length,
+        "decoder_params": presets.DECODER_PARAMS[decoder],
+        "beam_sha256": beam_calib.beam_sha256(),
+        "canonical_F": (
+            beam_calib.canonical_f(length) if beam_calib.uses_interrupts(decoder) else None
+        ),
+        "scorer_fingerprint": presets.get(scorer).fingerprint(),
+        "fit": {"block": 1000, "mu_block": -6.4, "beta": 0.04},
+    }
+    rec.update(over)
+    calib.path_for(preset, length).write_text(json.dumps(rec), encoding="utf-8")
+
+
+def test_a_beam_calibration_must_match_the_decoder_and_the_window(monkeypatch, tmp_path):
+    from runeforge.scoring import beam_calib
+
+    preset, n_f = "lp-ngram3-heldout:beam", beam_calib.canonical_f(240)
+    window = np.zeros(240, dtype=np.int64)
+    window[n_f:] = 5  # exactly n_f canonical F's
+    _install(monkeypatch, tmp_path, preset, 240)
+    assert beam_calib.calibration_problems(preset, 240, window) == []
+    window[n_f] = 0  # one F more than the fit covers
+    assert any("more than" in p for p in beam_calib.calibration_problems(preset, 240, window))
+    _install(monkeypatch, tmp_path, preset, 240, beam_sha256="0" * 64)
+    assert any(
+        "another runeforge/beam.py" in p
+        for p in beam_calib.calibration_problems(preset, 240, window[:0])
+    )
+    _install(monkeypatch, tmp_path, preset, 240, decoder_params={"width": 4})
+    assert any(
+        "decoder parameters" in p for p in beam_calib.calibration_problems(preset, 240, window[:0])
+    )
+    _install(monkeypatch, tmp_path, preset, 240, canonical_F=None)
+    assert any(
+        "not conditioned" in p for p in beam_calib.calibration_problems(preset, 240, window[:0])
+    )
+    assert beam_calib.calibration_problems("lp-ngram3-heldout:rigid", 240, window) == []
+
+
+def test_a_lane_on_an_f_rich_window_is_not_runnable(monkeypatch, tmp_path):
+    """Page 11's first 240 runes hold 14 canonical F's (the most of any page-start window); a
+    calibration conditioned on fewer must not give it a bar."""
+    from runeforge.scoring import calib
+
+    preset = "lp-ngram3-heldout:beam-skip-int"
+    _install(monkeypatch, tmp_path, preset, 240, canonical_F=10)
+    bar = calib.threshold_for(2**32, preset, 240).bar
+    lane = _lane(pages=[11, 12, 13], claim_bar=bar - 0.3, family_wise_bar=bar)
+    assert any("canonical F's" in p for p in lane.runnable_problems())
+    _install(monkeypatch, tmp_path, preset, 240)
+    assert lane.runnable_problems() == []
+
+
+# ----------------------------------------------------------------------------- model fidelity
+
+
+@pytest.mark.parametrize("view,combine", CASES)
+@pytest.mark.parametrize("decoder,interrupt_prob", [("beam-skip-int", 1.0), ("beam-skip", 0.0)])
+def test_the_beam_inverts_the_forward_model(view, combine, decoder, interrupt_prob):
+    """Plant with pipeline.encrypt (anti-repeat filter, and interrupters when the lane has
+    them) and decode with the true key: the plaintext comes back (a stray rune where two paths
+    fit the cipher equally well), and the record is a path the forward model can take that
+    re-enciphers to the cipher. Independent of decode_reference, which shares the helpers."""
+    scorer = presets.get("lp-ngram3-heldout")
+    src = canon.solved_section("a-koan-1").plain
+    lane = _lane(ciphertext_view=view, combine=combine, interrupt_prob=interrupt_prob)
+    model = presets.beam_model(decoder, combine, view)
+    rng = np.random.default_rng(100 + CASES.index((view, combine)))
+    recoveries = []
+    for _ in range(3):
+        off = int(rng.integers(0, src.size - 240))
+        plain = src[off : off + 240]
+        k = rng.integers(0, 29, 600)
+        mc, _used = pipeline.encrypt(lane, plain, k, rng)
+        rec = beam.decode_record(mc, k[:300], scorer, model)  # budget past the skips: no fill
+        assert rec.fill == []
+        assert crosser.record_violations(lane, rec.plain, k, rec.interrupts, rec.skips) == []
+        fwd = crosser.reencipher_forward(lane, rec.plain, k, rec.interrupts, rec.skips)
+        assert np.array_equal(fwd, mc)
+        recoveries.append((np.asarray(rec.plain) == plain).mean())
+    assert min(recoveries) >= 0.95 and np.mean(recoveries) >= 0.98, recoveries
+
+
+def test_more_than_two_drops_at_one_rune_are_followed():
+    """pipeline.encrypt drops any number of key symbols at a rune; at max_skip 2 a run of 3
+    or 4 put the beam out of step for up to ~170 runes (adversarial review). The presets now
+    follow up to 6."""
+    scorer = presets.get("lp-ngram3-heldout")
+    lane = _lane(p_keep=0.0, interrupt_prob=0.0)  # forward model: every repeat is dropped
+    plain = canon.solved_section("a-koan-1").plain[50:290]
+    model = presets.beam_model("beam-skip")
+    for n_drop in (3, 4, 5):
+        rng = np.random.default_rng(n_drop)
+        k = rng.integers(0, 29, 600)
+        # make the key drop n_drop symbols at rune 60: each would re-encipher it to a repeat
+        prev = int(pipeline.unview(pipeline.encrypt(lane, plain[:60], k, rng)[0], "raw")[-1])
+        used = pipeline.encrypt(lane, plain[:60], k, rng)[1]
+        rep = (prev - int(plain[60])) % 29  # vigenere: x + k = prev
+        k = np.concatenate([k[:used], np.full(n_drop, rep), k[used:]])
+        mc, _ = pipeline.encrypt(lane, plain, k, rng)
+        rec = beam.decode_record(mc, k[:300], scorer, model)
+        assert rec.skips.get(60) == n_drop
+        assert (np.asarray(rec.plain) == plain).mean() >= 0.98
+
+
+def test_priors_that_kill_every_path_are_refused():
+    with pytest.raises(ValueError, match="interrupt_prob"):
+        beam.BeamModel(interrupt_prob=1.0)
+    with pytest.raises(ValueError, match="p_keep"):
+        beam.BeamModel(p_keep=0.0)
+    s = _section("welcome")
+    with pytest.raises(ValueError, match="interrupt_prob"):
+        interrupts.decode_beam(
+            s.cipher, from_method(s.method), presets.get("lp-ngram3"), interrupt_prob=1.0
+        )
+
+
+def test_a_refit_scorer_is_never_decoded_with_its_old_tables():
+    from runeforge.scoring.ngram import NGramScorer
+
+    a = NGramScorer(3).fit([canon.solved_section("welcome").plain])
+    c, k = np.arange(60) % 29, np.zeros(60, dtype=np.int64)
+    model = presets.beam_model("beam")
+    first = beam.decode_batch(c, k, a, model).objective[0]
+    a.fit([canon.solved_section("a-koan-1").plain])
+    again = beam.decode_batch(c, k, a, model).objective[0]
+    fresh = beam.decode_batch(
+        c, k, NGramScorer(3).fit([canon.solved_section("a-koan-1").plain]), model
+    )
+    assert again == fresh.objective[0] and again != first
+
+
+def test_step6_refuses_steps_the_lanes_hypothesis_rules_out():
+    p, k = np.array([7, 7]), np.array([5, 5, 9])
+    no_filter = _lane(filter_model="off")
+    assert crosser.record_violations(no_filter, p, k, skips={1: 1})
+    no_int = _lane(interrupt_prob=0.0)
+    assert crosser.record_violations(no_int, np.array([0, 3]), np.array([5, 9, 9]), interrupts=[0])

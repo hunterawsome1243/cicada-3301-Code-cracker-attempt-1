@@ -254,16 +254,21 @@ def beam_null_scores(lane, cipher, n: int, domain: str) -> np.ndarray:
 
 
 def record_violations(lane, plain, k, interrupts=(), skips=None) -> list[str]:
-    """Steps of a decode record the forward model could not have taken: an interrupt off a
-    canonical F, or a recorded skip whose dropped key symbol does not re-encipher the rune to
-    a canonical repeat of the previous rune (``pipeline.encrypt``: only a repeat is dropped,
-    never at position 0). ``k`` must cover the record's key use."""
+    """Steps of a decode record the lane's forward model could not have taken: any interrupt
+    when the lane has none (``interrupt_prob`` 0) or any skip when it has no filter, an
+    interrupt off a canonical F, or a recorded skip whose dropped key symbol does not
+    re-encipher the rune to a canonical repeat of the previous rune (``pipeline.encrypt``: only
+    a repeat is dropped, never at position 0). ``k`` must cover the record's key use."""
     p = np.asarray(plain, dtype=np.int64)
     k = np.asarray(k, dtype=np.int64)
     name = lane.ciphertext_view
     inter = {int(i) for i in interrupts}
     skip = {int(i): int(m) for i, m in (skips or {}).items()}
     out = []
+    if inter and not lane.interrupt_prob:
+        out.append(f"{len(inter)} interrupters, but the lane's interrupt_prob is 0")
+    if any(skip.values()) and lane.filter_model != "anti-repeat":
+        out.append("key skips, but the lane has no anti-repeat filter")
     j, prev = 0, 0
     for i, x in enumerate(p.tolist()):
         if i in inter:
