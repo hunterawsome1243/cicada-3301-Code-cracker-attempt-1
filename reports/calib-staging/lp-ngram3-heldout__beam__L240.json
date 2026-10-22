@@ -8,7 +8,7 @@
   "p_keep": null,
   "max_skip": 0
  },
- "beam_sha256": "64348587f9f3e845322a78b91fe95f7629b24a3d1cb0882cdfe26aab2c43e1f0",
+ "beam_sha256": "4cd3d7ba59e6bbce7f8bcd07c8eb21ec81a26d7c47897ab79d7169d19561626e",
  "canonical_F": 14,
  "doublets": "none",
  "L": 240,
@@ -36,7 +36,7 @@
   "predicted_mean_max_1000000": -6.143198353277851,
   "max_error": 0.01602011593899011
  },
- "created": "2026-10-22T19:44:44+00:00",
- "git_sha": "c29edd85ac7ced87e0622c9c2a1c45672ee1d278",
- "seconds": 108.8
+ "created": "2026-10-22T21:02:14+00:00",
+ "git_sha": "e61e4945eb100f52a7e14a9b9a254993e1caf55b",
+ "seconds": 112.5
 }
