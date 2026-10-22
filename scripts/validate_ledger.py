@@ -388,9 +388,7 @@ def _check_control_evidence(at: str, detail: object, root: Path, err) -> None:
     try:
         data = path.read_bytes()
     except OSError:
-        err(
-            f"{at} control report {detail['path']!r} does not exist (commit it with the lane)"
-        )
+        err(f"{at} control report {detail['path']!r} does not exist (commit it with the lane)")
         return
     if hashlib.sha256(data).hexdigest() != detail["sha256"]:
         err(f"{at} control report {detail['path']!r} does not match the recorded sha256")
