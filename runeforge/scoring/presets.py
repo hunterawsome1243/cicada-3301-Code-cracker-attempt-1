@@ -39,7 +39,8 @@ PRESETS: dict[str, dict] = {
 DECODERS = ("rigid", "beam", "beam-skip", "beam-skip-int")
 # The beam decoders' transition model (runeforge.beam.BeamModel), fixed per decoder NAME: the
 # beam calibrations (staged in reports/calib-staging/, installed under scoring/calib/presets/ by
-# TOOLBOX_REQUESTS.md TR-1) and every control's evidence were measured with exactly these values, and neither records them in the lane spec, so a change is a new name
+# TOOLBOX_REQUESTS.md TR-1) and every control's evidence were measured with exactly these
+# values, and neither records them in the lane spec, so a change is a new name
 # (tests/test_beam.py pins them). Pick the one that matches the lane's forward model (its
 # filter_model and interrupt_prob); the lane's own p_keep / interrupt_prob drive its plants and
 # gate, the decoder's priors stay these:
