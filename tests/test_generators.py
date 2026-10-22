@@ -284,3 +284,9 @@ def test_pcg64_is_numpy_default_rng():
     for seed in (0, 3301, 2**64 - 1):
         want = np.random.default_rng(seed).integers(0, 29, 500)
         assert np.array_equal(g.keystream(seed, 500), want)
+
+
+@pytest.mark.parametrize("bad", [64.0, "64", True, 48])
+def test_mt19937_seed_bits_must_be_an_int_32_or_64(bad):
+    with pytest.raises(ValueError, match="seed_bits"):
+        generators.get("mt19937-py27", seed_bits=bad)

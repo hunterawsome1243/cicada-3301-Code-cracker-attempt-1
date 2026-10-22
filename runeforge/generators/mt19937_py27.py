@@ -127,8 +127,10 @@ class MT19937Py27(Generator):
     def __post_init__(self) -> None:
         if self.mode not in MODES:
             raise ValueError(f"mt19937-py27: mode must be one of {MODES}, got {self.mode!r}")
-        if self.seed_bits not in (32, 64):
-            raise ValueError("mt19937-py27: seed_bits must be 32 or 64")
+        if type(self.seed_bits) is not int or self.seed_bits not in (32, 64):  # not 64.0
+            raise ValueError(
+                f"mt19937-py27: seed_bits must be the int 32 or 64, got {self.seed_bits!r}"
+            )
 
     def _batch(self, seeds: list[int], n: int) -> np.ndarray:
         _check_interpreter()
