@@ -13,8 +13,9 @@ python scripts/build_corpus.py --list     # the SOURCES table
 Read them with `runeforge.corpus`: `load(name)` returns `Corpus(runes, word_ids, meta)`;
 `english_stream(n, name="cicada-english", offset=0)` returns exactly `n` runes with word ids from 0
 (it raises if the corpus is shorter). A missing file raises `CorpusMissingError` naming the build
-command. The tests build every corpus into a tmp dir on the fly, so a fresh checkout needs no
-manual step to run them.
+command. The corpus and fingerprint tests build every corpus into a tmp dir on the fly; the
+calibration test of the corpus-trained presets reads data/corpora/ and skips locally until
+`scripts/build_corpus.py` has run (CI builds it first).
 
 ## Output
 
@@ -57,7 +58,7 @@ labels (AB, FG, …). `runepoem_oe.txt` (3 KB) is too small for a corpus.
 
 **vowel-dropped-english**: from the `english-general` arrays, remove every vowel rune — U, O, I, E,
 A, Y and the vowel digraph runes EO, OE, AE, IA, EA (indices 1, 3, 10, 12, 18, 22, 24, 25, 26, 27,
-28) — except a word's first rune. No word vanishes (`A`, `I`, `OF` → `A`, `I`, `O`) and the word ids
+28) — except a word's first rune. No word vanishes (`A`, `I`, `OF` → `A`, `I`, `OF`: F is not a vowel rune) and the word ids
 are unchanged. U is also V in rune space, so `LOVE` → `L`.
 
 ## not_covered (Phase 2 extends SOURCES)

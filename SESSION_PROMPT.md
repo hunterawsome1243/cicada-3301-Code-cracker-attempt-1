@@ -20,7 +20,8 @@ commit, and stop; the next session picks the next lane with fresh context.
    Any failure → this session is a repair session. Fix only the failure, re-run, commit
    `fix(trust-anchor): …`, stop. No attack work on a red anchor.
 3. `runeforge status --short` (open lanes, running jobs, last 5 rows) and `cat PICKUP-HERE.md`.
-   For each `sweep.pid` listed, read `/proc/<pid>/cmdline` before believing it is alive; a dead PID with
+   Each job is listed from its `runs/<id>/status.json`; status marks it ALIVE only when the PID's
+   cmdline is a runeforge sweep with the recorded start time. A dead job that is not `done` with
    a `running` row is itself a finding: set the row to `parked` with `parked_state` = the checkpoint
    cursor, and say so.
 4. `python scripts/validate_ledger.py` must print `Unsound negatives = 0`. If it does not, repairing the
@@ -89,9 +90,11 @@ Create `lanes/<id>/PREREG.md` from `.claude/rules/lanes.md` and commit it (`lane
 
 ### C3. Gate, then control, then run
 1. **Gate** (`runeforge gate lanes/<id>.yaml`): simulate the hypothesised cipher on Cicada-register
-   English with ≥ 12 random keys; if most keys fail the LP2 fingerprint (IoC, doublet rate, lag-5,
-   cross-word doublets, mod-5 uniformity), the verdict is `EXCLUDED (gate)`: write RESULTS.md, file the
-   row, stop. A gate FAIL excludes the typical key, not the family — say so in `not_covered`.
+   English with ≥ 12 random keys; if most keys fail a hard constraint of the LP2 fingerprint (C1 IoC,
+   C2 doublet rate, C2b conditional IoC, C2c doublet positions mod 2..8, C3 repeated words, C6
+   cross-word doublets; murphy's rule -- C5 lag-5 and C4 word-length layout are reported, not
+   deciding), the gate prints `GATE FAIL` and the verdict is `EXCLUDED (gate)`: write RESULTS.md, file
+   the row, stop. A gate FAIL excludes the typical key, not the family — say so in `not_covered`.
 2. **Control** (`runeforge control lanes/<id>.yaml`): the planted positive through the exact pipeline.
    Pass bar not met → the lane is `INCONCLUSIVE (power)`. Fix the instrument *as a new instrument lane*
    or park with cause. Do not lower the bar. Do not search.

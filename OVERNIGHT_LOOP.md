@@ -88,8 +88,9 @@ guard: an iteration that produces no row produced nothing) · free disk below `M
 - `status.json.deadline_epoch` passed (the PREREG wall-clock budget; the runner writes it at launch).
 - The job's PREREG Q5 kill condition fired (`status.json.kill_condition == "fired"`); the runner stops
   itself, the next iteration records it as `parked` with cause, never as `negative`.
-The script verifies `/proc/<pid>/cmdline` contains `runeforge` before sending SIGTERM, then SIGKILL after
-60 s. It never uses `pkill -f`. Each kill leaves `runs/<id>/KILLED-<reason>` so the next iteration files it.
+The script verifies that `/proc/<pid>/cmdline` is a runeforge sweep (`runeforge.runner.sweep` or
+`runeforge sweep`) and that its start time equals `status.json.pid_starttime` before sending SIGTERM,
+then SIGKILL after 60 s; a finished job (`done == true`) is never touched. It never uses `pkill -f`. Each kill leaves `runs/<id>/KILLED-<reason>` so the next iteration files it.
 
 ### Morning check (five minutes)
 `tail -n 40 runs/overnight/$(date +%F).log` · `cat runs/overnight/heartbeat` (if it is hours old the VM
@@ -122,8 +123,8 @@ Order of work (take the first branch that applies, then stop):
    `validate_ledger.py`). Trust anchor red: if the failing code is outside `FROZEN.txt`, make one repair
    commit and re-run; if it is still red, or the failure is in a frozen file, write
    `runs/overnight/ANCHOR-RED` with the output and end with `LOOP: STOP anchor red`.
-2. Jobs. For every `runs/*/sweep.pid`: alive (`/proc/<pid>/cmdline` contains `runeforge`)? `status.json`
-   fresh? A `KILLED-*` marker or a dead PID with a `running` row → set the row to `parked` with
+2. Jobs. For every `runs/*/status.json` (the runner removes its `sweep.pid` when it exits): alive
+   (`runeforge status --short` checks the PID's cmdline and recorded start time)? `status.json` fresh? A `KILLED-*` marker or a dead PID with a `running` row → set the row to `parked` with
    `parked_state` = the checkpoint cursor and the reason, commit, continue to the next branch.
    A finished job (`status.json.done == true`) → this iteration's unit of work is the write-up:
    SESSION_PROMPT.md §C4 (RESULTS.md, `check_results.py` PASS, verify-lane subagent) and §C5 (ledger row,
@@ -141,7 +142,8 @@ Order of work (take the first branch that applies, then stop):
    committed before any measurement; thresholds from `scripts/threshold_for.py`; expected false positives
    < 1), then §C3 steps 1–2 (gate, control). `EXCLUDED (gate)` or `INCONCLUSIVE (power)` → RESULTS.md,
    row, commit, `LOOP: CONTINUE`. Control passed → launch the sweep detached
-   (`runeforge sweep lanes/<id>.yaml --detach`), confirm `sweep.pid` and `status.json` exist, set the row
+   (`runeforge sweep lanes/<id>.yaml --detach`; exit 0 means the child passed its own preflight and
+   wrote `status.json` with its PID), set the row
    to `running` with the resume cursor, commit, `LOOP: CONTINUE`. Do not wait for the sweep.
    If a GPU job is already alive, do not launch another; take a CPU-only lane (red-team or closeout)
    from the queue instead, or `LOOP: CONTINUE` with nothing started.

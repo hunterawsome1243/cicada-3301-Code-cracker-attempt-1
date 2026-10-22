@@ -398,6 +398,7 @@ def main(argv: list[str] | None = None) -> int:
 
     if a.selftest:
         r = selftest()
+        print("self-test on 3 synthetic pages (held-out solved text; not LP2 pages)")
         for name in ("correct", "wrong"):
             print(f"{name} key -> {r[name].status}")
             _print_verdict(r[name])
@@ -436,7 +437,10 @@ def main(argv: list[str] | None = None) -> int:
             key_scope=a.key_scope,
         )
         v = verify(claim, default_scorer(), cipher_pages=cipher_pages)
-        print(f"claim {claim.lane_id}: {len(pages)} pages, key scope {a.key_scope}, N={n_trials:,}")
+        print(
+            f"claim {claim.lane_id}: LP2 pages {pages} (numbering: LP2-0-57), "
+            f"key scope {a.key_scope}, N={n_trials:,}"
+        )
         _print_verdict(v)
         verdict = (
             "PASS" if v.passed else ("REGRESSION BROKEN" if v.status == "rig-broken" else "FAIL")

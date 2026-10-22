@@ -7,6 +7,7 @@ import contextlib
 import json
 import subprocess
 import sys
+from pathlib import Path
 
 import numpy as np
 from rich.console import Console
@@ -202,17 +203,20 @@ def cmd_status(args: argparse.Namespace) -> int:
         if isinstance(r.parked_state, dict) and "cursor" in r.parked_state:
             cursor = f" cursor {r.parked_state['cursor']}"
         console.print(f"  {r.lane_id:28s} {r.status:14s} control={r.positive_control}{cursor}")
-    jobs = []
-    for pidfile in sorted(RUNS_DIR.glob("*/sweep.pid")):
+    jobs = []  # every run with a status.json; the runner removes sweep.pid when it exits
+    for st in sorted(RUNS_DIR.glob("*/status.json")):
         try:
-            pid = int(pidfile.read_text().strip())
+            info = json.loads(st.read_text())
         except (OSError, ValueError):
             continue
-        st = pidfile.parent / "status.json"
-        info = json.loads(st.read_text()) if st.exists() else {}
-        alive = pid_alive_runeforge(pid)
-        jobs.append((pidfile.parent.name, pid, alive, info))
-    console.print(f"jobs: {sum(1 for j in jobs if j[2])} alive, {len(jobs)} with a sweep.pid")
+        pidfile = st.parent / "sweep.pid"
+        try:
+            pid = int(pidfile.read_text().strip()) if pidfile.exists() else int(info.get("pid", 0))
+        except (OSError, ValueError):
+            pid = 0
+        alive = bool(pid) and pid_alive_runeforge(pid, info)
+        jobs.append((st.parent.name, pid, alive, info))
+    console.print(f"jobs: {sum(1 for j in jobs if j[2])} alive, {len(jobs)} with a status.json")
     for name, pid, alive, info in jobs:
         rate = info.get("seeds_per_s")
         frac = info.get("fraction")
@@ -302,6 +306,41 @@ def _parse_sets(pairs: list[str]) -> dict:
     return out
 
 
+def _prereg_fields(lane_path: str) -> dict:
+    """The pre-registration row a lane YAML implies: the bar it froze, its N, category and
+    control spec, so the row and the YAML cannot drift apart."""
+    from runeforge.lanes import load_lane
+
+    lane = load_lane(lane_path)
+    out = {
+        "lane_id": lane.lane_id,
+        "hypothesis": lane.hypothesis,
+        "family": lane.family,
+        "category": lane.category,
+        "prereg": lane.prereg,
+        "n_trials": lane.n_trials,
+        "claim_bar": lane.claim_bar,
+        "family_wise_bar": lane.family_wise_bar,
+        "control_spec": lane.control.model_dump(),
+        "params": {
+            "lane_yaml": str(lane_path),
+            "generator": lane.generator,
+            "generator_params": lane.generator_params,
+            "seed_range": list(lane.seed_range),
+            "ciphertext_view": lane.ciphertext_view,
+            "combine": lane.combine,
+            "filter_model": lane.filter_model,
+            "preset": lane.preset,
+            "window": lane.window,
+            "pages": lane.pages,
+        },
+    }
+    if lane.family_wise_bar is not None:
+        out["threshold"] = lane.family_wise_bar
+        out["threshold_fixed_in_advance"] = True
+    return out
+
+
 def cmd_ledger(args: argparse.Namespace) -> int:
     from pydantic import ValidationError
 
@@ -316,6 +355,8 @@ def cmd_ledger(args: argparse.Namespace) -> int:
             with open(args.json, encoding="utf-8") as fh:
                 src = fh.read()
         fields.update(json.loads(src))
+    if getattr(args, "lane", None):
+        fields = {**_prereg_fields(args.lane), **fields}
     fields.update(_parse_sets(getattr(args, "set", None)))
     try:
         if args.action == "append":
@@ -387,11 +428,16 @@ def cmd_oracle(args: argparse.Namespace) -> int:
 def cmd_lane(args: argparse.Namespace) -> int:
     from runeforge.lanes import load_lane
 
-    lane = load_lane(args.path)
+    try:
+        lane = load_lane(args.path)
+    except (ValueError, FileNotFoundError) as exc:
+        console.print(f"[red]invalid lane spec[/red] {args.path}: {exc}")
+        return 2
     console.print(f"{lane.lane_id}: valid lane spec, {lane.n_trials:,} trials")
-    for p in lane.runnable_problems():
+    problems = lane.runnable_problems()
+    for p in problems:
         console.print(f"  [yellow]not runnable[/yellow]: {p}")
-    return 0
+    return 1 if problems else 0
 
 
 def cmd_gate(args: argparse.Namespace) -> int:
@@ -441,7 +487,6 @@ def cmd_control(args: argparse.Namespace) -> int:
             f"  seed {p.seed:>12d} offset {p.offset:5d} rank {p.rank:4d} recovery {p.recovery:.3f} "
             f"planted {p.planted_score:.4f} best decoy {p.best_decoy:.4f} ceiling {p.ceiling:.4f}"
         )
-    detail = control.write_report(rep, lane, run_dir(lane))
     console.print(rep.summary())
     for reason in rep.reasons:
         console.print(f"  [yellow]{reason}[/yellow]")
@@ -449,6 +494,12 @@ def cmd_control(args: argparse.Namespace) -> int:
         console.print(
             f"lane verdict if it stops here: {rep.verdict_if_failed} (do not lower the bar)"
         )
+    if args.out:  # a replay (verify-lane): never touches the lane's evidence or the ledger
+        out = Path(args.out)
+        detail = control.write_report(rep, lane, out, lanes_dir=out / "lanes")
+        console.print(f"replay written under {out} (lane evidence and ledger untouched)")
+        return 0 if rep.status == "passed" else 1
+    detail = control.write_report(rep, lane, run_dir(lane))
     console.print(f"wrote {detail['path']} (sha256 {detail['sha256'][:12]}); commit it")
     ledger = _ledger(args)
     if ledger.get(lane.lane_id, strict=False) is None:
@@ -465,6 +516,40 @@ def cmd_control(args: argparse.Namespace) -> int:
         )
         console.print(f"ledger: {lane.lane_id} positive_control={rep.status}")
     return 0 if rep.status == "passed" else 1
+
+
+def cmd_null(args: argparse.Namespace) -> int:
+    from runeforge.lanes import load_lane
+    from runeforge.runner import null
+    from runeforge.runner.sweep import run_dir
+
+    try:
+        lane = load_lane(args.lane)
+        rep = null.run_null(lane, n=args.n, seed=args.seed, trials=args.trials)
+    except (ValueError, FileNotFoundError) as exc:
+        console.print(f"[red]REFUSED:[/red] {exc}")
+        return 2
+    out = null.write_report(lane, rep, run_dir(lane))
+    n1, n2 = rep["null1_shuffle"], rep["null2_sha256"]
+    console.print(
+        f"{lane.lane_id}: nulls at window {lane.window}, preset {lane.preset}, "
+        f"{rep['trials_per_replicate']:,} trials per replicate "
+        f"(lane N {lane.n_trials:,}); numbering LP2-0-57"
+    )
+    for label, x in (
+        ("Null 1, size-matched shuffle of the real runes", n1),
+        ("Null 2, domain-separated SHA-256 stream", n2),
+    ):
+        console.print(
+            f"- {label}: n = {x['n']}, mean {x['mean']:.4f}, sd {x['sd']:.4f}, max {x['max']:.4f}"
+        )
+    if rep["same_trial_count"] and lane.n_trials < 1000:
+        console.print(
+            f"small N: python scripts/threshold_for.py --n {lane.n_trials} --preset {lane.preset} "
+            f"--L {lane.window} --null-max {n1['max']:.4f} --null2-max {n2['max']:.4f}"
+        )
+    console.print(f"wrote {out}; commit it")
+    return 0
 
 
 def cmd_score(args: argparse.Namespace) -> int:
@@ -491,32 +576,44 @@ def cmd_score(args: argparse.Namespace) -> int:
 
 
 def cmd_sweep(args: argparse.Namespace) -> int:
-    from pathlib import Path
-
     from runeforge.runner import sweep
 
     if args.backend == "gpu":
         console.print("[red]the GPU backend is Phase 3 (runeforge/gpu); use --backend cpu[/red]")
         return 2
     ledger = Path(args.ledger) if args.ledger else None
+    kw = {"max_seeds": args.max_seeds, "override_q5": args.override_q5}
     if args.detach:
-        return sweep.launch_detached(
-            Path(args.lane), not args.no_resume, False, ledger, max_seeds=args.max_seeds
-        )
-    return sweep.run(Path(args.lane), not args.no_resume, False, ledger, max_seeds=args.max_seeds)
+        return sweep.launch_detached(Path(args.lane), not args.no_resume, False, ledger, **kw)
+    return sweep.run(Path(args.lane), not args.no_resume, False, ledger, **kw)
 
 
 def cmd_crosser(args: argparse.Namespace) -> int:
     from runeforge.runner import crosser
 
     if args.action == "list":
-        for p in crosser.pending_list():
-            console.print(str(p))
+        pending, resolved = crosser.pending_list(), crosser.resolved_list()
+        console.print(f"open (FLAGGED-FOR-ORACLE): {len(pending)}; numbering LP2-0-57")
+        for p in pending:
+            console.print(f"  {p}")
+        if args.all:
+            console.print(f"resolved (NOISE-CROSSER / PARITY-FAIL): {len(resolved)}")
+            for p in resolved:
+                console.print(f"  {p}")
         return 0
+    if not args.kid:
+        console.print(
+            f"[red]crosser {args.action} needs a crosser id (runeforge crosser list)[/red]"
+        )
+        return 2
     fn = {"replay": crosser.replay, "escalate": crosser.escalate, "reencipher": crosser.reencipher}
-    out = fn[args.action](args.kid)
+    try:
+        out = fn[args.action](args.kid)
+    except FileNotFoundError as exc:
+        console.print(f"[red]REFUSED:[/red] {exc}")
+        return 2
     console.print(json.dumps(out, indent=1, default=float))
-    return 0 if out["verdict"] in ("PARITY-OK", "passes step 3", "passes step 6") else 1
+    return crosser.exit_code(out)
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -543,6 +640,9 @@ def main(argv: list[str] | None = None) -> int:
     p.add_argument("--set", action="append", metavar="KEY=VALUE", help="JSON values allowed")
     p.add_argument("--json", help="a JSON object of fields (file or - for stdin)")
     p.add_argument("--upstream", action="store_true", help="show: Dukotah LEDGER.json shape")
+    p.add_argument(
+        "--lane", help="append: pre-register from this lane YAML (bar, N, category, control)"
+    )
     p.add_argument("--ledger", default=str(LEDGER_PATH))
     p.set_defaults(fn=cmd_ledger)
     p = sub.add_parser("queue", help="queue.json joined with ledger status")
@@ -561,9 +661,19 @@ def main(argv: list[str] | None = None) -> int:
     p.set_defaults(fn=cmd_gate)
     p = sub.add_parser("control", help="planted positive through the lane's exact pipeline")
     p.add_argument("lane")
-    p.add_argument("--seed", type=int, default=3301)
+    p.add_argument("--seed", type=int, default=3301, help="rng seed of plants and decoys")
     p.add_argument("--ledger", help="record the result in this ledger (default ledger/)")
+    p.add_argument(
+        "--out", help="replay: write the report under this directory only (no ledger, no lanes/)"
+    )
     p.set_defaults(fn=cmd_control)
+    p = sub.add_parser("null", help="the lane's two nulls (shuffle, SHA-256) for PREREG/RESULTS")
+    p.add_argument("lane")
+    p.add_argument("--n", type=int, default=200, help="replicates (>= 200)")
+    p.add_argument("--trials", type=int, help="keys per replicate (default min(N, 1000))")
+    p.add_argument("--seed", type=int, default=3301)
+    p.set_defaults(fn=cmd_null)
+
     p = sub.add_parser("score", help="re-score seeds with the lane's sweep pipeline")
     p.add_argument("lane")
     p.add_argument("seeds", help="a seed, or lo:hi")
@@ -579,11 +689,15 @@ def main(argv: list[str] | None = None) -> int:
     p.add_argument("--backend", choices=("cpu", "gpu"), default="cpu")
     p.add_argument("--max-seeds", type=int)
     p.add_argument("--ledger")
+    p.add_argument(
+        "--override-q5", metavar="REASON", help="resume a Q5-killed lane; the reason is recorded"
+    )
     p.set_defaults(fn=cmd_sweep)
     p = sub.add_parser("crosser", help="HIT_PROTOCOL steps: replay, escalate, reencipher")
     p.add_argument("action", choices=("list", "replay", "escalate", "reencipher"))
     p.add_argument("kid", nargs="?")
     p.add_argument("--cpu", action="store_true", help="(replay always uses the CPU reference)")
+    p.add_argument("--all", action="store_true", help="list: also the resolved crossers")
     p.set_defaults(fn=cmd_crosser)
     args = ap.parse_args(argv)
     try:

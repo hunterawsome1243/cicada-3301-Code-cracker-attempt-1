@@ -95,3 +95,23 @@ def test_the_evidence_is_bound_to_the_lane_spec(tmp_path):
         (lanes_dir / lane.lane_id / "control.json").read_text() + " "
     )
     assert any("does not cite" in p for p in control.control_problems(lane, row, lanes_dir))
+
+
+def test_a_bare_yaml_off_is_the_filter_model_off(tmp_path):
+    """YAML 1.1 reads `filter_model: off` as false; the template documents `off`."""
+    text = _lane(tmp_path).read_text() + "filter_model: off\n"
+    path = tmp_path / "off.yaml"
+    path.write_text(text, encoding="utf-8")
+    assert load_lane(path).filter_model == "off"
+
+
+def test_a_window_longer_than_the_pages_is_not_runnable(tmp_path):
+    lane = load_lane(_lane(tmp_path, pages=[49]))  # page 49 holds 66 runes
+    assert any("fewer than window 240" in p for p in lane.runnable_problems())
+    with pytest.raises(ValueError, match="fewer than window"):
+        control.run_control(lane)
+
+
+def test_a_bar_below_threshold_for_is_not_runnable(tmp_path):
+    lane = load_lane(_lane(tmp_path, seed_range=[0, 2**32]))  # bars were set for N = 30,000
+    assert any("is below threshold_for" in p for p in lane.runnable_problems())

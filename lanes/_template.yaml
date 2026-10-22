@@ -26,8 +26,8 @@ chunk_size: 16777216
 ciphertext_view: raw       # raw | atbash | chain-increment | first-difference
 combine: vigenere          # vigenere (c = p + k) | variant-beaufort (c = p - k) | beaufort (c = k - p)
 key_offset: 0
-filter_model: anti-repeat  # off | anti-repeat
-p_keep: 0.17               # anti-repeat: a repeated cipher rune survives with this probability
+filter_model: anti-repeat  # "off" (quoted: bare off is YAML false) | anti-repeat
+p_keep: 0.19               # anti-repeat: a repeat survives with this probability (LP2: 86/447)
 interrupt_prob: 0.44       # plaintext F left as an unencrypted interrupter (11 of 25 in WELCOME)
 scorer_register: english
 preset: lp-ngram3-heldout:rigid  # <scorer>:<decoder>; calibrated: runeforge.scoring.calib.available()
@@ -38,7 +38,6 @@ family_wise_bar: null  # scripts/threshold_for.py --n 4294967296 --preset lp-ngr
 control:
   planted_seed: 3301
   synthetic_page: solved:a-koan-1   # must be held out of the preset's training text (checked)
-  n_runes: 250
   must_recover: true
   n_plants: 20
   decoys: 999

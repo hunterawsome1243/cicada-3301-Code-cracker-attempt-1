@@ -115,6 +115,7 @@ class ControlReport:
     lane_trials: int = 0  # N the ceiling is extrapolated to
     beta: float = float("nan")
     beta_source: str = ""
+    seed: int = 3301  # the rng seed of the plants, offsets and decoys
 
     def summary(self) -> str:
         floor = "n/a" if self.floor is None else f"{self.floor:.4f}"
@@ -131,6 +132,10 @@ class ControlReport:
 
 def run_control(lane: LaneSpec, seed: int = 3301) -> ControlReport:
     spec = lane.control
+    if lane.stream_runes() < lane.window:
+        raise ValueError(
+            f"the lane's pages hold {lane.stream_runes()} runes, fewer than window {lane.window}"
+        )
     scorer_name, _decoder = presets.split_preset(lane.preset)
     presets.check_held_out(scorer_name, spec.synthetic_page)
     scorer = presets.get(scorer_name)
@@ -147,15 +152,14 @@ def run_control(lane: LaneSpec, seed: int = 3301) -> ControlReport:
         if i == 0 and isinstance(spec.planted_seed, int) and lo <= spec.planted_seed < hi:
             s_true = spec.planted_seed
         else:
-            s_true = int(rng.integers(lo, hi))
+            s_true = pipeline.draw_seeds(rng, lo, hi, 1)[0]
         off = int(rng.integers(0, source.size - length))
         plain = source[off : off + length]
         k_true = pipeline.keys(lane, s_true, 3 * length)
         model_cipher, _ = pipeline.encrypt(lane, plain, k_true, rng)
         # the lane decodes view(canonical); for a plant, the model cipher IS that view.
-        decoys = rng.integers(lo, hi, spec.decoys)
-        decoys = decoys[decoys != s_true]
-        seeds = np.concatenate(([s_true], decoys))
+        decoys = [d for d in pipeline.draw_seeds(rng, lo, hi, spec.decoys) if d != s_true]
+        seeds = [s_true, *decoys]
         plains = pipeline.decrypt(
             lane, model_cipher[None, :], pipeline.keys_batch(lane, seeds, length)
         )
@@ -163,12 +167,12 @@ def run_control(lane: LaneSpec, seed: int = 3301) -> ControlReport:
         rank = 1 + int((scores[1:] >= scores[0]).sum())
         recovery = float((plains[0] == plain).mean())
         nk = generators.keystream_batch(
-            null_gen, list(range(i * 10**6, i * 10**6 + seeds.size)), length
+            null_gen, list(range(i * 10**6, i * 10**6 + len(seeds))), length
         )
         ceiling = float(
             pipeline.score_batch(scorer, pipeline.decrypt(lane, model_cipher[None, :], nk)).max()
         )
-        wrong_score = float(scores[1]) if decoys.size else float("nan")  # a deliberately wrong key
+        wrong_score = float(scores[1]) if decoys else float("nan")  # a deliberately wrong key
         plants.append(
             Plant(
                 seed=s_true,
@@ -176,7 +180,7 @@ def run_control(lane: LaneSpec, seed: int = 3301) -> ControlReport:
                 rank=rank,
                 recovery=recovery,
                 planted_score=float(scores[0]),
-                best_decoy=float(scores[1:].max()) if decoys.size else float("nan"),
+                best_decoy=float(scores[1:].max()) if decoys else float("nan"),
                 wrong_key_score=wrong_score,
                 ceiling=ceiling,
                 identified=rank == 1 and recovery >= spec.min_recovery,
@@ -228,6 +232,7 @@ def run_control(lane: LaneSpec, seed: int = 3301) -> ControlReport:
         lane_trials=n_lane,
         beta=beta,
         beta_source=beta_source,
+        seed=seed,
     )
 
 

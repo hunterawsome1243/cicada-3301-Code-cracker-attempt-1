@@ -108,7 +108,7 @@
 - Slow controls: `pytest -q -m slow` · Ledger: `runeforge status [--short|--round|--grep <t>]`,
   `runeforge ledger append|update`, `python scripts/validate_ledger.py`
 - Lane: `runeforge gate <lane.yaml>` (fingerprint pre-filter) · `runeforge control <lane.yaml>` ·
-  `runeforge sweep <lane.yaml> --detach` (detached GPU job → `runs/<id>/sweep.pid`, `status.json`;
+  `runeforge sweep <lane.yaml> --detach` (detached job → `runs/<id>/sweep.pid` while it runs, `status.json`;
   `--resume` is the default) · `runeforge crosser replay <kid> --cpu`
 - Results gate: `python scripts/check_results.py lanes/<id>/RESULTS.md` (must print PASS)
 - Community oracle: `python data/raw/dukotah/liber-primus/verify_solution.py --selftest`, then

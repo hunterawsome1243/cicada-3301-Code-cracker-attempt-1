@@ -66,7 +66,7 @@ or by hand:
 
 ```bash
 pip install -e '.[dev]' sympy      # Python >= 3.11
-bash scripts/fetch_raw.sh          # sparse, pinned checkouts of the 5 source repos (~MB)
+bash scripts/fetch_raw.sh          # sparse, pinned checkouts of the 5 source repos (~100 MB)
 python scripts/build_corpus.py     # scorer/gate corpora from the vendored texts (offline)
 python scripts/build_canon.py --check
 pytest -q
@@ -94,12 +94,12 @@ with the command that regenerates it. The procedure is SESSION_PROMPT.md section
 cp lanes/_template.yaml lanes/<id>.yaml                       # then edit
 python scripts/threshold_for.py --n <N> --preset lp-ngram3-heldout:rigid --L 240  # the bars
 runeforge lane lanes/<id>.yaml                                # schema + runnable problems
-runeforge ledger append <id> --set hypothesis='...' --set family=prng \
-    --set threshold=<bar> --set threshold_fixed_in_advance=true   # pre-registration
+runeforge ledger append --lane lanes/<id>.yaml   # pre-registration: the bar frozen as threshold
 runeforge gate lanes/<id>.yaml        # murphy fingerprint gate, >= 12 keys, majority rule
+runeforge null lanes/<id>.yaml        # Null 1 (shuffle) + Null 2 (SHA-256), n >= 200
 runeforge control lanes/<id>.yaml     # >= 20 plants; writes lanes/<id>/control*.json and
                                       # records positive_control + its sha256 in the ledger
-git add lanes/<id> && git commit      # the control report is the Rule 2 evidence
+git add lanes/<id> && git commit      # control, gate and null reports are the evidence
 runeforge sweep lanes/<id>.yaml --detach   # refuses without that control and the frozen bar
 runeforge status --short              # live jobs with seeds/s, crossers, best score
 runeforge score lanes/<id>.yaml <seed>     # re-score any sweep row (its reproduce command)
@@ -132,7 +132,8 @@ runs only entries Hunter has set `"approved": true` on (`runeforge queue` prints
 | `scripts/check_results.py` | PASS/FAIL on a lane's RESULTS.md: sections, vocabulary, verdict arithmetic |
 | `scripts/validate_ledger.py` | ledger schema, append-only history, and `Unsound negatives = N` |
 | `scripts/hooks/deny_frozen.sh` | PreToolUse hook: blocks edits to anything listed in `FROZEN.txt` |
-| `scripts/hooks/stop_gate.sh` | Stop hook: no session ends with a red trust anchor or an unsound ledger |
+| `scripts/hooks/stop_gate.sh` | Stop hook: no session ends with an unsound ledger or a failing RESULTS.md (changed or unpushed) |
+| `scripts/hooks/python_only.sh` | the verify-lane subagent's Bash runs only `python ...` |
 | `.claude/settings.json` | registers the two hooks |
 | `.claude/rules/*.md`, `.claude/agents/verify-lane.md` | lane, report and GPU conventions; the independent re-derivation subagent |
 

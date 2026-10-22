@@ -2,7 +2,10 @@
 # Fetch the five vendored source repos under data/raw/ at their pinned commits.
 #
 # By default each submodule is a shallow, blobless, sparse checkout of only the files
-# runeforge reads (a few MB instead of ~900 MB of page images and archives). Use --full
+# runeforge reads: about 100 MB on disk instead of ~900 MB. Most of it is cicada_tools'
+# liber_primus/ folder, whose 73 page images its own loader asserts exist (scripts/
+# extract_reference.py runs that code); nothing in runeforge opens an image, and Claude
+# never reads rune images. Use --full
 # for complete shallow checkouts (needed for the Phase 4 image work; a download over
 # 100 MB is Hunter's call, CLAUDE.md). --full also widens an existing sparse checkout.
 #
@@ -36,7 +39,7 @@ sparse_paths() {
       /liber-primus/data/keys/armada18/melville_moby_dick.txt \
       /liber-primus/analysis/latin/latin_218.txt \
       /liber-primus/analysis/round10b/B6-non-english-plaintext/corpora/oe_beowulf.txt ;;
-    jens-wedin) printf '%s\n' /README.md /validate_solved.py /src/core/ ;;
+    jens-wedin) printf '%s\n' /README.md /BACKLOG.md /LOG.md /validate_solved.py /src/core/ ;;
     *) echo "unknown source $1" >&2; return 1 ;;
   esac
 }

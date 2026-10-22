@@ -9,10 +9,13 @@ Conventions (mod 29):
 * ``ciphertext_view`` is applied to the canonical runes before decoding:
   raw; atbash 28 - c; first-difference d_i = c_i - c_{i-1}; chain-increment d_i - 1
   (a chain c_i = c_{i-1} + s_i with s_i in 1..28 maps to 0..27), with c_{-1} = 0.
-* The anti-repeat filter (encipher side): when a rune would repeat the previous cipher
-  rune, it survives with probability ``p_keep``; otherwise one key symbol is skipped and
-  the rune re-enciphered. The rigid decoder cannot follow those skips -- the Phase 2
-  beam can -- so filter lanes fail their control until then (INCONCLUSIVE (power)).
+* The forward model works on the CANONICAL runes, whatever the view: the anti-repeat
+  filter (a canonical rune that would repeat the previous canonical rune survives with
+  probability ``p_keep``; otherwise one key symbol is skipped and the rune re-enciphered)
+  is a fact about LP2's doublets, and an interrupter is an unencrypted canonical F (CLAUDE.md).
+  The view symbol of each canonical rune follows from it and the previous canonical rune.
+  The rigid decoder cannot follow skips or interrupters -- the Phase 2 beam can -- so such
+  lanes fail their control until then (INCONCLUSIVE (power)).
 """
 
 from __future__ import annotations
@@ -52,6 +55,17 @@ def unview(model_cipher: np.ndarray, name: str) -> np.ndarray:
     if name == "chain-increment":
         return np.cumsum(d + 1) % N
     raise ValueError(f"unknown ciphertext view {name!r}")
+
+
+def draw_seeds(rng: np.random.Generator, lo: int, hi: int, size: int) -> list[int]:
+    """``size`` seeds uniform in [lo, hi) as Python ints; seed spaces up to 2**64 wide and
+    anywhere above int64 (numpy's ``integers(lo, hi)`` stops at int64)."""
+    span = hi - lo
+    if span <= 2**63:
+        return [lo + int(x) for x in rng.integers(0, span, size, dtype=np.int64)]
+    if span <= 2**64:
+        return [lo + int(x) for x in rng.integers(0, span, size, dtype=np.uint64)]
+    raise ValueError("seed ranges wider than 2**64 are not supported")
 
 
 def lane_cipher(lane: LaneSpec) -> np.ndarray:
@@ -94,26 +108,55 @@ def _enc1(combine: str, p: int, k: int) -> int:
     return (k - p) % N
 
 
-def encrypt(lane: LaneSpec, plain, k, rng: np.random.Generator) -> tuple[np.ndarray, int]:
-    """Forward model in the lane's view. Returns (cipher, key symbols consumed).
+def _canon1(name: str, v: int, prev: int) -> int:
+    """The canonical rune whose view symbol is ``v``, given the previous canonical rune."""
+    if name == "raw":
+        return v
+    if name == "atbash":
+        return (N - 1) - v
+    if name == "first-difference":
+        return (prev + v) % N
+    return (prev + v + 1) % N  # chain-increment
 
-    ``k`` must be long enough for the skips (2x the plaintext is ample).
+
+def _view1(name: str, c: int, prev: int) -> int:
+    """The view symbol of canonical rune ``c``, given the previous canonical rune."""
+    if name == "raw":
+        return c
+    if name == "atbash":
+        return (N - 1) - c
+    if name == "first-difference":
+        return (c - prev) % N
+    return (c - prev - 1) % N  # chain-increment
+
+
+def encrypt(lane: LaneSpec, plain, k, rng: np.random.Generator) -> tuple[np.ndarray, int]:
+    """Forward model. Returns (cipher in the lane's view, key symbols consumed).
+
+    The filter and the interrupters act on the canonical runes (``unview`` of the result);
+    the combine acts in the view, which is what the lane's decoder inverts. ``k`` must be
+    long enough for the skips (2x the plaintext is ample).
     """
     p = np.asarray(plain, dtype=np.int64)
     k = np.asarray(k, dtype=np.int64)
     out = np.empty(p.size, dtype=np.int64)
-    j, prev = 0, -1
+    name = lane.ciphertext_view
+    j, prev = 0, 0  # prev: the previous canonical rune (c_{-1} = 0, as view() assumes)
     use_filter = lane.filter_model == "anti-repeat"
     for i, x in enumerate(p.tolist()):
         if x == F and lane.interrupt_prob and rng.random() < lane.interrupt_prob:
-            out[i] = prev = F  # unencrypted interrupter; the key does not advance
+            out[i] = _view1(name, F, prev)  # unencrypted canonical F; the key does not advance
+            prev = F
             continue
-        c = _enc1(lane.combine, x, int(k[j]))
+        v = _enc1(lane.combine, x, int(k[j]))
         j += 1
-        while use_filter and c == prev and rng.random() >= lane.p_keep:
-            c = _enc1(lane.combine, x, int(k[j]))
+        c = _canon1(name, v, prev)
+        while use_filter and i > 0 and c == prev and rng.random() >= lane.p_keep:
+            v = _enc1(lane.combine, x, int(k[j]))
             j += 1
-        out[i] = prev = c
+            c = _canon1(name, v, prev)
+        out[i] = v
+        prev = c
     return out, j
 
 

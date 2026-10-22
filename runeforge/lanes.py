@@ -1,8 +1,9 @@
 """Lane specification: one YAML file per attack lane in ``lanes/``.
 
 A lane declares its hypothesis, search space, ciphertext view, scorer, bars and the
-planted control BEFORE it runs; the runner (Phase 3, ``runeforge sweep``) writes the
-pre-registration ledger row from this file.
+planted control BEFORE it runs. ``runeforge ledger append --lane lanes/<id>.yaml`` writes the
+pre-registration ledger row from this file; ``runnable_problems`` is what ``runeforge lane``
+prints and ``runeforge sweep`` refuses on.
 """
 
 from __future__ import annotations
@@ -11,7 +12,7 @@ from pathlib import Path
 from typing import Any, Literal
 
 import yaml
-from pydantic import BaseModel, ConfigDict, Field, model_validator
+from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 
 # SESSION_PROMPT.md section C2's pass bar. A lane may raise it, never lower it.
 MIN_PLANTS = 20
@@ -49,7 +50,7 @@ class ControlSpec(BaseModel):
     synthetic_page: str = Field(
         description="held-out plaintext: 'solved:<section-id>', 'solved' or 'corpus:<name>'"
     )
-    n_runes: int = 250
+    n_runes: int | None = None  # if given, must equal the lane's window
     must_recover: bool = True
     n_plants: int = 20
     decoys: int = 999
@@ -91,7 +92,9 @@ class LaneSpec(BaseModel):
     combine: Literal["vigenere", "variant-beaufort", "beaufort"] = "vigenere"
     key_offset: int = 0
     filter_model: Literal["off", "anti-repeat"] = "off"
-    p_keep: float = 0.17  # anti-repeat filter: a repeat survives with this probability
+    # anti-repeat filter: a repeat survives with this probability; LP2 measures 86 doublets
+    # against 447 expected, 86/447 = 0.19 (CLAUDE.md: p_keep 0.18-0.19)
+    p_keep: float = 0.19
     interrupt_prob: float = 0.44  # plaintext F written as an unencrypted interrupter (11/25)
     scorer_register: str = "english"
     preset: str = "lp-ngram3:rigid"  # <scorer>:<decoder>, see runeforge.scoring.presets
@@ -105,6 +108,11 @@ class LaneSpec(BaseModel):
     resume_cursor: int | None = None
     params: dict[str, Any] = Field(default_factory=dict)
 
+    @field_validator("filter_model", mode="before")
+    @classmethod
+    def _yaml_off(cls, v):
+        return "off" if v is False else v  # YAML 1.1 reads a bare `off` as false
+
     @model_validator(mode="after")
     def _check(self) -> LaneSpec:
         lo, hi = self.seed_range
@@ -116,19 +124,57 @@ class LaneSpec(BaseModel):
             raise ValueError("p_keep and interrupt_prob are probabilities")
         if self.window < 20:
             raise ValueError("window too short to score")
+        if self.key_offset < 0:
+            raise ValueError("key_offset must be >= 0")
+        if self.control.n_runes is not None and self.control.n_runes != self.window:
+            raise ValueError(
+                f"control.n_runes {self.control.n_runes} != window {self.window}: plants are "
+                "exactly one scored window long (drop n_runes or make them equal)"
+            )
         return self
 
     @property
     def n_trials(self) -> int:
         return self.seed_range[1] - self.seed_range[0]
 
-    def runnable_problems(self) -> list[str]:
-        """Reasons the sweep runner must refuse this lane (empty = may run)."""
+    def stream_runes(self) -> int:
+        """Runes on the lane's pages (the length the sweep can score)."""
+        from runeforge import canon
+
+        lp2 = canon.load_lp2()
+        return sum(lp2.page(n).n_runes for n in self.pages if n in canon.UNSOLVED_LP2_PAGES)
+
+    def runnable_problems(self, check_bar_vs_threshold: bool = True) -> list[str]:
+        """Reasons the sweep runner must refuse this lane (empty = may run).
+
+        ``check_bar_vs_threshold=False`` (the sweep's ``--smoke`` test harness only) skips
+        the family_wise_bar >= threshold_for(N) comparison, so toy lanes can force crossers."""
+        from runeforge.scoring import calib
+
         out = []
+        have = self.stream_runes()
+        if have < self.window:
+            out.append(
+                f"the lane's pages hold {have} runes, fewer than window {self.window}: the bar, "
+                "the control and the calibration would be for the wrong length"
+            )
         if self.claim_bar is None or self.family_wise_bar is None:
             out.append("bars are not calibrated (scripts/threshold_for.py at the lane's true N)")
-        elif self.claim_bar > self.family_wise_bar:
-            out.append("claim_bar (screening) must not exceed family_wise_bar")
+        else:
+            if self.claim_bar > self.family_wise_bar:
+                out.append("claim_bar (screening) must not exceed family_wise_bar")
+            try:
+                t = calib.threshold_for(self.n_trials, self.preset, self.window)
+            except (FileNotFoundError, ValueError) as exc:
+                out.append(f"no bar for this lane's N, preset and window: {exc}")
+            else:
+                if check_bar_vs_threshold and self.family_wise_bar < t.bar - 1e-6:
+                    out.append(
+                        f"family_wise_bar {self.family_wise_bar:.4f} is below "
+                        f"threshold_for(N={self.n_trials:,}, {self.preset}, L={self.window}) = "
+                        f"{t.bar:.4f}; at that bar the slice expects more false positives than "
+                        "the rule allows"
+                    )
         if not self.control.must_recover:
             out.append("control does not require recovery (Rule 2)")
         return out

@@ -9,7 +9,8 @@
 # the state) with the prompt cut from OVERNIGHT_LOOP.md between the PROMPT-BEGIN/PROMPT-END markers.
 # GPU jobs are never children of Claude: `runeforge sweep --detach` starts them with setsid nohup and
 # tracks them with runs/<id>/sweep.pid + status.json. This script watches those files and kills only
-# by a PID it has verified. It never uses pkill -f.
+# by a PID it has verified (a runeforge sweep cmdline, and the start time status.json recorded for it,
+# so a recycled PID is never signalled). It never uses pkill -f.
 set -uo pipefail
 
 # ---------------------------------------------------------------- settings (override via env)
@@ -60,19 +61,31 @@ stop_at_epoch() {
 }
 STOP_EPOCH="$(stop_at_epoch)"
 
-pid_is_runeforge() {            # $1 = pid ; true only if alive AND its cmdline names runeforge
-  local pid="$1"
-  [ -n "$pid" ] && [ -r "/proc/$pid/cmdline" ] && tr '\0' ' ' < "/proc/$pid/cmdline" | grep -q runeforge
+pid_is_runeforge() {            # $1 = pid, $2 = status.json (optional). True only if the PID is alive, its
+  # cmdline is a runeforge sweep (not merely "runeforge"), and -- when status.json records pid_starttime
+  # for this PID -- field 22 of /proc/<pid>/stat matches it: a recycled PID is not our job.
+  # Same checks as runeforge/runner/jobs.py pid_alive_runeforge.
+  local pid="$1" st="${2:-}" cmd spid want have
+  { [ -n "$pid" ] && [ -r "/proc/$pid/cmdline" ]; } || return 1
+  cmd="$(tr '\0' ' ' < "/proc/$pid/cmdline" 2>/dev/null)" || return 1
+  grep -Eq 'runeforge(\.runner\.sweep| sweep)' <<< "$cmd" || return 1
+  { [ -n "$st" ] && [ -f "$st" ]; } || return 0
+  spid="$(jq -r '.pid // empty' "$st" 2>/dev/null || true)"
+  [ -z "$spid" ] || [ "$spid" = "$pid" ] || return 0   # status.json of another launch: nothing to compare
+  want="$(jq -r '.pid_starttime // empty' "$st" 2>/dev/null || true)"
+  [ -n "$want" ] || return 0
+  have="$(sed -E 's/^.*\) //' "/proc/$pid/stat" 2>/dev/null | awk '{print $20}')"
+  [ "$have" = "$want" ]
 }
 
 kill_job() {                    # $1 = run dir, $2 = reason
-  local dir="$1" reason="$2" pid
+  local dir="$1" reason="$2" st="$1/status.json" pid
   pid="$(cat "$dir/sweep.pid" 2>/dev/null || true)"
-  if pid_is_runeforge "$pid"; then
+  if pid_is_runeforge "$pid" "$st"; then
     log "KILL $dir pid=$pid reason=$reason"
     kill -TERM "$pid" 2>/dev/null
-    for _ in $(seq 1 60); do pid_is_runeforge "$pid" || break; sleep 1; done
-    pid_is_runeforge "$pid" && kill -KILL "$pid" 2>/dev/null
+    for _ in $(seq 1 60); do pid_is_runeforge "$pid" "$st" || break; sleep 1; done
+    pid_is_runeforge "$pid" "$st" && kill -KILL "$pid" 2>/dev/null
   fi
   echo "$(date '+%F %T') $reason" >> "$dir/KILLED-$reason"
 }
@@ -84,8 +97,9 @@ watch_jobs() {                  # kill conditions; everything else is left for t
     [ -e "$pidfile" ] || continue
     dir="$(dirname "$pidfile")"; st="$dir/status.json"
     pid="$(cat "$pidfile" 2>/dev/null || true)"
-    pid_is_runeforge "$pid" || continue           # dead PIDs are filed by Claude, not killed by us
+    pid_is_runeforge "$pid" "$st" || continue     # dead or recycled PIDs are filed by Claude, not killed by us
     [ -f "$st" ] || { log "WARN $dir alive without status.json"; continue; }
+    [ "$(jq -r '.done // false' "$st" 2>/dev/null)" = "true" ] && continue   # finished; it is exiting
     upd="$(jq -r '.updated_epoch // 0' "$st")"; dl="$(jq -r '.deadline_epoch // 0' "$st")"
     kc="$(jq -r '.kill_condition // "no"' "$st")"
     if [ $((now - upd)) -gt $((STALE_MIN*60)) ]; then kill_job "$dir" "stale-status"
@@ -186,5 +200,5 @@ while [ "$iter" -lt "$MAX_ITER" ]; do
 done
 
 beat
-log "=== overnight loop end: iterations=$iter night est. \$$(night_cost); jobs alive: $(for p in runs/*/sweep.pid; do [ -e "$p" ] && pid_is_runeforge "$(cat "$p")" && basename "$(dirname "$p")"; done | tr '\n' ' ') ==="
+log "=== overnight loop end: iterations=$iter night est. \$$(night_cost); jobs alive: $(for p in runs/*/sweep.pid; do [ -e "$p" ] && pid_is_runeforge "$(cat "$p")" "$(dirname "$p")/status.json" && basename "$(dirname "$p")"; done | tr '\n' ' ') ==="
 exit 0

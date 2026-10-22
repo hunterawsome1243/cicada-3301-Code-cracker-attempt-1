@@ -14,13 +14,42 @@ from runeforge.paths import REPO_ROOT
 from runeforge.scoring import calib, presets
 
 
+def _needs_corpus(preset: str) -> bool:
+    return presets.PRESETS[presets.split_preset(preset)[0]]["train"] != ["lp-solved"]
+
+
+def _check(preset: str, length: int) -> None:
+    rec = calib.load(preset, length)  # raises if the scorer drifted from the fit
+    assert rec["fit"]["beta"] > 0
+    assert rec["check"]["max_error"] < 3 * rec["fit"]["beta"], rec["check"]
+
+
 def test_shipped_calibrations_match_the_current_scorer():
+    """The canon-trained presets: no corpus build needed, so this holds on any checkout."""
     have = calib.available()
     assert ("lp-ngram3:rigid", 240) in have and ("lp-ngram3:rigid", 120) in have
     for preset, length in have:
-        rec = calib.load(preset, length)  # raises if the scorer drifted from the fit
-        assert rec["fit"]["beta"] > 0
-        assert rec["check"]["max_error"] < 3 * rec["fit"]["beta"], rec["check"]
+        if not _needs_corpus(preset):
+            _check(preset, length)
+
+
+@pytest.mark.raw
+def test_shipped_corpus_calibrations_match_the_current_scorer():
+    """The corpus-trained presets need scripts/build_corpus.py (CI runs it before the tests;
+    with RUNEFORGE_REQUIRE_RAW=1 a missing corpus is a failure, locally a skip)."""
+    import os
+
+    from runeforge.corpus import CorpusMissingError
+
+    have = [(p, n) for p, n in calib.available() if _needs_corpus(p)]
+    assert have, "no corpus-trained calibration is shipped"
+    try:
+        for preset, length in have:
+            _check(preset, length)
+    except CorpusMissingError:
+        if os.environ.get("RUNEFORGE_REQUIRE_RAW") == "1":
+            raise
+        pytest.skip("corpora not built: python scripts/build_corpus.py")
 
 
 def test_bar_rises_with_n_and_expected_false_positives_stay_below_one():

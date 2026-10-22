@@ -9,7 +9,7 @@ bulk SD (for a skewed score the bulk SD misstates the tail by ~2.5x):
    decoder turns the ciphertext into exactly such a string, whatever the ciphertext is.
 2. Cut them into blocks of b = 1,000 and fit a Gumbel (mu_b, beta) to the block maxima.
    The max of N = k * b draws is then Gumbel(mu_b + beta ln k, beta).
-3. Check out of sample: the mean of the 30,000-draw block maxima and the single
+3. Check out of sample: the mean of the 25,000-draw block maxima and the single
    M-draw maximum must land where the fit predicts (recorded as ``check``).
 
 Calibrations live in ``presets/<scorer>__<decoder>__L<L>.json`` and are pinned to the

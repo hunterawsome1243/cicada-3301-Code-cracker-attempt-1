@@ -12,6 +12,8 @@ Phase 1 baselines (order-3 Witten-Bell n-grams); Phase 2 adds the Kneser-Ney mod
                      so those two (1,533 runes) can host controls without a corpus build
 * ``cicada-ngram3``  corpus ``cicada-english`` (Emerson; scripts/build_corpus.py)
 * ``general-ngram3`` corpus ``english-general`` (Moby-Dick)
+* ``latin-ngram3``, ``old-english-ngram3``  corpora ``latin`` (Caesar) and ``old-english``
+                     (Beowulf): the non-English registers of every decode's stats
 """
 
 from __future__ import annotations
@@ -29,6 +31,9 @@ PRESETS: dict[str, dict] = {
     },
     "cicada-ngram3": {"order": 3, "train": ["cicada-english"]},
     "general-ngram3": {"order": 3, "train": ["english-general"]},
+    # non-English registers, for the per-decode stats (runeforge.stats.decode)
+    "latin-ngram3": {"order": 3, "train": ["latin"]},
+    "old-english-ngram3": {"order": 3, "train": ["old-english"]},
 }
 DECODERS = ("rigid",)  # Phase 2 adds the skip-aware beam presets
 
