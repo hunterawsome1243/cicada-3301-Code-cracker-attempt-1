@@ -42,20 +42,23 @@ SIGTERM kills a Bash tool's whole process tree.
    {
      "hooks": {
        "SessionStart": [{"hooks": [{"type": "command",
-         "command": "echo \"export PATH=$PWD/.venv/bin:$PATH\" >> \"$CLAUDE_ENV_FILE\""}]}],
-       "PreToolUse": [{"matcher": "Edit|Write|MultiEdit|Bash",
-         "hooks": [{"type": "command", "command": "scripts/hooks/deny_frozen.sh"}]}],
-       "Stop": [{"hooks": [{"type": "command", "command": "scripts/hooks/stop_gate.sh", "timeout": 120}]}]
+         "command": "echo \"export PATH=$CLAUDE_PROJECT_DIR/.venv/bin:$PATH\" >> \"$CLAUDE_ENV_FILE\""}]}],
+       "PreToolUse": [{"matcher": "Edit|Write|MultiEdit|NotebookEdit|Bash",
+         "hooks": [{"type": "command", "command": "\"$CLAUDE_PROJECT_DIR\"/scripts/hooks/deny_frozen.sh"}]}],
+       "Stop": [{"hooks": [{"type": "command", "command": "\"$CLAUDE_PROJECT_DIR\"/scripts/hooks/stop_gate.sh", "timeout": 120}]}]
      }
    }
    ```
-   `scripts/hooks/deny_frozen.sh` reads the tool input JSON from stdin, extracts `tool_input.file_path`
+   (`$CLAUDE_PROJECT_DIR`, not a relative path: the Bash tool's working directory moves, and a hook
+   that cannot start fails open.) `scripts/hooks/deny_frozen.sh` reads the tool input JSON from stdin, extracts `tool_input.file_path`
    (or, for Bash, scans `tool_input.command` for every path listed in `FROZEN.txt` next to `sed -i`,
    `>`, `>>`, `mv`, `cp`, `rm`, `git checkout --`, `git restore`, `chmod`, `tee`), and exits 2 with the
    reason "frozen: write it to TOOLBOX_REQUESTS.md" when a frozen path would be written. Exit 0 otherwise.
    `scripts/hooks/stop_gate.sh` exits 0 immediately when `stop_hook_active` is true; otherwise it runs
    `python scripts/validate_ledger.py` and `python scripts/check_results.py` on every `lanes/*/RESULTS.md`
-   that `git status --porcelain` shows as modified, and exits 2 with the failure text if any fails.
+   that `git status --porcelain` shows as modified or that an unpushed commit (no upstream: a commit of
+   the last 24 hours) changed -- committing a failing write-up does not pass the gate -- and exits 2
+   with the failure text if any fails.
    `CLAUDE_CODE_STOP_HOOK_BLOCK_CAP=3` in `overnight.sh` keeps a broken gate from looping.
 
 ### Before bed (the human part of the budget split)

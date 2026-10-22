@@ -1,14 +1,19 @@
 #!/usr/bin/env bash
 # Stop hook (OVERNIGHT_LOOP.md Part 1 §6): a session may not end while the ledger fails
-# scripts/validate_ledger.py, or while a lane write-up it touched (any lanes/*/RESULTS.md that
-# `git status` shows as modified, added or untracked) fails scripts/check_results.py. Exit 2 sends
-# the failing output back to Claude, which keeps working; CLAUDE_CODE_STOP_HOOK_BLOCK_CAP in
-# overnight.sh bounds how often. When stop_hook_active is true Claude is already continuing
-# because of this hook, so it exits 0 at once instead of looping.
+# scripts/validate_ledger.py, or while a lane write-up it touched fails scripts/check_results.py.
+# A write-up counts as touched (lanes/<id>/RESULTS.md, one level) when `git status` lists it as
+# modified, added or untracked, or when a commit changed it that is not on the upstream branch yet
+# (`git diff @{u}...HEAD`), or, with no upstream, a commit from the last 24 hours. Sessions commit
+# before they stop (SESSION_PROMPT.md §C5, OVERNIGHT_LOOP.md), so committing a failing write-up
+# does not get it past this gate. Exit 2 sends the failing output back to Claude, which keeps
+# working; CLAUDE_CODE_STOP_HOOK_BLOCK_CAP in overnight.sh bounds how often. When
+# stop_hook_active is true Claude is already continuing because of this hook, so it exits 0 at
+# once instead of looping.
 #
 # A gate script that does not exist yet, a missing ledger or lanes/ directory, or a tree that is
-# not a git work tree is skipped with a note, never failed. Interpreter: $RUNEFORGE_PYTHON if it
-# resolves, else python3 (both gate scripts are standard library only).
+# not a git work tree is skipped with a note, never failed. Each gate run is capped at 60 s.
+# Interpreter: $RUNEFORGE_PYTHON if it resolves, else python3 (both gates are standard library
+# only). Register it as "$CLAUDE_PROJECT_DIR"/scripts/hooks/stop_gate.sh (see deny_frozen.sh).
 set -u
 
 payload=""
@@ -49,6 +54,16 @@ run_gate() {  # run one gate command; collect its output if it fails
   fi
 }
 
+checked=$'\n'  # newline-delimited list of write-ups already checked (bash 3 has no assoc arrays)
+check_results() {  # check one candidate path once, if it is an existing lanes/<id>/RESULTS.md
+  local path="$1"
+  [[ $path == lanes/*/RESULTS.md && $path != lanes/*/*/RESULTS.md ]] || return 0
+  [ -f "$path" ] || return 0  # deleted
+  [[ $checked == *$'\n'"$path"$'\n'* ]] && return 0
+  checked+="$path"$'\n'
+  run_gate "$py" scripts/check_results.py "$path"
+}
+
 if [ -f scripts/validate_ledger.py ]; then
   run_gate "$py" scripts/validate_ledger.py
 else
@@ -60,22 +75,33 @@ if [ ! -f scripts/check_results.py ]; then
 elif ! git rev-parse --is-inside-work-tree >/dev/null 2>&1; then
   echo "stop_gate: not a git work tree; RESULTS.md check skipped" >&2
 elif [ -d lanes ]; then
+  # 1. uncommitted: modified, added, renamed or untracked
   while IFS= read -r -d '' entry; do
     status="${entry:0:2}"
-    path="${entry:3}"
     if [[ $status == R* || $status == C* ]]; then
       IFS= read -r -d '' _ || true  # -z lists a rename's source path as its own entry
     fi
-    [[ $path == lanes/*/RESULTS.md && $path != lanes/*/*/RESULTS.md ]] || continue
-    [ -f "$path" ] || continue  # deleted
-    run_gate "$py" scripts/check_results.py "$path"
+    check_results "${entry:3}"
   done < <(git status --porcelain -z --untracked-files=all -- lanes 2>/dev/null)
+  # 2. committed but not pushed; with no upstream, committed in the last 24 hours
+  if git rev-parse -q --verify '@{u}' >/dev/null 2>&1; then
+    committed=(git diff -z --name-only --relative '@{u}...HEAD' -- lanes)
+  else
+    committed=(git log -z --since='24 hours ago' --name-only --format= --relative -- lanes)
+  fi
+  while IFS= read -r -d '' path; do
+    path="${path#$'\n'}"  # some git versions start each commit's list with a newline
+    [ -n "$path" ] && check_results "$path"
+  done < <("${committed[@]}" 2>/dev/null)
 fi
 
 if [ "$failed" -ne 0 ]; then
   {
-    echo "stop_gate: not done yet. Fix what these gates report (a new superseding ledger row, or"
-    echo "the RESULTS.md), re-run them, commit, then stop."
+    echo "stop_gate: not done yet. Fix the problems these gates report (a ledger row: append a"
+    echo "superseding row; a RESULTS.md: edit the write-up), re-run the gates until they pass"
+    echo "(python scripts/validate_ledger.py; python scripts/check_results.py <the RESULTS.md>),"
+    echo "then commit the fix. Committing alone does not pass this gate: write-ups in commits not"
+    echo "yet pushed (or from the last 24 hours) are checked too."
     printf '%s' "$report"
   } >&2
   exit 2

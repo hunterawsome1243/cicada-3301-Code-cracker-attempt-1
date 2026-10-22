@@ -2,7 +2,11 @@
 §6), driven the way Claude Code drives them: one JSON payload on stdin; exit 0 allows, exit 2
 blocks and stderr is the reason Claude sees. Every test points the hook at a throwaway project
 root through CLAUDE_PROJECT_DIR, so nothing here reads or writes the real FROZEN.txt or ledger,
-and the stop-gate tests bring their own stub gate scripts so they do not depend on the real ones.
+and the stop-gate tests bring their own stub gate scripts (or a copy of the real
+scripts/check_results.py) so they do not depend on the repository's state.
+
+The Bash tables run against two frozen lists: the split list (individual test files, as the real
+FROZEN.txt will have them) and the CLAUDE.md list (``tests/*`` and friends).
 """
 
 from __future__ import annotations
@@ -18,7 +22,8 @@ from pathlib import Path
 
 import pytest
 
-HOOKS = Path(__file__).resolve().parents[1] / "scripts" / "hooks"
+REPO = Path(__file__).resolve().parents[1]
+HOOKS = REPO / "scripts" / "hooks"
 DENY = HOOKS / "deny_frozen.sh"
 STOP = HOOKS / "stop_gate.sh"
 
@@ -27,6 +32,7 @@ pytestmark = pytest.mark.skipif(shutil.which("bash") is None, reason="the hooks 
 FROZEN = """\
 # frozen toolbox (test copy)
 data/canon/*
+data/raw/*   # vendored upstreams: an inline comment is not part of the pattern
 runeforge/oracle.py
 runeforge/stats/**
 
@@ -34,12 +40,28 @@ tests/test_solved_pages.py
 scripts/check_results.py
 FROZEN.txt
 """
+CLAUDE_FROZEN = """\
+data/canon/*
+data/raw/*
+runeforge/oracle.py
+runeforge/controls.py
+runeforge/ledger.py
+runeforge/stats/*
+runeforge/scoring/calib/*
+tests/*
+scripts/check_results.py
+scripts/validate_ledger.py
+scripts/threshold_for.py
+FROZEN.txt
+"""
 FILES = (
     "data/canon/lp2_runes.json",
     "data/canon/sub/dir/y",
+    "data/raw/dukotah/README.md",
     "runeforge/oracle.py",
     "runeforge/cli.py",
     "runeforge/stats/core.py",
+    "runeforge/scoring/calib/quad.json",
     "tests/test_solved_pages.py",
     "scripts/check_results.py",
 )
@@ -55,15 +77,28 @@ def _env(root: Path | None, **extra: str) -> dict[str, str]:
     return env
 
 
-@pytest.fixture
-def root(tmp_path: Path) -> Path:
-    r = tmp_path / "proj"
+def _project(r: Path, frozen: str) -> Path:
     for rel in FILES:
         (r / rel).parent.mkdir(parents=True, exist_ok=True)
         (r / rel).write_text("x\n")
     (r / "runs").mkdir()
-    (r / "FROZEN.txt").write_text(FROZEN)
+    (r / "FROZEN.txt").write_text(frozen)
     return r
+
+
+@pytest.fixture
+def root(tmp_path: Path) -> Path:
+    return _project(tmp_path / "proj", FROZEN)
+
+
+@pytest.fixture(params=["split", "claude"])
+def any_root(request, tmp_path: Path) -> Path:
+    return _project(tmp_path / "proj", FROZEN if request.param == "split" else CLAUDE_FROZEN)
+
+
+@pytest.fixture
+def claude_root(tmp_path: Path) -> Path:
+    return _project(tmp_path / "proj", CLAUDE_FROZEN)
 
 
 def deny(root: Path, payload, cwd: Path | None = None, script: Path = DENY, env=None):
@@ -106,6 +141,7 @@ def test_write_to_canon_is_blocked_with_the_reason(root):
         ("MultiEdit", "FROZEN.txt", "file_path", True),
         ("Write", "data/canon/new.json", "file_path", True),
         ("Write", "data/canon/sub/dir/deeper/z", "file_path", True),
+        ("Write", "data/raw/dukotah/README.md", "file_path", True),
         ("Edit", "runeforge/stats/core.py", "file_path", True),
         ("Write", "tests/test_solved_pages.py", "file_path", True),
         ("Write", "tests/test_new.py", "file_path", False),
@@ -137,6 +173,33 @@ def test_write_through_a_symlink_into_a_frozen_path_is_blocked(root, tmp_path):
 
 
 # --- Bash -----------------------------------------------------------------------------------------
+UNRESOLVED_BLOCKED = [  # write targets from xargs / $(...) / loops, traced to their producer
+    "grep -rl old_name runeforge | xargs sed -i 's/old_name/new_name/g'",
+    "grep -rl old_name . | xargs sed -i 's/a/b/'",
+    "find runeforge -name '*.py' | xargs sed -i 's/a/b/'",
+    "git ls-files '*.py' | xargs sed -i 's/a/b/'",
+    "git grep -l old_name | xargs perl -pi -e 's/a/b/'",
+    "sed -i 's/old/new/g' $(grep -rl old runeforge)",
+    "for f in $(grep -rl old runeforge); do sed -i 's/old/new/' \"$f\"; done",
+    "black $(git ls-files '*.py')",
+    "grep -rl x runeforge | while read -r f; do sed -i 's/a/b/' \"$f\"; done",
+    "while IFS= read -r f; do sed -i 's/a/b/' \"$f\"; done < <(git ls-files '*.py')",
+    "mapfile -t fs < <(git ls-files '*.py'); black \"${fs[@]}\"",
+    "for f in runeforge/*.py; do echo $f; done | xargs sed -i s/a/b/",
+    "(cd runeforge && ls) | xargs rm",
+    "ls | xargs rm",
+    "rg -l old | xargs sed -i s/a/b/",
+    "git diff --name-only | xargs black",
+    "git ls-files -z | xargs -0 rm",
+    "echo FROZEN.txt | xargs rm",
+    "git grep -l x | xargs -I{} sh -c 'sed -i s/a/b/ \"{}\"'",
+    "git grep -l x | xargs sh -c 'sed -i s/a/b/ \"$@\"' _",
+    "find runeforge -name '*.py' -exec sh -c 'sed -i s/a/b/ \"$1\"' _ {} \\;",
+    'rm -rf "$(git rev-parse --show-toplevel)/data/canon"',
+    'rm "$ROOT_UNSET_IN_TEST/FROZEN.txt"',
+    "F=$(ls data/canon); rm $F",
+]
+
 BLOCKED = [
     "sed -i s/a/b/ runeforge/oracle.py",
     "sed -i.bak -e s/a/b/ runeforge/oracle.py",
@@ -195,6 +258,7 @@ BLOCKED = [
     "for f in data/canon/*; do rm $f; done",
     "find data/canon -name '*.json' -delete",
     "find runeforge -name '*.py' -exec sed -i s/a/b/ {} +",
+    "find runeforge -name '*.py' -exec sed -i 's/a/b/' {} +",
     "find /tmp -name x -exec cp {} data/canon/ \\;",
     "bash -c 'echo x > runeforge/oracle.py'",
     'sh -ec "rm -f FROZEN.txt"',
@@ -217,6 +281,58 @@ BLOCKED = [
     "ruff check --fix .",
     "ruff format scripts/check_results.py",
     'echo "unterminated > data/canon/x',
+    # -t DIR inside a short-option cluster
+    "cp -vt data/canon /tmp/x",
+    "cp -rt data/canon /tmp/x",
+    "cp -at runeforge/stats /tmp/x",
+    "install -Dt runeforge/stats /tmp/x",
+    "install -vt data/canon /tmp/x",
+    "ln -sft data/canon /tmp/x",
+    "cp -fvt tests /tmp/test_solved_pages.py",
+    "cp --target-directory=data/canon /tmp/x",
+    "mv -vt /tmp data/canon/lp2_runes.json",
+    # function bodies, interpreter options, python -m, shell option ends, env -C, archives, git
+    "function f { rm FROZEN.txt; }; f",
+    "f() { rm FROZEN.txt; }; f",
+    "python3 -W ignore -c \"open('runeforge/oracle.py','w')\"",
+    "python3 -X utf8 -c \"open('runeforge/oracle.py','w')\"",
+    "python3 -Bc \"open('runeforge/oracle.py','w')\"",
+    "python -m black runeforge/oracle.py",
+    "python -m ruff format tests",
+    "python -m isort tests",
+    "python3 -m zipfile -e /tmp/x.zip data/canon",
+    "bash -c -- 'rm FROZEN.txt'",
+    "env -C data/canon rm lp2_runes.json",
+    "env --chdir=data/canon rm lp2_runes.json",
+    "env -S 'rm FROZEN.txt'",
+    "tar -xf /tmp/x.tar -C data/canon",
+    "tar xzf /tmp/x.tgz -C data/canon",
+    "tar -x -f /tmp/x.tar --directory=data/raw",
+    "unzip -o /tmp/x.zip -d data/canon",
+    "unzip /tmp/x.zip 'data/canon/*'",
+    "git clean -fdx tests",
+    "git clean -fdx",
+    "git submodule deinit -f data/raw/dukotah",
+    "git submodule deinit --all -f",
+    "trap 'rm -f FROZEN.txt' EXIT; echo hi",
+    "trap -- 'rm FROZEN.txt' EXIT",
+    "(( x = 1 << 2 ))\nrm FROZEN.txt\n",
+    "x=1; (( x <<= 2 )); rm FROZEN.txt",
+    "for ((i=0; i<3; i++)); do rm FROZEN.txt; done",
+    "sudo -D data/canon rm lp2_runes.json",
+    "python3 -c \"open(ROOT + '/FROZEN.txt', 'w')\"",
+    "for f in tests/test_*.py; do black $f; done",
+    "echo x > $(echo data/canon/x)",
+    "cd data && grep -rl x . | xargs rm",
+    "git -C runeforge ls-files | xargs rm",
+    "xargs rm < FROZEN.txt",
+    "xargs -a FROZEN.txt rm",
+    *UNRESOLVED_BLOCKED,
+]
+CLAUDE_LIST_BLOCKED = [  # need tests/* (the CLAUDE.md list) rather than individual test files
+    "cp -fvt tests /tmp/test_new.py",
+    'cp "$SRC" tests/',
+    "printf '%s\\n' tests/* | xargs sed -i s/a/b/",
 ]
 
 ALLOWED = [
@@ -263,19 +379,85 @@ ALLOWED = [
     'echo "$(date) iteration done" >> runs/overnight/log',
     "cat > lanes/x/PREREG.md <<'EOF'\nreads data/canon/* only; bar > 3.2; FROZEN.txt as is\nEOF",
     "",
+    # everyday commands
+    "pytest -q tests",
+    "git status",
+    "git diff",
+    "git log --oneline -5",
+    "runeforge status",
+    "runeforge status --short",
+    "grep -rn oracle runeforge tests",
+    "sed -n 1,20p FROZEN.txt",
+    "python scripts/validate_ledger.py",
+    "ls runs | xargs rm",
+    "black --check runeforge scripts tests",
+    "ruff check .",
+    "python -m black --check runeforge",
+    "python3 -W error -m pytest -q",
+    "python3 -X importtime -c 'import runeforge'",
+    "tail -n 50 runs/x/sweep.log | grep -i error",
+    "kill $(cat runs/x/sweep.pid)",
+    # unresolved targets whose producers name no frozen path
+    'rm -rf "$TMP_DIR" && pytest -q tests',
+    'mv "$OUT" runs/final.json && cat tests/test_x.py',
+    "python -c \"import os; os.makedirs('runs/tests', exist_ok=True)\"",
+    'cat tests/test_x.py > "$OUT"',
+    'cp tests/test_x.py "$DEST"',
+    'D=$(mktemp -d); rm -rf "$D"',
+    "find runs -name '*.json' | xargs rm",
+    "find runs -name '*.py' -delete",
+    "grep -rl old runs | xargs sed -i s/a/b/",
+    "cd runs && grep -rl x . | xargs rm",
+    "git ls-files runs | xargs rm",
+    "git diff --name-only | xargs ruff check",
+    "git diff --name-only | xargs black --check",
+    "git ls-files '*.py' | xargs wc -l",
+    "ls runeforge | xargs -I{} cp runeforge/{} /tmp/",
+    "for f in $(ls data/canon); do cp data/canon/$f runs/$f; done",
+    "cat runs/list | xargs rm",
+    'while read -r f; do echo "$f"; done < runs/list',
+    "rm -f runs/$(date +%s).log",
+    "trap 'rm -rf \"$TMP\"' EXIT; python scripts/x.py",
+    "for f in tests/*.py; do python -m py_compile $f; done",
+    "echo $(( 1 << 2 )) > runs/x",
+    # archives, clean, env -C elsewhere
+    "tar -czf runs/x.tgz data/canon",
+    "tar -tf /tmp/x.tar",
+    "tar -xf /tmp/x.tar -C runs",
+    "unzip -l /tmp/x.zip",
+    "unzip -o /tmp/x.zip -d runs/x",
+    "git clean -n",
+    "git clean -fd runs",
+    "env -C runs rm x.json",
+    "cp -vt runs data/canon/lp2_runes.json",
+    "cat FROZEN.txt | xargs -I{} cp {} /tmp/backup/",
+    "head -n1 runs/list | xargs -I{} rm -rf runs/{}",
+    "for lane in lanes/*; do python scripts/check_results.py $lane/RESULTS.md; done",
+    "setsid nohup runeforge sweep lanes/x.yaml > runs/x/sweep.log 2>&1 &",
+    'echo "export PATH=$PWD/.venv/bin:$PATH" >> "$CLAUDE_ENV_FILE"',
+    "git -C runs ls-files | xargs rm",
+    "python3 -c \"import json; json.dump({}, open('runs/tests.json', 'w'))\"",
+    "python3 -c \"open('/tmp/x/runeforge/oracle.py', 'w')\"",
 ]
 
 
 @pytest.mark.parametrize("command", BLOCKED)
-def test_bash_writes_to_frozen_paths_are_blocked(root, command):
-    r = bash(root, command)
+def test_bash_writes_to_frozen_paths_are_blocked(any_root, command):
+    r = bash(any_root, command)
+    assert r.returncode == 2, f"not blocked: {command!r}\n{r.stderr}"
+    assert "is listed in FROZEN.txt" in r.stderr
+
+
+@pytest.mark.parametrize("command", CLAUDE_LIST_BLOCKED)
+def test_bash_writes_under_a_frozen_tests_dir_are_blocked(claude_root, command):
+    r = bash(claude_root, command)
     assert r.returncode == 2, f"not blocked: {command!r}\n{r.stderr}"
     assert "is listed in FROZEN.txt" in r.stderr
 
 
 @pytest.mark.parametrize("command", ALLOWED)
-def test_bash_reads_and_unfrozen_writes_are_allowed(root, command):
-    r = bash(root, command)
+def test_bash_reads_and_unfrozen_writes_are_allowed(any_root, command):
+    r = bash(any_root, command)
     assert r.returncode == 0, f"blocked: {command!r}\n{r.stderr}"
 
 
@@ -283,6 +465,64 @@ def test_bash_relative_paths_follow_the_payload_cwd(root):
     assert bash(root, "rm lp2_runes.json", cwd=root / "data/canon").returncode == 2
     assert bash(root, "cd .. && rm canon/lp2_runes.json", cwd=root / "data/canon").returncode == 2
     assert bash(root, "rm lp2_runes.json", cwd=root / "runs").returncode == 0
+    assert bash(root, "git ls-files | xargs rm", cwd=root / "runs").returncode == 0
+    assert bash(root, "git ls-files | xargs rm", cwd=root / "data").returncode == 2
+
+
+# --- why a heuristic blocked ----------------------------------------------------------------------
+@pytest.mark.parametrize("command", UNRESOLVED_BLOCKED)
+def test_unresolved_write_targets_say_why(root, command):
+    r = bash(root, command)
+    assert r.returncode == 2, r.stderr
+    assert "why: unresolved write target" in r.stderr
+    assert "name the path literally or split the command" in r.stderr
+
+
+def test_unresolved_message_names_the_target_and_its_producer(root):
+    r = bash(root, "grep -rl old_name runeforge | xargs sed -i 's/old_name/new_name/g'")
+    assert "unresolved write target `<xargs input>` could be anything under `runeforge`" in r.stderr
+    assert "(listed by `grep -rl old_name runeforge`)" in r.stderr
+    r = bash(root, "for f in $(grep -rl old runeforge); do sed -i 's/old/new/' \"$f\"; done")
+    assert "unresolved write target `$f`" in r.stderr
+    r = bash(root, 'rm -rf "$ROOT_UNSET_IN_TEST/data/canon"')
+    assert "unresolved write target `$ROOT_UNSET_IN_TEST/data/canon`" in r.stderr
+    assert "a frozen path if `$ROOT_UNSET_IN_TEST` is the project root" in r.stderr
+
+
+def test_code_and_parse_heuristics_say_why(root):
+    r = bash(root, "python3 -c \"import os; os.remove('runeforge/oracle.py')\"")
+    assert r.returncode == 2
+    assert "why: interpreter code `os.remove('runeforge/oracle.py')`" in r.stderr
+    r = bash(root, 'echo "unterminated > data/canon/x')
+    assert r.returncode == 2
+    assert "why: the command could not be parsed" in r.stderr
+
+
+def test_literal_targets_need_no_why(root):
+    r = bash(root, "rm data/canon/lp2_runes.json")
+    assert r.returncode == 2
+    assert "why:" not in r.stderr
+
+
+# --- FROZEN.txt parsing ---------------------------------------------------------------------------
+def test_inline_comments_are_stripped(root):
+    (root / "FROZEN.txt").write_text("data/canon/*   # canonical transcription\n")
+    assert bash(root, "rm data/canon/lp2_runes.json").returncode == 2
+    assert write(root, root / "data/canon/lp2_runes.json").returncode == 2
+
+
+def test_frozen_txt_with_a_bom_is_read(root):
+    (root / "FROZEN.txt").write_bytes(b"\xef\xbb\xbfFROZEN.txt\nrunes/x\n")
+    assert bash(root, "rm FROZEN.txt").returncode == 2
+
+
+@pytest.mark.parametrize("encoding", ["utf-16", "utf-16-le"])
+def test_undecodable_frozen_txt_blocks_writes_and_allows_reads(root, encoding):
+    (root / "FROZEN.txt").write_bytes("data/canon/*\nFROZEN.txt\n".encode(encoding))
+    for r in (bash(root, "echo hi > runs/x"), write(root, root / "runs/x.json")):
+        assert r.returncode == 2, r.stderr
+        assert "FROZEN.txt unreadable:" in r.stderr
+    assert write(root, root / "runeforge/oracle.py", tool="Read").returncode == 0
 
 
 # --- robustness -----------------------------------------------------------------------------------
@@ -330,6 +570,8 @@ def test_guard_is_fast(root):
     command = "cd data && git status && " + " && ".join(f"cat canon/f{i}" for i in range(200))
     t0 = time.monotonic()
     assert bash(root, command).returncode == 0
+    command = " && ".join(f"ls runs | xargs rm; rm -rf $X{i}" for i in range(200))
+    assert bash(root, command).returncode == 0
     assert time.monotonic() - t0 < 5
 
 
@@ -348,16 +590,23 @@ ok = "BAD" not in pathlib.Path(sys.argv[1]).read_text()
 print("PASS" if ok else "FAIL\\n  - section 5 (Coverage) missing")
 sys.exit(0 if ok else 1)
 """
+OLD = "2001-01-01T12:00:00 +0000"  # a commit date far outside the 24-hour window
 
 
-def _git(root: Path, *args: str) -> None:
+def _git(root: Path, *args: str, date: str | None = None) -> None:
+    extra = {"GIT_AUTHOR_DATE": date, "GIT_COMMITTER_DATE": date} if date else {}
     subprocess.run(
         ["git", "-c", "user.name=t", "-c", "user.email=t@t", "-c", "commit.gpgsign=false", *args],
         cwd=root,
         check=True,
         capture_output=True,
-        env=_env(None),
+        env=_env(None, **extra),
     )
+
+
+def _commit(root: Path, message: str, date: str | None = None) -> None:
+    _git(root, "add", "-A")
+    _git(root, "commit", "-q", "-m", message, date=date)
 
 
 @pytest.fixture
@@ -407,6 +656,8 @@ def test_failing_ledger_blocks_the_stop(gate_root):
     r = stop(gate_root, {"hook_event_name": "Stop", "stop_hook_active": False})
     assert r.returncode == 2
     assert "ledger row broken" in r.stderr and "validate_ledger.py" in r.stderr
+    assert "commit, then stop" not in r.stderr
+    assert "Committing alone does not pass this gate" in r.stderr
 
 
 @needs_git
@@ -423,13 +674,14 @@ def test_untracked_failing_results_blocks_and_passing_one_allows(gate_root):
 
 @needs_git
 def test_only_changed_results_are_checked(gate_root):
-    (gate_root / "lanes" / "L1" / "RESULTS.md").write_text("BAD but committed earlier\n")
+    (gate_root / "lanes" / "L1" / "RESULTS.md").write_text("BAD but committed long ago\n")
     (gate_root / "lanes" / "L2").mkdir()
     (gate_root / "lanes" / "L2" / "RESULTS.md").write_text("ok\n")
     (gate_root / "lanes" / "L2" / "notes.md").write_text("BAD, but not a RESULTS.md\n")
+    (gate_root / "lanes" / "L2" / "deep").mkdir()
+    (gate_root / "lanes" / "L2" / "deep" / "RESULTS.md").write_text("BAD, but two levels down\n")
     _git(gate_root, "init", "-q")
-    _git(gate_root, "add", "-A")
-    _git(gate_root, "commit", "-q", "-m", "init")
+    _commit(gate_root, "init", date=OLD)
     assert stop(gate_root).returncode == 0
     assert _checked(gate_root) == []
     (gate_root / "lanes" / "L2" / "RESULTS.md").write_text("ok, edited\n")
@@ -437,6 +689,53 @@ def test_only_changed_results_are_checked(gate_root):
     assert _checked(gate_root) == ["lanes/L2/RESULTS.md"]
     (gate_root / "lanes" / "L1" / "RESULTS.md").write_text("BAD, edited\n")
     assert stop(gate_root).returncode == 2
+
+
+@needs_git
+def test_committed_results_from_the_last_day_are_checked_once(gate_root):
+    _git(gate_root, "init", "-q")
+    _commit(gate_root, "init", date=OLD)
+    (gate_root / "lanes" / "L1" / "RESULTS.md").write_text("BAD, committed just now\n")
+    _commit(gate_root, "lane(L1): NULL")
+    (gate_root / "lanes" / "L1" / "RESULTS.md").write_text("BAD, edited again\n")
+    r = stop(gate_root)
+    assert r.returncode == 2
+    assert _checked(gate_root) == ["lanes/L1/RESULTS.md"]  # listed twice, checked once
+
+
+@needs_git
+def test_unpushed_commits_are_checked_and_pushed_ones_are_not(gate_root):
+    _git(gate_root, "init", "-q")
+    _commit(gate_root, "init", date=OLD)
+    _git(gate_root, "branch", "upstream")
+    _git(gate_root, "branch", "-q", "--set-upstream-to=upstream")
+    (gate_root / "lanes" / "L2").mkdir()
+    (gate_root / "lanes" / "L2" / "RESULTS.md").write_text("BAD, unpushed for days\n")
+    _commit(gate_root, "lane(L2): NULL", date=OLD)
+    r = stop(gate_root)
+    assert r.returncode == 2
+    assert _checked(gate_root) == ["lanes/L2/RESULTS.md"]
+    _git(gate_root, "branch", "-f", "upstream", "HEAD")  # as if pushed
+    assert stop(gate_root).returncode == 0
+
+
+@needs_git
+@pytest.mark.parametrize(
+    ("fixture", "code"), [("bad_null_no_floor.md", 2), ("bad_sections.md", 2), ("good_null.md", 0)]
+)
+def test_committed_results_meet_the_real_checker(gate_root, fixture, code):
+    shutil.copy2(REPO / "scripts" / "check_results.py", gate_root / "scripts" / "check_results.py")
+    (gate_root / "scripts" / "validate_ledger.py").unlink()
+    _git(gate_root, "init", "-q")
+    _commit(gate_root, "init", date=OLD)
+    fixtures = REPO / "tests" / "fixtures" / "results"
+    shutil.copy2(fixtures / fixture, gate_root / "lanes" / "L1" / "RESULTS.md")
+    _commit(gate_root, "lane(L1): close")
+    r = stop(gate_root)
+    assert r.returncode == code, r.stderr
+    if code:
+        assert "--- scripts/check_results.py lanes/L1/RESULTS.md (exit 1)" in r.stderr
+        assert "FAIL" in r.stderr
 
 
 def test_no_scripts_no_ledger_no_lanes_no_git_allows(tmp_path):
