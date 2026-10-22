@@ -338,6 +338,7 @@ def _install(monkeypatch, tmp_path, preset, length, **over):
     """A stand-in calibration file in a temporary calibration directory."""
     from runeforge.scoring import beam_calib, calib
 
+    tmp_path.mkdir(parents=True, exist_ok=True)
     monkeypatch.setattr(calib, "CALIB_DIR", tmp_path)
     scorer, decoder = presets.split_preset(preset)
     rec = {
@@ -481,3 +482,159 @@ def test_step6_refuses_steps_the_lanes_hypothesis_rules_out():
     assert crosser.record_violations(no_filter, p, k, skips={1: 1})
     no_int = _lane(interrupt_prob=0.0)
     assert crosser.record_violations(no_int, np.array([0, 3]), np.array([5, 9, 9]), interrupts=[0])
+
+
+# ----------------------------------------------------------------------------- review round 2
+
+
+def test_an_lp2_windows_beam_skip_null_is_covered_by_the_fit_ciphers():
+    """The fits draw doublet-free ciphers; a real window must not sit above them. A key-free
+    fill copied each window's own runes into the tail of most wrong-key decodes and put
+    windows up to ~0.05 above uniform ciphers (review round 2); wrapping the key removes that,
+    and the doublet-free draw covers LP2's doublet deficit."""
+    from runeforge.scoring import beam_calib
+
+    scorer, model = presets.get("lp-ngram3-heldout"), presets.beam_model("beam-skip")
+    lp2 = canon.load_lp2()
+    rng = np.random.default_rng(42)
+    n, length = 4000, 120
+    fit = scorer.score_batch(
+        beam.decode(
+            beam_calib._cipher(rng, n, length, None),
+            rng.integers(0, 29, (n, length)),
+            scorer,
+            model,
+        )
+    ).mean()
+    for first in (0, 24, 48):
+        window = lp2.stream(list(range(first, 56)))[:length]
+        got = scorer.score_batch(
+            beam.decode(window, rng.integers(0, 29, (n, length)), scorer, model)
+        ).mean()
+        assert got - fit < 0.012, (first, got, fit)  # se ~0.004; the old fill gave ~+0.05
+
+
+def test_an_exhausted_path_wraps_round_the_key():
+    """Fill decodes with k[j mod K], never with a key-free rule that copies the cipher."""
+    scorer = presets.get("lp-ngram3-heldout")
+    model = beam.BeamModel(width=1, interrupt_prob=0.0, p_keep=0.19, max_skip=6)
+    # every key symbol equal: a skip is always on offer, so the width-1 path spends key early
+    c = np.array([3, 5, 7, 11, 13, 17, 19, 23] * 5)
+    k = np.full(c.size, 4)
+    res = beam.decode_batch(c, k, scorer, model)
+    fill = np.flatnonzero(res.ops[0] == beam.OP_FILL)
+    if fill.size:  # every fill rune is c - k[j mod K] = c - 4 under vigenere
+        assert ((res.plain[0][fill] - (c[fill] - 4)) % 29 == 0).all()
+        assert res.keys_used[0] > k.size
+
+
+def test_calibrate_conditions_exactly_the_interrupt_decoders_on_f(monkeypatch):
+    from runeforge.scoring import beam_calib
+
+    seen = {}
+
+    def fake(scorer_name, decoder, length, draws, seed, workers, n_f):
+        seen[decoder] = n_f
+        return np.random.default_rng(0).normal(-7, 0.1, draws)
+
+    monkeypatch.setattr(beam_calib, "measure", fake)
+    for dec in ("beam", "beam-skip-int", "beam-skip"):
+        rec = beam_calib.calibrate("lp-ngram3-heldout", dec, 240, draws=25_000)
+        assert rec["canonical_F"] == seen[dec] and rec["doublets"] == "none"
+        assert rec["beam_sha256"] == beam_calib.beam_sha256()
+    assert seen == {"beam": 14, "beam-skip-int": 14, "beam-skip": None}
+
+
+@pytest.mark.parametrize(
+    "preset,over,refused",
+    [
+        ("beam-skip-int", {"interrupt_prob": 0.0}, "models F-interrupters"),
+        ("beam", {"interrupt_prob": 0.0, "filter_model": "off"}, "models F-interrupters"),
+        ("beam-skip", {"filter_model": "off", "interrupt_prob": 0.0}, "models anti-repeat"),
+        ("beam-skip-int", {"filter_model": "off"}, "models anti-repeat"),
+        ("beam-skip", {"p_keep": 1.0, "interrupt_prob": 0.0}, "models anti-repeat"),
+        ("beam-skip", {"interrupt_prob": 0.0}, None),
+        ("beam-skip-int", {}, None),
+        ("beam", {"filter_model": "off"}, None),
+        ("rigid", {"interrupt_prob": 0.0, "filter_model": "off"}, None),
+    ],
+)
+def test_a_decoder_may_not_model_more_than_the_lane(preset, over, refused):
+    lane = _lane(preset=f"lp-ngram3-heldout:{preset}", **over)
+    problems = lane.decoder_problems()
+    if refused is None:
+        assert problems == []
+    else:
+        assert any(refused in p for p in problems)
+        assert any(refused in p for p in lane.runnable_problems())
+
+
+def test_step6_calls_a_decoder_lane_mismatch_incomplete_never_noise(tmp_path):
+    """A true key decoded by a decoder that models more than the lane re-enciphers exactly;
+    its extra steps say nothing about noise."""
+    lane = _lane(pages=[0], window=120)
+    record = sweep.crosser_decode_record(lane, 5)
+    narrow = lane.model_copy(update={"interrupt_prob": 0.0})
+    with_int = dict(record, interrupts=record["interrupts"] or [], plain=record["plain"])
+    if not with_int["interrupts"]:
+        pytest.skip("this record took no interrupt")
+    base, kid = _pending(tmp_path, narrow, 5, with_int)
+    res = crosser.reencipher(kid, base=base)
+    assert res["verdict"] == "INCOMPLETE"
+
+
+def test_a_beam_control_is_bound_to_the_installed_fit(monkeypatch, tmp_path):
+    preset = "lp-ngram3-heldout:beam-skip-int"
+    _install(
+        monkeypatch,
+        tmp_path / "calib",
+        preset,
+        240,
+        fit={"block": 1000, "mu_block": -6.3, "beta": 0.0336},
+    )
+    lane = _lane()
+    lanes_dir = tmp_path / "lanes"
+    (lanes_dir / lane.lane_id).mkdir(parents=True)
+    ctl = lanes_dir / lane.lane_id / "control.json"
+    ctl.write_text(json.dumps({"beta": 0.05, "beta_source": "per-plant maxima"}))
+    assert sweep.beam_control_problems(lane, lanes_dir)
+    ctl.write_text(json.dumps({"beta": 0.0336, "beta_source": "calibration"}))
+    assert sweep.beam_control_problems(lane, lanes_dir) == []
+    rigid = _lane(preset="lp-ngram3-heldout:rigid")
+    assert sweep.beam_control_problems(rigid, lanes_dir) == []
+
+
+def test_a_beam_checkpoint_pins_its_decoder():
+    from runeforge.scoring import beam_calib
+
+    pins = sweep.pins(_lane(), smoke=False)
+    assert pins["decoder"] == {
+        "params": presets.DECODER_PARAMS["beam-skip-int"],
+        "beam_sha256": beam_calib.beam_sha256(),
+    }
+    assert "decoder" not in sweep.pins(_lane(preset="lp-ngram3-heldout:rigid"), smoke=False)
+    stale = dict(pins, decoder={**pins["decoder"], "beam_sha256": "0" * 64})
+    assert any("decoder" in p for p in sweep.pin_problems(stale, _lane(), smoke=False))
+
+
+def test_a_small_n_lane_takes_its_bar_from_its_own_nulls(monkeypatch, tmp_path):
+    from runeforge import paths
+    from runeforge.runner.control import lane_pipeline_sha256
+    from runeforge.scoring import calib
+
+    lane = _lane(seed_range=[0, 500], preset="lp-ngram3-heldout:rigid", interrupt_prob=0.0)
+    monkeypatch.setattr(paths, "LANES_DIR", tmp_path)
+    assert lane.small_n_nulls() == {}
+    (tmp_path / lane.lane_id).mkdir()
+    null = {
+        "lane_pipeline_sha256": lane_pipeline_sha256(lane),
+        "same_trial_count": True,
+        "null1_shuffle": {"max": -6.9},
+        "null2_sha256": {"max": -6.8},
+    }
+    (tmp_path / lane.lane_id / "null.json").write_text(json.dumps(null))
+    assert lane.small_n_nulls() == {"null_max": -6.9, "null2_max": -6.8}
+    bar = calib.threshold_for(500, lane.preset, 240, **lane.small_n_nulls()).bar
+    assert bar == pytest.approx(-6.3)
+    ok = lane.model_copy(update={"claim_bar": bar - 0.3, "family_wise_bar": bar})
+    assert not any("no bar" in p for p in ok.runnable_problems())

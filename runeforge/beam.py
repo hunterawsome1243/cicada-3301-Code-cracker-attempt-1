@@ -19,8 +19,11 @@ forward model of ``runeforge.runner.pipeline.encrypt``, position by position:
 ``max_skip``, so it models the forward model truncated there (part of its "decoder transition
 model" conditional). Under a uniform key, more than s drops at a rune has probability about
 (0.81 / 29) ** (s + 1) per rune: with the presets' max_skip = 6, about 1e-11, against 2.2e-5
-(a quarter of all 12,956-rune streams) at max_skip = 2. A skip option no row of the batch can
-take is not built, so a larger max_skip costs little.
+(a quarter of all 12,956-rune streams) at max_skip = 2. Taking s skips needs s equal key
+symbols in a row (each dropped symbol re-enciphers the same rune to the same repeat), so the
+decoder stops building skip options at the first s no row of the batch has such a run for;
+a block no row can take is not built either (omitting an all-dead block keeps every live
+candidate's relative index, so the selection is unchanged).
 
 The canonical runes are fixed by the ciphertext (``pipeline.unview``), so the interrupt and
 repeat positions are known; only the plaintext and the key position are hidden. A hypothesis is
@@ -37,12 +40,17 @@ Key budget: the decoder reads every key symbol it is given and no more (``k`` mu
 least as many symbols as the cipher has runes). Every caller that compares a decode with a
 null -- control plants, decoys and ceiling, ``runeforge null``, the sweep, ``runeforge score``
 -- passes exactly the window length, so they all decode under the same budget. A path that has
-used its last symbol (more skips than interrupts so far) continues with the fixed, key-free
-fill ``combine^-1(view symbol, 0)`` (noise for any cipher) and is marked in the record; a
-planted key under the anti-repeat model loses its last runes that way -- the skips' net excess
-over the interrupters: about 2.8 % of the window on Cicada-register text without interrupters,
-about 1.3 % with every plaintext F an interrupter (``scripts/beam_power.py``) -- which costs
-power, never adds any.
+used its last symbol (more skips than interrupts so far) wraps round to the start of the key,
+``k[j mod K]``, one symbol per rune, and those runes are marked ``fill`` in the record. Under a
+wrong key a wrapped decode is as random as any other, and the reused symbols last served runes
+about L positions back, far outside the scorer's context, so the null does not depend on the
+window. (A key-free fill ``combine^-1(view symbol, 0)`` copied the window's own cipher runes
+into the tail of most wrong-key ``beam-skip`` decodes and made each window's null its own:
+review round 2. Falling back to ``k[i]`` would reuse a symbol the same path spent one or two
+runes earlier, inside the trigram context.) A planted key under the anti-repeat model loses
+its last runes to fill -- the skips' net excess over the interrupters: about 2.8 % of the
+window on Cicada-register text without interrupters, about 1.3 % with every plaintext F an
+interrupter (``scripts/beam_power.py``, section fill) -- which costs power, never adds any.
 
 Priors must stay strictly inside (0, 1) where they act: ``interrupt_prob = 1`` would kill every
 path that deciphers an F and ``p_keep = 0`` every path through a kept repeat, and a wrong key's
@@ -74,7 +82,7 @@ OP_FILL = 101
 @dataclass(frozen=True)
 class BeamModel:
     """The decoder's transition model. ``p_keep=None`` disables the anti-repeat skips;
-    ``interrupt_prob=0`` disables the interrupts (the decoder is then rigid with fill).
+    ``interrupt_prob=0`` disables the interrupts (with both off the decoder is rigid).
     Otherwise both priors lie strictly inside (0, 1): see the module docstring."""
 
     combine: str = "vigenere"
@@ -194,7 +202,7 @@ class BeamResult:
     plain: np.ndarray  # (B, L)
     ops: np.ndarray  # (B, L) int16: skips taken (0..max_skip), OP_INTERRUPT or OP_FILL
     objective: np.ndarray  # (B,) log2 P of the best path, scorer + priors
-    keys_used: np.ndarray  # (B,) key symbols consumed (skipped ones included)
+    keys_used: np.ndarray  # (B,) key symbols consumed, skipped and wrapped (fill) ones included
 
 
 def decode_batch(cipher, keys, scorer, model: BeamModel) -> BeamResult:
@@ -243,29 +251,33 @@ def decode_batch(cipher, keys, scorer, model: BeamModel) -> BeamResult:
         drep_i = d_rep[:, i : i + 1]
         base = score + np.where(rep_i, pri.keep_repeat, 0.0)
         opt_score, opt_x, opt_j, opt_op = [], [], [], []
+        k0 = np.take_along_axis(k, np.minimum(j, k_last), axis=1)  # k[j]
+        run = alive  # slots whose k[j .. j+s-1] are all equal (s skips need that)
         for s in range(n_dec):
             jj = j + s
             has_key = jj <= k_last
-            kk = np.take_along_axis(k, np.minimum(jj, k_last), axis=1)
-            x = decrypt_sym(model.combine, di, kk)
             if s == 0:
-                # an exhausted path continues with the key-free fill
-                x = np.where(has_key, x, decrypt_sym(model.combine, di, 0))
+                # an exhausted path wraps round to the start of the key
+                kk = np.take_along_axis(k, jj % kn, axis=1)
+                x = decrypt_sym(model.combine, di, kk)
                 op = np.where(has_key, 0, OP_FILL)
                 ok = alive
                 sc = base
             else:
                 if i == 0:
-                    continue
-                ok = alive & has_key
-                need = repeat_key(model.combine, x, drep_i)
-                for t in range(s):
-                    kt = np.take_along_axis(k, np.minimum(j + t, k_last), axis=1)
-                    ok = ok & (kt == need)
+                    break  # the filter never acts on the first rune
+                if s >= 2:
+                    ks = np.take_along_axis(k, np.minimum(j + s - 1, k_last), axis=1)
+                    run = run & (ks == k0)
+                live = run & has_key
+                if not live.any():
+                    break  # run and has_key only shrink as s grows: every later block is dead
+                kk = np.take_along_axis(k, np.minimum(jj, k_last), axis=1)
+                x = decrypt_sym(model.combine, di, kk)
+                # every dropped symbol (all equal to k[j]) re-enciphers x to a canonical repeat
+                ok = live & (k0 == repeat_key(model.combine, x, drep_i))
                 if not ok.any():
-                    # no row can take s skips here: omitting an all-dead option block keeps
-                    # every live candidate's relative index, so the selection is unchanged
-                    continue
+                    continue  # an all-dead block: omitting it leaves the selection unchanged
                 op = np.full((b, w), s)
                 sc = base + s * pri.skip
             if use_int:
@@ -273,7 +285,7 @@ def decode_batch(cipher, keys, scorer, model: BeamModel) -> BeamResult:
             sc = np.where(ok, sc + tab[h, x], -np.inf)
             opt_score.append(sc)
             opt_x.append(np.broadcast_to(x, (b, w)))
-            opt_j.append(np.where(op == OP_FILL, jj, jj + 1))
+            opt_j.append(jj + 1)
             opt_op.append(np.broadcast_to(op, (b, w)))
         if use_int:
             f_here = canon_c[:, i : i + 1] == F
@@ -355,7 +367,8 @@ def decode(cipher, keys, scorer, model: BeamModel, max_rows: int = MAX_ROWS) -> 
 class DecodeRecord:
     """One path, in the form ``crosser.reencipher_forward`` replays: interrupt positions,
     ``skips[i] = s`` where the filter dropped s key symbols before the one kept, and fill
-    positions (key budget used up: not a forward-model step, so never re-enciphers)."""
+    positions (key budget used up, decoded with the key wrapped round: not a forward-model
+    step, so a record with fill is never a re-encipherment)."""
 
     plain: list[int]
     interrupts: list[int] = field(default_factory=list)
@@ -447,10 +460,8 @@ def decode_reference(cipher, key, scorer, model: BeamModel) -> DecodeRecord:
                     s = opt
                     jj = j + s
                     if s == 0:
-                        if jj < kn:
-                            x, op, j2 = decrypt_sym(model.combine, d[i], k[jj]), 0, jj + 1
-                        else:
-                            x, op, j2 = decrypt_sym(model.combine, d[i], 0), OP_FILL, jj
+                        x = decrypt_sym(model.combine, d[i], k[jj % kn])  # wraps when exhausted
+                        op, j2 = (0 if jj < kn else OP_FILL), jj + 1
                         sc = base
                     else:
                         if jj >= kn or i == 0:

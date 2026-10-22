@@ -147,6 +147,60 @@ class LaneSpec(BaseModel):
         lp2 = canon.load_lp2()
         return sum(lp2.page(n).n_runes for n in self.pages if n in canon.UNSOLVED_LP2_PAGES)
 
+    def decoder_problems(self) -> list[str]:
+        """A beam decoder may not model steps the lane's hypothesis rules out: its records would
+        hold them, and crosser step 6 could not adjudicate a true key (review round 2)."""
+        from runeforge.scoring import presets
+
+        decoder = presets.split_preset(self.preset)[1]
+        params = presets.DECODER_PARAMS[decoder]
+        out = []
+        if params.get("interrupt_prob", 0) > 0 and not self.interrupt_prob:
+            out.append(
+                f"decoder {decoder} models F-interrupters but the lane's interrupt_prob is 0: "
+                "pick a decoder without interrupts (beam-skip, or rigid)"
+            )
+        if params.get("p_keep") is not None and (
+            self.filter_model != "anti-repeat" or self.p_keep >= 1
+        ):
+            out.append(
+                f"decoder {decoder} models anti-repeat key skips but the lane has no filter "
+                "(filter_model off, or p_keep 1): pick a decoder without skips (beam, or rigid)"
+            )
+        return out
+
+    def small_n_nulls(self) -> dict:
+        """For N below the calibration block, threshold_for's small-N rule max(floor,
+        null_max + 0.5, null2_max + 0.5) needs the lane's own nulls: the committed
+        lanes/<id>/null.json of `runeforge null`, when it ran on this lane spec at the lane's
+        own trial count. Empty otherwise (threshold_for then refuses, saying so)."""
+        import json
+
+        from runeforge.paths import LANES_DIR
+        from runeforge.runner.control import lane_pipeline_sha256
+        from runeforge.scoring import calib
+
+        if self.n_trials >= calib.BLOCK:
+            return {}
+        try:
+            data = json.loads((LANES_DIR / self.lane_id / "null.json").read_text("utf-8"))
+        except (FileNotFoundError, ValueError):
+            return {}
+        # the nulls do not depend on the bars, and the small-N bar comes from the nulls: a
+        # null run before the bars were set (they are part of the pipeline hash) still counts
+        unbarred = self.model_copy(update={"claim_bar": None, "family_wise_bar": None})
+        if data.get("lane_pipeline_sha256") not in (
+            lane_pipeline_sha256(self),
+            lane_pipeline_sha256(unbarred),
+        ):
+            return {}
+        if not data.get("same_trial_count"):
+            return {}
+        return {
+            "null_max": float(data["null1_shuffle"]["max"]),
+            "null2_max": float(data["null2_sha256"]["max"]),
+        }
+
     def runnable_problems(self, check_bar_vs_threshold: bool = True) -> list[str]:
         """Reasons the sweep runner must refuse this lane (empty = may run).
 
@@ -161,13 +215,16 @@ class LaneSpec(BaseModel):
                 f"the lane's pages hold {have} runes, fewer than window {self.window}: the bar, "
                 "the control and the calibration would be for the wrong length"
             )
+        out.extend(self.decoder_problems())
         if self.claim_bar is None or self.family_wise_bar is None:
             out.append("bars are not calibrated (scripts/threshold_for.py at the lane's true N)")
         else:
             if self.claim_bar > self.family_wise_bar:
                 out.append("claim_bar (screening) must not exceed family_wise_bar")
             try:
-                t = calib.threshold_for(self.n_trials, self.preset, self.window)
+                t = calib.threshold_for(
+                    self.n_trials, self.preset, self.window, **self.small_n_nulls()
+                )
             except (FileNotFoundError, ValueError) as exc:
                 out.append(f"no bar for this lane's N, preset and window: {exc}")
             else:

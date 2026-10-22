@@ -7,20 +7,26 @@ the wrong key, so its decodes score higher than uniform strings (lp-ngram3-heldo
 wrong-key mean -6.90 ``beam``, -6.88 ``beam-skip``, -6.74 ``beam-skip-int`` against -7.17
 rigid; ``scripts/beam_power.py``) and need their own null. Every draw is the preset's beam
 decode of a cipher under a fresh uniform key of the cipher's length (the decoder's key budget
-in every caller), scored by the preset's scorer. Which cipher depends on the decoder:
+in every caller), scored by the preset's scorer. Under a uniform key every decoded rune is
+uniform whatever the cipher symbol, so a window's null depends on the cipher only through
+the choices it offers the beam (adversarial review rounds 1 and 2, 2026-10-22):
 
-* ``beam-skip`` (no interrupters): a fresh uniform cipher per draw. Its null does not depend on
-  the cipher: with a uniform key every decoded rune is uniform whatever the cipher symbol, and
-  whether a key symbol can be skipped is a test on the key, so a fixed window's null is the same.
-* ``beam`` and ``beam-skip-int`` (interrupters): every canonical F is a free interrupt-or-not
-  choice for a wrong key too, so a window's null RISES WITH ITS CANONICAL F COUNT. A fit over
-  fresh uniform ciphers averages over F counts and sits below the null of an F-rich window
-  (adversarial review, 2026-10-22). These fits therefore draw ciphers with exactly
-  ``canonical_F`` canonical F's (at random positions; the other runes uniform over 1..28),
-  ``canonical_F`` being the most F's in any lane window of this length that starts at an
-  unsolved LP2 page and runs on in canonical order (L = 120: 10, page 43; L = 240: 14, page
-  11). The bar is then conservative for every window holding at most that many, and
-  ``LaneSpec.runnable_problems`` refuses a lane whose window holds more.
+* canonical F's: every one is a free interrupt-or-not choice for ``beam`` / ``beam-skip-int``,
+  so their null RISES WITH THE WINDOW'S CANONICAL F COUNT (L = 240, ``beam``: block-max mean
+  -6.59 at 4 F's, -6.31 at 20). Their fits draw ciphers with exactly ``canonical_F`` canonical
+  F's, the most in any lane window of this length that starts at an unsolved LP2 page and runs
+  on in canonical order (L = 120: 10, page 43; L = 240: 14, page 11): conservative for every
+  window holding at most that many, and ``LaneSpec.runnable_problems`` refuses one with more.
+  ``beam-skip`` ignores F's.
+* canonical doublets: at a repeat a one-symbol skip deciphers the same rune as no skip, so a
+  doublet offers the skip decoders no new choice. LP2 has almost none (86 in 12,956), uniform
+  ciphers one in 29, and a uniform-cipher fit sat 0.004 below every LP2 window's null (14
+  page-start windows: offset +0.0043, spread 0.0020 against a per-window se of 0.0031). All
+  fits therefore draw DOUBLET-FREE ciphers (F's never adjacent), which offer the beam at least
+  the choices of any LP2 window.
+* nothing else: with exhausted paths wrapping round the key (``runeforge.beam``) no cipher
+  rune reaches a decode except through ``combine^-1(cipher, key)``, and the null is the same
+  in every ciphertext view and combine (a repeat is ``d_i == d_rep`` in all of them).
 
 The fit is ``calib``'s: Gumbel moments of block maxima (block 1,000), checked against the
 25,000-draw block maxima and the overall maximum. The record has calib's layout plus
@@ -88,12 +94,30 @@ def canonical_f(length: int) -> int:
 
 
 def _cipher(rng: np.random.Generator, size: int, length: int, n_f: int | None) -> np.ndarray:
-    """Raw-view ciphers: uniform, or with exactly ``n_f`` canonical F's at random positions."""
-    if n_f is None:
-        return rng.integers(0, ALPHABET, (size, length))
-    c = rng.integers(1, ALPHABET, (size, length))
-    pos = np.argsort(rng.random((size, length)), axis=1)[:, :n_f]
-    np.put_along_axis(c, pos, F, axis=1)
+    """Raw-view (canonical) ciphers with no doublets: uniform over the runes that differ from
+    the previous one, or with exactly ``n_f`` canonical F's at random non-adjacent positions
+    and the other runes uniform over 1..28 minus the previous one."""
+    c = np.empty((size, length), dtype=np.int64)
+    is_f = np.zeros((size, length), dtype=bool)
+    if n_f is not None:
+        if 2 * n_f > length + 1:
+            raise ValueError(f"{n_f} non-adjacent F's do not fit in {length} runes")
+        # n_f sorted slots out of length - n_f + 1, spread by their rank: never adjacent
+        slots = np.sort(np.argsort(rng.random((size, length - n_f + 1)), axis=1)[:, :n_f])
+        np.put_along_axis(is_f, slots + np.arange(n_f), True, axis=1)
+    prev = np.full(size, -1, dtype=np.int64)
+    for i in range(length):
+        if n_f is None:  # any rune but the previous one
+            v = rng.integers(0, ALPHABET - 1, size)
+            v = np.where((prev >= 0) & (v >= prev), v + 1, v)
+            v = np.where(prev < 0, rng.integers(0, ALPHABET, size), v)
+        else:  # a non-F rune other than the previous one
+            v = 1 + rng.integers(0, ALPHABET - 2, size)
+            v = np.where((prev >= 1) & (v >= prev), v + 1, v)
+            v = np.where(prev < 1, 1 + rng.integers(0, ALPHABET - 1, size), v)
+            v = np.where(is_f[:, i], F, v)
+        c[:, i] = v
+        prev = v
     return c
 
 
@@ -158,11 +182,12 @@ def calibrate(
     predicted_check = mu_b + beta * (math.log(CHECK_BLOCK / BLOCK) + EULER_GAMMA)
     predicted_all = mu_b + beta * (math.log(draws / BLOCK) + EULER_GAMMA)
     if n_f is None:
-        cipher = "a fresh uniform cipher (this decoder's null does not depend on the cipher)"
+        cipher = "a fresh doublet-free cipher (beam-skip ignores canonical F's)"
     else:
         cipher = (
-            f"a cipher with exactly {n_f} canonical F's at random positions (the most in any "
-            f"LP2 page-start window of {length} runes; a window with more is refused)"
+            f"a fresh doublet-free cipher with exactly {n_f} non-adjacent canonical F's (the "
+            f"most in any LP2 page-start window of {length} runes; a window with more is "
+            "refused)"
         )
     return {
         "preset": f"{scorer_name}:{decoder}",
@@ -171,6 +196,7 @@ def calibrate(
         "decoder_params": presets.DECODER_PARAMS[decoder],
         "beam_sha256": beam_sha256(),
         "canonical_F": n_f,
+        "doublets": "none",
         "L": length,
         "units": "mean log2-probability per rune (higher = more language-like)",
         "scorer_fingerprint": scorer.fingerprint(),

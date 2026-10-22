@@ -253,6 +253,18 @@ def beam_null_scores(lane, cipher, n: int, domain: str) -> np.ndarray:
     return np.concatenate(out)
 
 
+def hypothesis_violations(lane, interrupts=(), skips=None) -> list[str]:
+    """Steps the lane's hypothesis rules out: any interrupt when its interrupt_prob is 0, any
+    skip when it has no anti-repeat filter. ``LaneSpec.runnable_problems`` refuses a decoder
+    that can take them, so they mean a decoder/lane mismatch, not a noise key."""
+    out = []
+    if interrupts and not lane.interrupt_prob:
+        out.append(f"{len(interrupts)} interrupters, but the lane's interrupt_prob is 0")
+    if any(int(m) for m in (skips or {}).values()) and lane.filter_model != "anti-repeat":
+        out.append("key skips, but the lane has no anti-repeat filter")
+    return out
+
+
 def record_violations(lane, plain, k, interrupts=(), skips=None) -> list[str]:
     """Steps of a decode record the lane's forward model could not have taken: any interrupt
     when the lane has none (``interrupt_prob`` 0) or any skip when it has no filter, an
@@ -264,11 +276,7 @@ def record_violations(lane, plain, k, interrupts=(), skips=None) -> list[str]:
     name = lane.ciphertext_view
     inter = {int(i) for i in interrupts}
     skip = {int(i): int(m) for i, m in (skips or {}).items()}
-    out = []
-    if inter and not lane.interrupt_prob:
-        out.append(f"{len(inter)} interrupters, but the lane's interrupt_prob is 0")
-    if any(skip.values()) and lane.filter_model != "anti-repeat":
-        out.append("key skips, but the lane has no anti-repeat filter")
+    out = hypothesis_violations(lane, inter, skip)
     j, prev = 0, 0
     for i, x in enumerate(p.tolist()):
         if i in inter:
@@ -360,11 +368,17 @@ def reencipher(kid: str, base: Path | None = None) -> dict:
     k = pipeline.keys(lane, rec["seed"], plain.size + sum(int(m) for m in skips.values()))
     model = reencipher_forward(lane, plain, k, interrupts, skips)
     violations = record_violations(lane, plain, k, interrupts, skips)
+    mismatch = hypothesis_violations(lane, interrupts, skips)
     canonical = canon.load_lp2().stream(lane.pages)
     forward = pipeline.unview(model, lane.ciphertext_view)
     m = min(forward.size, canonical.size)
     mism = int((forward[:m] != canonical[:m]).sum()) + abs(forward.size - canonical.size)
-    verdict = "passes step 6" if mism == 0 and not violations else "NOISE-CROSSER"
+    if mism or len(violations) > len(mismatch):
+        verdict = "NOISE-CROSSER"
+    elif mismatch:  # a decoder that models more than the lane: not evidence either way
+        verdict = INCOMPLETE
+    else:
+        verdict = "passes step 6"
     lines = [
         f"step 6 re-encipher over pages {lane.pages} with the decoder's record "
         f"({len(interrupts)} interrupts, {len(skips)} skip positions): "

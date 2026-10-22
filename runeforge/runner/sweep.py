@@ -288,6 +288,7 @@ def preflight(
         if row is not None:
             problems += status_problems(row)
             problems += control.control_problems(lane, row, lanes_dir)
+            problems += beam_control_problems(lane, lanes_dir)
             problems += threshold_problems(lane, row)
         problems += gate_problems(lane, base, lanes_dir)
     alive = live_sweeps(base, exclude_pid=os.getpid())
@@ -297,13 +298,51 @@ def preflight(
 
 
 def pins(lane: LaneSpec, smoke: bool) -> dict:
-    """What a checkpoint is only valid for: the bars, the pipeline and smoke-ness."""
-    return {
+    """What a checkpoint is only valid for: the bars, the pipeline and smoke-ness, and for a
+    beam decoder its parameters and runeforge/beam.py (the lane spec names only the decoder,
+    so a resumed sweep would otherwise mix decodes of two decoders)."""
+    out = {
         "claim_bar": lane.claim_bar,
         "family_wise_bar": lane.family_wise_bar,
         "lane_pipeline_sha256": control.lane_pipeline_sha256(lane),
         "smoke": smoke,
     }
+    decoder = presets.split_preset(lane.preset)[1]
+    if decoder != "rigid":
+        from runeforge.scoring import beam_calib
+
+        out["decoder"] = {
+            "params": presets.DECODER_PARAMS[decoder],
+            "beam_sha256": beam_calib.beam_sha256(),
+        }
+    return out
+
+
+def beam_control_problems(lane: LaneSpec, lanes_dir: Path | None = None) -> list[str]:
+    """Rule 2 for a beam decoder: ``lane_pipeline_sha256`` binds the control to the lane spec
+    but not to the decoder or the calibration whose beta extrapolated its ceiling. The
+    installed calibration is bound to both (``beam_calib.calibration_problems``), so the
+    control must have used exactly its beta: a control run before the fit was installed
+    (beta from the per-plant maxima) or under an older fit is re-run."""
+    from runeforge.paths import LANES_DIR
+    from runeforge.scoring import calib
+
+    if presets.split_preset(lane.preset)[1] == "rigid":
+        return []
+    path = (lanes_dir or LANES_DIR) / lane.lane_id / "control.json"
+    try:
+        data = json.loads(path.read_text(encoding="utf-8"))
+        beta = calib.load(lane.preset, lane.window)["fit"]["beta"]
+    except (FileNotFoundError, ValueError, KeyError):
+        return []  # no control (control_problems) or no fit (runnable_problems) says so
+    used = float(data.get("beta", "nan"))
+    if data.get("beta_source") != "calibration" or not abs(used - beta) <= 1e-12:
+        return [
+            f"Rule 2: the control's ceiling used beta {data.get('beta')!r} "
+            f"({data.get('beta_source')}), not the installed {lane.preset} fit's {beta!r}: "
+            "re-run `runeforge control` (a beam control is bound to its decoder through the fit)"
+        ]
+    return []
 
 
 def pin_problems(ckpt: dict, lane: LaneSpec, smoke: bool) -> list[str]:
