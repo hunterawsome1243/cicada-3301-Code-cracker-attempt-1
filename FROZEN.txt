@@ -1,0 +1,2 @@
+# Files the PreToolUse hook blocks Claude from editing. One path per line. Populate in Session 1.
+FROZEN.txt
