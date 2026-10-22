@@ -529,6 +529,12 @@ def cmd_null(args: argparse.Namespace) -> int:
     except (ValueError, FileNotFoundError) as exc:
         console.print(f"[red]REFUSED:[/red] {exc}")
         return 2
+    from runeforge.runner.sweep import pins
+    from runeforge.scoring import presets
+
+    # what a small-N bar built on these nulls is valid for (LaneSpec.small_n_nulls)
+    rep["scorer_fingerprint"] = presets.get(presets.split_preset(lane.preset)[0]).fingerprint()
+    rep["decoder"] = pins(lane, smoke=False).get("decoder")
     out = null.write_report(lane, rep, run_dir(lane))
     n1, n2 = rep["null1_shuffle"], rep["null2_sha256"]
     console.print(

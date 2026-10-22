@@ -5,13 +5,20 @@ under an exclusive ``flock`` on ``<runs>/.sweep.lock`` held across its preflight
 write and its first status.json, so two launches can never both pass:
 
 * bars not calibrated, or a family_wise_bar below ``threshold_for`` at the lane's N
-  (``LaneSpec.runnable_problems``; smoke skips only that comparison);
+  (``LaneSpec.runnable_problems``; smoke skips only that comparison). Below N = 1,000 the bar
+  is the small-N rule over the lane's own ``lanes/<id>/null.json`` (``runeforge null``, on
+  this lane spec, scorer and decoder);
+* a beam decoder that models more than the lane (interrupters with ``interrupt_prob`` 0,
+  key skips without the anti-repeat filter: ``LaneSpec.decoder_problems``), or a beam
+  calibration fitted with other decoder parameters, another ``runeforge/beam.py`` or fewer
+  canonical F's than the window holds (``beam_calib.calibration_problems``);
 * no ledger row, or a latest row whose status is concluded (negative, inconclusive,
   hit-unverified, hit-verified, superseded): concluded ground is not re-run;
 * Rule 2 (``control.control_problems``): ``lanes/<id>/control.json`` passed, ran on the lane
   spec as it is now (``lane_pipeline_sha256``), and is the file the ledger row's
   ``control_detail.sha256`` cites -- the ledger string ``positive_control`` alone is not
-  evidence;
+  evidence; for a beam decoder its ceiling also used the installed fit's beta
+  (``beam_control_problems``), which binds it to the decoder;
 * thresholds: the ledger row has ``threshold_fixed_in_advance: true`` and its ``threshold``
   equals the lane's ``family_wise_bar`` (|delta| <= 1e-9), the bar crossers are flagged at;
 * the fingerprint gate: the newer of ``lanes/<id>/gate.json`` and ``runs/<id>/gate.json`` is
@@ -20,7 +27,8 @@ write and its first status.json, so two launches can never both pass:
   (``lane_pipeline_sha256``);
 * a CLI ``--max-seeds`` above the lane's ``budget.max_seeds``;
 * on resume, a checkpoint whose pinned ``claim_bar``, ``family_wise_bar``,
-  ``lane_pipeline_sha256`` or ``smoke`` differs from this launch (``--no-resume`` archives it);
+  ``lane_pipeline_sha256``, ``smoke`` or (beam decoders) ``decoder`` -- parameters and
+  ``runeforge/beam.py`` -- differs from this launch (``--no-resume`` archives it);
 * another live sweep under the same runs directory (never two jobs at once);
 * ``--smoke`` into the repository's own ``runs/`` unless ``RUNEFORGE_SMOKE_OK=1``. Smoke skips
   the ledger, status, control, threshold and gate checks and the family_wise_bar-vs-
@@ -271,7 +279,7 @@ def preflight(
     """Every reason this lane may not start now (empty = it may). A smoke run (test harness)
     skips only the family_wise_bar-vs-threshold_for comparison, so toy lanes can force
     crossers; every other lane check still applies."""
-    problems = list(lane.runnable_problems(check_bar_vs_threshold=not smoke))
+    problems = list(lane.runnable_problems(check_bar_vs_threshold=not smoke, lanes_dir=lanes_dir))
     problems += smoke_problems(smoke, base)
     problems += seed_cap_problems(lane, max_seeds)
     if not smoke:

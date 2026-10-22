@@ -20,6 +20,7 @@ import json
 import numpy as np
 import pytest
 import yaml
+from pydantic import ValidationError
 
 from runeforge import beam, canon, interrupts
 from runeforge.lanes import LaneSpec, load_lane
@@ -515,17 +516,36 @@ def test_an_lp2_windows_beam_skip_null_is_covered_by_the_fit_ciphers():
 
 
 def test_an_exhausted_path_wraps_round_the_key():
-    """Fill decodes with k[j mod K], never with a key-free rule that copies the cipher."""
+    """Fill decodes with k[j mod K], never with a key-free rule that copies the cipher. A key
+    planted under the anti-repeat filter spends more symbols than the window has runes, so
+    decoding with exactly L symbols must run out; the ops are replayed here, independently of
+    the decoder, and every fill rune must be combine^-1(cipher, k[j mod K]) with j >= K."""
     scorer = presets.get("lp-ngram3-heldout")
-    model = beam.BeamModel(width=1, interrupt_prob=0.0, p_keep=0.19, max_skip=6)
-    # every key symbol equal: a skip is always on offer, so the width-1 path spends key early
-    c = np.array([3, 5, 7, 11, 13, 17, 19, 23] * 5)
-    k = np.full(c.size, 4)
-    res = beam.decode_batch(c, k, scorer, model)
-    fill = np.flatnonzero(res.ops[0] == beam.OP_FILL)
-    if fill.size:  # every fill rune is c - k[j mod K] = c - 4 under vigenere
-        assert ((res.plain[0][fill] - (c[fill] - 4)) % 29 == 0).all()
-        assert res.keys_used[0] > k.size
+    lane = _lane(interrupt_prob=0.0, preset="lp-ngram3-heldout:beam-skip", window=120)
+    model = pipeline.beam_model(lane)
+    src = canon.solved_section("a-koan-1").plain
+    rng = np.random.default_rng(8)
+    n_fill = 0
+    for _ in range(6):
+        off = int(rng.integers(0, src.size - 120))
+        k = rng.integers(0, 29, 400)
+        mc, _used = pipeline.encrypt(lane, src[off : off + 120], k, rng)
+        res = beam.decode_batch(mc, k[:120], scorer, model)
+        plain, ops = res.plain[0], res.ops[0]
+        j = 0
+        for i in range(120):
+            op = int(ops[i])
+            if op == beam.OP_INTERRUPT:
+                continue
+            if op != beam.OP_FILL:
+                j += op
+            want = beam.decrypt_sym(lane.combine, int(mc[i]), int(k[j % 120]))
+            assert plain[i] == want, (i, op)
+            assert (op == beam.OP_FILL) == (j >= 120)
+            n_fill += op == beam.OP_FILL
+            j += 1
+        assert j == res.keys_used[0]
+    assert n_fill > 0  # the case does exercise the wrap
 
 
 def test_calibrate_conditions_exactly_the_interrupt_decoders_on_f(monkeypatch):
@@ -631,10 +651,24 @@ def test_a_small_n_lane_takes_its_bar_from_its_own_nulls(monkeypatch, tmp_path):
         "same_trial_count": True,
         "null1_shuffle": {"max": -6.9},
         "null2_sha256": {"max": -6.8},
+        "scorer_fingerprint": presets.get("lp-ngram3-heldout").fingerprint(),
+        "decoder": None,
     }
-    (tmp_path / lane.lane_id / "null.json").write_text(json.dumps(null))
+    path = tmp_path / lane.lane_id / "null.json"
+    for stale in ({"scorer_fingerprint": "0" * 64}, {"decoder": {"params": {}}}):
+        path.write_text(json.dumps({**null, **stale}))
+        assert lane.small_n_nulls() == {}  # another scorer or decoder: re-run the null
+    path.write_text(json.dumps(null))
     assert lane.small_n_nulls() == {"null_max": -6.9, "null2_max": -6.8}
+    elsewhere = tmp_path / "other"
+    (elsewhere / lane.lane_id).mkdir(parents=True)
+    assert lane.small_n_nulls(elsewhere) == {}  # preflight's lanes_dir is the one read
     bar = calib.threshold_for(500, lane.preset, 240, **lane.small_n_nulls()).bar
     assert bar == pytest.approx(-6.3)
     ok = lane.model_copy(update={"claim_bar": bar - 0.3, "family_wise_bar": bar})
     assert not any("no bar" in p for p in ok.runnable_problems())
+
+
+def test_an_unknown_preset_is_an_invalid_lane_not_a_crash():
+    with pytest.raises(ValidationError, match="unknown preset"):
+        _lane(preset="lp-ngram3-heldout:beam_skip")

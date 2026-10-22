@@ -111,6 +111,17 @@ class LaneSpec(BaseModel):
     resume_cursor: int | None = None
     params: dict[str, Any] = Field(default_factory=dict)
 
+    @field_validator("preset")
+    @classmethod
+    def _known_preset(cls, v):
+        from runeforge.scoring import presets
+
+        try:
+            presets.split_preset(v)
+        except KeyError as exc:
+            raise ValueError(str(exc).strip('"')) from None
+        return v
+
     @field_validator("filter_model", mode="before")
     @classmethod
     def _yaml_off(cls, v):
@@ -169,22 +180,30 @@ class LaneSpec(BaseModel):
             )
         return out
 
-    def small_n_nulls(self) -> dict:
+    def small_n_nulls(self, lanes_dir: Path | None = None) -> dict:
         """For N below the calibration block, threshold_for's small-N rule max(floor,
         null_max + 0.5, null2_max + 0.5) needs the lane's own nulls: the committed
         lanes/<id>/null.json of `runeforge null`, when it ran on this lane spec at the lane's
-        own trial count. Empty otherwise (threshold_for then refuses, saying so)."""
+        own trial count, with this scorer and (for a beam preset) this decoder, which
+        `runeforge null` records. Empty otherwise (threshold_for then refuses, saying so)."""
         import json
 
         from runeforge.paths import LANES_DIR
         from runeforge.runner.control import lane_pipeline_sha256
-        from runeforge.scoring import calib
+        from runeforge.runner.sweep import pins
+        from runeforge.scoring import calib, presets
 
         if self.n_trials >= calib.BLOCK:
             return {}
+        path = (lanes_dir or LANES_DIR) / self.lane_id / "null.json"
         try:
-            data = json.loads((LANES_DIR / self.lane_id / "null.json").read_text("utf-8"))
+            data = json.loads(path.read_text("utf-8"))
         except (FileNotFoundError, ValueError):
+            return {}
+        scorer = presets.get(presets.split_preset(self.preset)[0])
+        if data.get("scorer_fingerprint") != scorer.fingerprint():
+            return {}
+        if data.get("decoder") != pins(self, smoke=False).get("decoder"):
             return {}
         # the nulls do not depend on the bars, and the small-N bar comes from the nulls: a
         # null run before the bars were set (they are part of the pipeline hash) still counts
@@ -201,7 +220,9 @@ class LaneSpec(BaseModel):
             "null2_max": float(data["null2_sha256"]["max"]),
         }
 
-    def runnable_problems(self, check_bar_vs_threshold: bool = True) -> list[str]:
+    def runnable_problems(
+        self, check_bar_vs_threshold: bool = True, lanes_dir: Path | None = None
+    ) -> list[str]:
         """Reasons the sweep runner must refuse this lane (empty = may run).
 
         ``check_bar_vs_threshold=False`` (the sweep's ``--smoke`` test harness only) skips
@@ -223,7 +244,7 @@ class LaneSpec(BaseModel):
                 out.append("claim_bar (screening) must not exceed family_wise_bar")
             try:
                 t = calib.threshold_for(
-                    self.n_trials, self.preset, self.window, **self.small_n_nulls()
+                    self.n_trials, self.preset, self.window, **self.small_n_nulls(lanes_dir)
                 )
             except (FileNotFoundError, ValueError) as exc:
                 out.append(f"no bar for this lane's N, preset and window: {exc}")

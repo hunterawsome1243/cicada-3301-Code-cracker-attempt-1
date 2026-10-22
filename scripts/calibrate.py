@@ -9,7 +9,8 @@ Writes <out-dir>/<scorer>__<decoder>__L<L>.json, by default
 runeforge/scoring/calib/presets/, the directory threshold_for reads (frozen: FROZEN.txt; a
 new or refitted calibration there is Hunter's to install, TOOLBOX_REQUESTS.md). The rigid
 decoder's null is uniform random strings (runeforge/scoring/calib); a beam decoder's is beam
-decodes of uniform ciphers under uniform keys (runeforge/scoring/beam_calib). Re-run whenever
+decodes under uniform keys of doublet-free ciphers, with the most canonical F's of any LP2
+page-start window for the interrupt decoders (runeforge/scoring/beam_calib). Re-run whenever
 the scorer's training data or a decoder's parameters change; scripts/threshold_for.py refuses
 a calibration fitted on a different model.
 """

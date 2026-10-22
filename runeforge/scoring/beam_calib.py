@@ -144,8 +144,8 @@ def measure(
     workers: int = 1,
     n_f: int | None = None,
 ) -> np.ndarray:
-    """Scores of ``draws`` beam decodes under uniform keys, of uniform ciphers or (``n_f``)
-    ciphers with exactly that many canonical F's."""
+    """Scores of ``draws`` beam decodes under uniform keys, of doublet-free ciphers
+    (``_cipher``), with exactly ``n_f`` non-adjacent canonical F's when it is given."""
     if draws % CHECK_BLOCK:
         raise ValueError(f"draws must be a multiple of {CHECK_BLOCK}")
     if decoder == "rigid":

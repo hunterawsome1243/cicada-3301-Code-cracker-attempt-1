@@ -28,8 +28,11 @@ SHA-256 of `runeforge/beam.py` it was fitted with, and, for the interrupt decode
 `canonical_F`. An interrupt decoder's wrong-key null rises with the window's canonical F count
 (review, 2026-10-22), so `beam` and `beam-skip-int` are fitted at the most F's of any LP2
 page-start window (L = 120: 10; L = 240: 14), which is conservative for every window holding at
-most that many; `beam-skip`'s null does not depend on the cipher and is fitted on uniform
-ciphers. `LaneSpec.runnable_problems` refuses a lane whose window holds more F's than its
+most that many; `beam-skip` ignores F's. All six are fitted on doublet-free ciphers (LP2 has
+86 doublets in 12,956 runes; at a doublet a skip offers the beam no new choice, so fewer
+doublets mean a higher null), and exhausted paths wrap round the key so no window's own
+runes reach a wrong-key decode (review rounds 2-3: every one of 2,563 L = 240 lane windows sits
+at or below its fit within sampling error, the one 15-F window is refused). `LaneSpec.runnable_problems` refuses a lane whose window holds more F's than its
 calibration, or whose calibration no longer matches the decoder. Fit numbers and out-of-sample
 checks: `reports/beam_decoder.md`. After installing, re-run any `:beam*` control so its ceiling
 uses the calibrated beta. Any later edit of `runeforge/beam.py` or `DECODER_PARAMS` needs a
