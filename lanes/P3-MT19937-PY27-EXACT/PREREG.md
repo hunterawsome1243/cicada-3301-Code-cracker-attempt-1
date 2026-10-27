@@ -183,3 +183,27 @@ naming its slice and fraction before it starts.
 ## Addenda
 
 <!-- Dated, appended after the freeze. Never edit the sections above. -->
+
+### Addendum 2026-10-27 — what ran after the freeze (C3 steps; nothing above edited)
+
+- Ledger row appended (`runeforge ledger append --lane lanes/P3-MT19937-PY27-EXACT.yaml`): status
+  `never-run`, threshold −5.7284 fixed in advance, N = 4,294,967,296, git `fabac07`.
+- Gate (`runeforge gate lanes/P3-MT19937-PY27-EXACT.yaml`, 12 keys): **GATE PASS**, fails per
+  constraint none; C1 IoC 1.000, C2 doublet rate 0.00664, C2b 1.026, C2c uniform, C3 15, C6 23 all
+  inside the LP2 bands on 12/12 keys; C5 (soft, reported not deciding) outside its band on 10/12;
+  `lanes/P3-MT19937-PY27-EXACT/gate.json`.
+- Control (`runeforge control lanes/P3-MT19937-PY27-EXACT.yaml`, rng seed 3301, 20 plants × 999
+  decoys, 30 s): **control PASSED**: recovered 20/20 at rank 1 (recovery 0.942–0.992), floor −4.3063 vs
+  ceiling −5.9806 extrapolated to N = 2^32 (observed −6.3762 over 20,000 null keys; gap 1.160 nats);
+  wrong-key max −6.3381; bar −5.7284 (floor above the bar by 1.42). β source: per-plant maxima (the
+  calibration is staged, not installed); `lanes/P3-MT19937-PY27-EXACT/control-4c65a7978362.json`.
+- Nulls (`runeforge null lanes/P3-MT19937-PY27-EXACT.yaml --n 200`, 1,000 keys per replicate, 5 min):
+  null 1 (shuffle of the real runes) n = 200, mean −6.4565, sd 0.0457, max −6.2983; null 2 (SHA-256
+  stream, domain `runeforge/null2/P3-MT19937-PY27-EXACT`) n = 200, mean −6.4580, sd 0.0515, max −6.2292;
+  `lanes/P3-MT19937-PY27-EXACT/null.json`. Consistency with the frozen bar's fit: the staged record
+  predicts a mean 1,000-key maximum of μ_b + βγ = −6.4767 + 0.0377 × 0.5772 = −6.455; the lane's own
+  shuffle replicates average −6.4565 (0.0015 above, within 0.04 β), so the staged fit describes this
+  window's null as measured on the real runes.
+- State: `never-run`. The sweep is refused until TR-1 installs the staged calibration unchanged, a
+  real-device parity record for both kernels exists, and Hunter approves the lane in `queue.json`
+  (entry added with `approved: false`, `gpu_hours_cap: 2.0`).
