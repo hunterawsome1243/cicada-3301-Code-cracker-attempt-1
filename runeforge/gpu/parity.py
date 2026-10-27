@@ -64,6 +64,51 @@ def code_pins() -> dict:
     return {
         "beam_sha256": file_sha256(root / "beam.py"),
         "kernel_sha256": file_sha256(root / "gpu" / "beam_kernel.py"),
+        "mt_kernel_sha256": file_sha256(root / "gpu" / "mt_kernel.py"),
+        "generator_sha256": file_sha256(root / "generators" / "mt19937_py27.py"),
+    }
+
+
+def keygen_available(lane: LaneSpec) -> bool:
+    """Whether the lane's generator has a GPU kernel (``mt_kernel.supports``)."""
+    from runeforge.gpu import mt_kernel as mk
+
+    return mk.supports(pipeline.generator(lane))
+
+
+def compare_keys(lane: LaneSpec, seeds, backend: str) -> dict:
+    """The generator kernel against ``pipeline.keys_batch`` (the CPU reference): the lane's
+    window of every seed (its key_offset applied), and, for the first 64 seeds, the
+    crosser record's budget over the lane's whole pages (``sweep.record_budget``; several MT
+    twists). Symbol for symbol, or it fails."""
+    from runeforge.gpu import mt_kernel as mk
+    from runeforge.runner.sweep import record_budget
+
+    gen = pipeline.generator(lane)
+    fn = mk.keys_gpu if backend == "gpu" else mk.keys_cpu
+    ref = pipeline.keys_batch(lane, seeds, lane.window)
+    got = np.concatenate(
+        [
+            fn(gen, seeds[i : i + BATCH], lane.window, lane.key_offset)
+            for i in range(0, len(seeds), BATCH)
+        ]
+    )
+    window_same = bool(np.array_equal(ref, got))
+    few = list(seeds[:64])
+    budget = record_budget(pipeline.lane_cipher(lane).size)
+    long_same = bool(
+        np.array_equal(
+            pipeline.keys_batch(lane, few, budget), fn(gen, few, budget, lane.key_offset)
+        )
+    )
+    return {
+        "generator": gen.spec(),
+        "seeds": len(seeds),
+        "window_identical": window_same,
+        "long_seeds": len(few),
+        "long_symbols": budget,
+        "long_identical": long_same,
+        "passed": window_same and long_same,
     }
 
 
@@ -186,38 +231,67 @@ def run_parity(lane: LaneSpec, n_seeds: int, backend: str) -> dict:
         compare(lane, "window", window, seeds, scorer, model, backend),
         compare(lane, "planted", pc, seeds, scorer, model, backend),
     ]
+    keygen = compare_keys(lane, seeds, backend) if keygen_available(lane) else None
+    passed = all(c["passed"] for c in cases) and (keygen is None or keygen["passed"])
     return {
         "planted_seed": p_seed,
         "seeds": len(seeds),
         "seed_range": list(lane.seed_range),
         "cases": cases,
-        "status": "passed" if all(c["passed"] for c in cases) else "failed",
+        "keygen": keygen,
+        "status": "passed" if passed else "failed",
     }
 
 
 def bench(lane: LaneSpec, n: int) -> dict:
-    """Kernel keys/s on n keys (one launch per BATCH), and end to end with key generation."""
+    """keys/s on n keys, one launch per BATCH: the beam kernel on host keys, the CPU
+    generator, and, when the lane's generator has a kernel, the all-device chain
+    (``mt_kernel.keys_device`` into ``beam_kernel.score_gpu``) the sweep runs."""
+    from numba import cuda
+
     from runeforge.gpu import beam_kernel as bk
 
     model = pipeline.beam_model(lane)
     scorer = presets.get(presets.split_preset(lane.preset)[0])
     cipher = pipeline.lane_cipher(lane)[: lane.window]
     lo = lane.seed_range[0]
+    seeds = range(lo, lo + n)
     t0 = time.perf_counter()
-    keys = pipeline.keys_batch(lane, range(lo, lo + n), lane.window)
+    keys = pipeline.keys_batch(lane, seeds, lane.window)
     t_keys = time.perf_counter() - t0
     bk.score_gpu(cipher, keys[:BATCH], scorer, model)  # compile and warm up
     t0 = time.perf_counter()
     for i in range(0, n, BATCH):
         bk.score_gpu(cipher, keys[i : i + BATCH], scorer, model)
     t_kernel = time.perf_counter() - t0
-    return {
+    out = {
         "keys": n,
         "launch_batch": BATCH,
         "kernel_keys_per_s": n / t_kernel,
-        "keygen_keys_per_s": n / t_keys,
-        "end_to_end_keys_per_s": n / (t_kernel + t_keys),
+        "cpu_keygen_keys_per_s": n / t_keys,
+        "cpu_keygen_end_to_end_keys_per_s": n / (t_kernel + t_keys),
     }
+    if keygen_available(lane):
+        from runeforge.gpu import mt_kernel as mk
+
+        gen = pipeline.generator(lane)
+        mk.keys_device(gen, seeds[:BATCH], lane.window, lane.key_offset)
+        cuda.synchronize()
+        t0 = time.perf_counter()
+        for i in range(0, n, BATCH):
+            mk.keys_device(gen, seeds[i : i + BATCH], lane.window, lane.key_offset)
+        cuda.synchronize()
+        t_gen = time.perf_counter() - t0
+        t0 = time.perf_counter()
+        for i in range(0, n, BATCH):
+            dk = mk.keys_device(gen, seeds[i : i + BATCH], lane.window, lane.key_offset)
+            bk.score_gpu(cipher, dk, scorer, model)
+        t_chain = time.perf_counter() - t0
+        out.update(
+            gpu_keygen_keys_per_s=n / t_gen,
+            gpu_chain_keys_per_s=n / t_chain,  # what `sweep --backend gpu` runs
+        )
+    return out
 
 
 def current_device_name() -> str | None:
@@ -268,6 +342,15 @@ def record_problems(lane: LaneSpec, path: Path, smoke: bool = False) -> list[str
     ]
     if not isinstance(rec.get("seeds"), int) or rec["seeds"] < 10_000:
         problems.append(f"--backend gpu: the parity record ran {rec.get('seeds')} seeds (< 10^4)")
+    if keygen_available(lane):
+        kg = rec.get("keygen")
+        if not isinstance(kg, dict) or kg.get("passed") is not True:
+            problems.append(
+                "--backend gpu: the parity record has no passing keygen section for "
+                f"{lane.generator} (the sweep generates its keys on the device)"
+            )
+        elif kg.get("generator") != pipeline.generator(lane).spec():
+            problems.append("--backend gpu: the parity record's keygen ran another generator spec")
     return [*problems, fix] if problems else []
 
 
@@ -317,6 +400,13 @@ def main(argv: list[str] | None = None) -> int:
             f"max|dobj| {c['max_abs_dobjective']:.2e} survivors {c['survivors']} "
             f"identical {c['survivor_set_identical']} -> {'PASS' if c['passed'] else 'FAIL'}"
         )
+    if rec["keygen"] is not None:
+        kg = rec["keygen"]
+        print(
+            f"keygen   {lane.generator} seeds {kg['seeds']:,} window identical "
+            f"{kg['window_identical']}; {kg['long_seeds']} seeds x {kg['long_symbols']:,} "
+            f"symbols identical {kg['long_identical']} -> {'PASS' if kg['passed'] else 'FAIL'}"
+        )
     print(
         f"parity {rec['status'].upper()} ({rec['backend']}, simulated {rec['simulated']}): "
         f"{out_dir / 'parity.json'}"
@@ -333,9 +423,10 @@ def main(argv: list[str] | None = None) -> int:
             return 2
         b = {**head, "chunk_size": lane.chunk_size, "L": lane.window, **bench(lane, args.bench)}
         (out_dir / "bench.json").write_text(json.dumps(b, indent=2) + "\n")
+        chain = b.get("gpu_chain_keys_per_s", b["cpu_keygen_end_to_end_keys_per_s"])
         print(
-            f"bench: kernel {b['kernel_keys_per_s']:,.0f} keys/s, end to end "
-            f"{b['end_to_end_keys_per_s']:,.0f} keys/s: {out_dir / 'bench.json'}"
+            f"bench: beam kernel {b['kernel_keys_per_s']:,.0f} keys/s; the sweep's chain "
+            f"{chain:,.0f} keys/s: {out_dir / 'bench.json'}"
         )
     return 0
 

@@ -1,10 +1,12 @@
 """``runeforge sweep <lane.yaml> [--detach] [--backend cpu|gpu]``: the lane runner.
 
-``--backend gpu`` scores a beam lane's keys with the CUDA kernel (``runeforge.gpu.beam_kernel``);
-keystreams still come from the CPU generator, and every survivor, crosser and chunk best is
-re-decoded and re-scored on the CPU reference (a disagreement over 1e-6 stops the sweep with a
-crash row). It is refused without a passing real-device parity record for this lane, beam.py,
-kernel and device (``runeforge.gpu.parity.record_problems``; .claude/rules/gpu.md).
+``--backend gpu`` scores a beam lane's keys with the CUDA kernel (``runeforge.gpu.beam_kernel``).
+A generator with a kernel of its own (``mt19937-py27``: ``runeforge.gpu.mt_kernel``) writes
+its keystreams on the device, where the beam kernel reads them; any other generator's keys come
+from the CPU. Every survivor, crosser and chunk best is re-generated, re-decoded and re-scored
+on the CPU reference (a disagreement over 1e-6 stops the sweep with a crash row). It is refused
+without a passing real-device parity record for this lane, beam.py, both kernels and device
+(``runeforge.gpu.parity.record_problems``; .claude/rules/gpu.md).
 
 Refusals -- exit 2, nothing scored, the reasons on stderr. The runner checks them itself,
 under an exclusive ``flock`` on ``<runs>/.sweep.lock`` held across its preflight, its PID
@@ -516,6 +518,7 @@ class _Sweep:
                 "pid": self.pid,
                 "pid_starttime": self.starttime,
                 "backend": self.backend,
+                "keys_backend": self.keys_backend(),
                 "smoke": self.smoke,
                 "updated_epoch": int(time.time()),
                 "deadline_epoch": int(self.deadline),
@@ -659,8 +662,7 @@ class _Sweep:
                         break
                     # Python ints: 64-bit seed spaces reach past int64 (seeds up to 2**64 - 1)
                     seeds = list(range(b, min(b + BATCH, c_hi)))
-                    keys = pipeline.keys_batch(lane, seeds, cipher.size)
-                    scores, plains = self.decode(cipher, keys, scorer)
+                    scores, plains = self.decode(cipher, seeds, scorer)
                     for s, v in zip(seeds, scores.tolist(), strict=True):
                         if len(top) < TOP_K:
                             heapq.heappush(top, (v, s))
@@ -744,16 +746,34 @@ class _Sweep:
             return 0
         return 143 if stop["why"] in ("SIGTERM", "SIGINT") else 1
 
-    def decode(self, cipher, keys, scorer):
-        """(scores, plain_of(row)). CPU: the reference decodes every row. GPU: the kernel
-        scores every row; a row's plaintext is re-decoded on the CPU reference when asked for
+    def keys_backend(self) -> str:
+        """Where this sweep's keystreams are generated: the generator's own kernel when it has
+        one and the backend is gpu, else the CPU reference."""
+        if self.backend != "gpu":
+            return "cpu"
+        from runeforge.gpu import mt_kernel as mk
+
+        return "gpu" if mk.supports(pipeline.generator(self.lane)) else "cpu"
+
+    def decode(self, cipher, seeds, scorer):
+        """(scores, plain_of(row)) for ``seeds``. CPU: the reference generates and decodes
+        every row. GPU: the kernels generate (when the generator has one) and score every row;
+        a row's plaintext is re-generated and re-decoded on the CPU reference when asked for
         (survivors, crossers, the chunk best), and its CPU score must equal the kernel's."""
+        lane = self.lane
         if self.backend == "cpu":
-            plains = pipeline.decrypt(self.lane, cipher[None, :], keys)
+            keys = pipeline.keys_batch(lane, seeds, cipher.size)
+            plains = pipeline.decrypt(lane, cipher[None, :], keys)
             return pipeline.score_batch(scorer, plains), lambda i: plains[i]
         from runeforge.gpu import beam_kernel as bk
 
-        scores, _obj = bk.score_gpu(cipher, keys, scorer, pipeline.beam_model(self.lane))
+        if self.keys_backend() == "gpu":
+            from runeforge.gpu import mt_kernel as mk
+
+            keys = mk.keys_device(pipeline.generator(lane), seeds, cipher.size, lane.key_offset)
+        else:
+            keys = pipeline.keys_batch(lane, seeds, cipher.size)
+        scores, _obj = bk.score_gpu(cipher, keys, scorer, pipeline.beam_model(lane))
         if np.isnan(scores).any():
             raise RuntimeError("the GPU kernel returned NaN scores (no live path): parity broken")
         cache: dict[int, np.ndarray] = {}
@@ -761,7 +781,8 @@ class _Sweep:
         def plain_of(i: int) -> np.ndarray:
             i = int(i)
             if i not in cache:
-                p = pipeline.decrypt(self.lane, cipher[None, :], keys[i : i + 1])
+                k = pipeline.keys(lane, seeds[i], cipher.size)[None, :]  # the CPU generator
+                p = pipeline.decrypt(lane, cipher[None, :], k)
                 cpu = float(pipeline.score_batch(scorer, p)[0])
                 if abs(cpu - float(scores[i])) > 1e-6:
                     raise RuntimeError(

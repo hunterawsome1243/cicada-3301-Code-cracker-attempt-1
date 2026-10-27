@@ -159,6 +159,7 @@ def test_parity_command_on_the_lanes_own_keystreams(tmp_path):
     assert rec["simulated"] is False and rec["numbering"] == "LP2-0-57"
     assert rec["beam_sha256"] == parity.code_pins()["beam_sha256"]
     assert "10^4" in rec["note"]  # 200 seeds are not the rules' parity test
+    assert rec["keygen"]["passed"] and rec["keygen"]["seeds"] == 200  # mt19937-py27 has a kernel
     planted = {c["cipher"]: c for c in rec["cases"]}["planted"]
     assert planted["best_seed"] == rec["planted_seed"] == 3301  # the planted key decodes
     seeds = parity.parity_seeds(parity.load_lane(TEMPLATE), 200)
@@ -242,39 +243,54 @@ def _sweep(tmp_path, backend: str):
 
 
 def test_the_sweeps_gpu_decode_matches_its_cpu_decode(tmp_path, monkeypatch, scorer):
-    """The sweep's GPU path (kernel scores, CPU re-decode of the rows it reports) against its
-    CPU path, with the njit twin standing in for the device."""
+    """The sweep's GPU path (the generator kernel's keys, the beam kernel's scores, CPU
+    re-generation and re-decode of the rows it reports) against its CPU path, with the njit
+    twins standing in for the device."""
+    from runeforge.gpu import mt_kernel as mk
     from runeforge.runner import pipeline
 
     monkeypatch.setattr(bk, "score_gpu", bk.score_cpu)
+    monkeypatch.setattr(mk, "keys_device", mk.keys_cpu)
     lane, gpu = _sweep(tmp_path, "gpu")
     _, cpu = _sweep(tmp_path, "cpu")
+    assert gpu.keys_backend() == "gpu" and cpu.keys_backend() == "cpu"
     cipher = pipeline.lane_cipher(lane)[: lane.window]
-    keys = pipeline.keys_batch(lane, list(range(3290, 3390)), cipher.size)
-    g_scores, g_plain = gpu.decode(cipher, keys, scorer)
-    c_scores, c_plain = cpu.decode(cipher, keys, scorer)
+    seeds = list(range(3290, 3390))
+    g_scores, g_plain = gpu.decode(cipher, seeds, scorer)
+    c_scores, c_plain = cpu.decode(cipher, seeds, scorer)
     assert np.abs(g_scores - c_scores).max() <= 1e-6
     for i in (0, int(np.argmax(c_scores)), 99):
         assert np.array_equal(g_plain(i), c_plain(i))
 
 
 def test_the_sweep_stops_when_the_kernel_disagrees_with_the_cpu(tmp_path, monkeypatch, scorer):
+    from runeforge.gpu import mt_kernel as mk
     from runeforge.runner import pipeline
 
     def off_by_a_little(*a, **kw):
         s, o = bk.score_cpu(*a, **kw)
         return s + 1e-4, o
 
+    def wrong_keys(gen, seeds, n, offset=0, threads=128):
+        k = mk.keys_cpu(gen, seeds, n, offset)
+        k[:, 100] = (k[:, 100] + 1) % 29  # one symbol off in every row
+        return k
+
     monkeypatch.setattr(bk, "score_gpu", off_by_a_little)
+    monkeypatch.setattr(mk, "keys_device", mk.keys_cpu)
     lane, gpu = _sweep(tmp_path, "gpu")
     cipher = pipeline.lane_cipher(lane)[: lane.window]
-    keys = pipeline.keys_batch(lane, [1, 2, 3], cipher.size)
-    _scores, plain_of = gpu.decode(cipher, keys, scorer)
+    _scores, plain_of = gpu.decode(cipher, [1, 2, 3], scorer)
     with pytest.raises(RuntimeError, match="disagree"):
         plain_of(0)
+    monkeypatch.setattr(bk, "score_gpu", bk.score_cpu)
+    monkeypatch.setattr(mk, "keys_device", wrong_keys)  # a keystream kernel gone wrong
+    _scores, plain_of = gpu.decode(cipher, [1, 2, 3], scorer)
+    with pytest.raises(RuntimeError, match="disagree"):
+        plain_of(1)
     monkeypatch.setattr(bk, "score_gpu", lambda *a, **kw: (np.full(3, np.nan), np.zeros(3)))
     with pytest.raises(RuntimeError, match="NaN"):
-        gpu.decode(cipher, keys, scorer)
+        gpu.decode(cipher, [1, 2, 3], scorer)
 
 
 SWEEP_SIM_SCRIPT = """
@@ -292,9 +308,10 @@ gpu = sweep._Sweep(lane, Path("x.yaml"), Path(sys.argv[1]), backend="gpu", **kw)
 cpu = sweep._Sweep(lane, Path("x.yaml"), Path(sys.argv[1]), **kw)
 sc = presets.get("lp-ngram3-heldout")
 c = pipeline.lane_cipher(lane)[: lane.window]
-k = pipeline.keys_batch(lane, list(range(3295, 3335)), c.size)
-gs, gp = gpu.decode(c, k, sc)
-cs, cp = cpu.decode(c, k, sc)
+assert gpu.keys_backend() == "gpu"  # mt19937-py27 keys are generated on the (simulated) device
+seeds = list(range(3295, 3335))
+gs, gp = gpu.decode(c, seeds, sc)
+cs, cp = cpu.decode(c, seeds, sc)
 assert np.array_equal(gp(5), cp(5))
 print(float(np.abs(gs - cs).max()))
 """
@@ -313,6 +330,7 @@ def test_the_sweeps_gpu_decode_on_the_simulator(tmp_path):
 
 def _record(tmp_path, monkeypatch, **over):
     """A parity record as the current code and a pretend device would write it."""
+    from runeforge.runner import pipeline
     from runeforge.runner.control import lane_pipeline_sha256
 
     monkeypatch.setattr(bk, "available", lambda: True)
@@ -329,6 +347,7 @@ def _record(tmp_path, monkeypatch, **over):
         **parity.code_pins(),
         "device_name": "NVIDIA GeForce RTX TEST",
         "seeds": 10_000,
+        "keygen": {"generator": pipeline.generator(lane).spec(), "passed": True},
         **over,
     }
     path = tmp_path / "parity.json"
@@ -352,6 +371,10 @@ def test_a_current_real_device_parity_record_lets_the_gpu_backend_run(tmp_path, 
         ({"kernel_sha256": "0" * 64}, "kernel_sha256"),
         ({"lane_pipeline_sha256": "0" * 64}, "lane_pipeline_sha256"),
         ({"device_name": "another GPU"}, "device_name"),
+        ({"mt_kernel_sha256": "0" * 64}, "mt_kernel_sha256"),
+        ({"generator_sha256": "0" * 64}, "generator_sha256"),
+        ({"keygen": None}, "keygen"),
+        ({"keygen": {"generator": {"name": "x"}, "passed": True}}, "generator spec"),
     ],
 )
 def test_a_stale_or_foreign_parity_record_is_refused(tmp_path, monkeypatch, over, why):

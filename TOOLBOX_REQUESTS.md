@@ -126,9 +126,12 @@ pass on the RTX, the proposed lines for FROZEN.txt are:
 
 ```
 runeforge/gpu/beam_kernel.py
+runeforge/gpu/mt_kernel.py
 runeforge/gpu/parity.py
 tests/test_gpu_beam.py
+tests/test_gpu_mt.py
 ```
 
-Until then a later edit of the kernel only invalidates its parity records: `sweep --backend gpu`
-compares the record's `kernel_sha256` with the file. It does not touch any lane evidence.
+Until then a later edit of a kernel only invalidates its parity records: `sweep --backend gpu`
+compares the record's `kernel_sha256` and `mt_kernel_sha256` with the files. It does not touch
+any lane evidence.

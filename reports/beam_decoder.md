@@ -329,8 +329,11 @@ throughput number yet. On the template lane's own keystreams (10⁴ seeds: both 
 range, planted seed 3301, random seeds; the lane's window and a planted synthetic page), its
 CPU twin matches the numpy decoder with max |Δscore| = 0 and identical survivor sets
 (`python -m runeforge.gpu.parity lanes/_template.yaml --backend cpu-twin`). The CUDA kernel
-matches on numba's simulator too (`tests/test_gpu_beam.py`). The parity run that counts, and
-the benchmark, must be made on the RTX:
+matches on numba's simulator too (`tests/test_gpu_beam.py`). The `mt19937-py27` keystream has
+a kernel of the same construction (`runeforge/gpu/mt_kernel.py`; its twin equals the CPU
+generator symbol for symbol in all four reducers, `tests/test_gpu_mt.py`), so the template
+lane's keys are generated and scored on the device. The parity run that counts, and the
+benchmark, must be made on the RTX:
 `python -m runeforge.gpu.parity lanes/<id>.yaml --bench 1048576`.
 
 ## 7. Review record and what is not covered

@@ -18,11 +18,12 @@ only the key it re-derives the solved sections' interrupt sets, and a lane with 
 doublet deficit (anti-repeat filter, which the gate needs) now passes its planted control
 where the rigid decoder recovers 0 of 20 (`reports/beam_decoder.md`). Its family-wise bars
 are fitted but wait for Hunter to install them (`TOOLBOX_REQUESTS.md`), and on the CPU it
-runs at about 10³ keys/s. The Phase 3 beam kernel (`runeforge/gpu/beam_kernel.py`, numba.cuda)
-is built and matches the numpy decoder exactly on its CPU twin and the CUDA simulator; it has
-not yet run on a real GPU, and `sweep --backend gpu` refuses a lane until
+runs at about 10³ keys/s. The Phase 3 kernels (`runeforge/gpu/`, numba.cuda: the beam decoder
+and the `mt19937-py27` keystream, which stays on the device for the decoder) are built and
+match the numpy references exactly on their CPU twins and the CUDA simulator; they have not yet
+run on a real GPU, and `sweep --backend gpu` refuses a lane until
 `python -m runeforge.gpu.parity <lane.yaml>` has passed on the device. Not built yet: the Phase 2
-Kneser-Ney scorer and GPU keystream generators.
+Kneser-Ney scorer and kernels for the other generators.
 
 ## The canon
 
@@ -125,12 +126,14 @@ the pipeline-defining fields (generator, view, combine, filter, preset, window, 
 control) with the one in `lanes/<id>/control.json`, and the bar in the YAML with the
 threshold the ledger froze. Edit the lane and the control must be re-run.
 
-`sweep --backend gpu` (beam lanes only) scores keys with the CUDA beam kernel and re-decodes
-every survivor, crosser and chunk best on the CPU reference, stopping if the two disagree. It
-is refused unless `runs/<id>/parity.json` (`python -m runeforge.gpu.parity <lane.yaml>`, ≥ 10⁴
-of the lane's own keys) passed on this device, for this lane spec, `runeforge/beam.py` and
-kernel. `--bench N` on the same command writes `runs/<id>/bench.json`. The CPU backend is the
-reference implementation.
+`sweep --backend gpu` (beam lanes only) generates `mt19937-py27` keystreams on the device
+(other generators' on the CPU), scores them with the CUDA beam kernel, and re-generates and
+re-decodes every survivor, crosser and chunk best on the CPU reference, stopping if the two
+disagree. It is refused unless `runs/<id>/parity.json` (`python -m runeforge.gpu.parity
+<lane.yaml>`, ≥ 10⁴ of the lane's own keys: scores, survivors and keystreams) passed on this
+device, for this lane spec, `runeforge/beam.py`, the generator and both kernels. `--bench N`
+on the same command writes `runs/<id>/bench.json`. The CPU backend is the reference
+implementation.
 
 `queue.json` is a top-level JSON array of
 `{"id", "category", "approved", "gpu_hours_cap", "prereg_ready", "note"}`; `overnight.sh`
@@ -203,7 +206,7 @@ runeforge/
   lanes.py         lane YAML schema
   queue.py         queue.json (Hunter's approvals)
   runner/          lane runtime: pipeline, control, gate, sweep (detach/resume), crossers
-  gpu/             Phase 3: the CUDA beam kernel and its parity/bench command
+  gpu/             Phase 3: the CUDA beam and mt19937-py27 kernels and their parity/bench command
 data/raw/          5 git submodules (read-only): rtkd, scream314, cicada_tools, dukotah, jens-wedin
 data/canon/        lp2_runes.json, lp1_runes.json, solved_sections.json, pins, divergences
 data/reference/    cicada_tools' own decode of the solved sections

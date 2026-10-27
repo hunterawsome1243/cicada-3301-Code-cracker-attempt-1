@@ -292,6 +292,11 @@ def score_cpu(cipher, keys, scorer, model: beam.BeamModel) -> tuple[np.ndarray, 
     return out, obj
 
 
+def on_device(a) -> bool:
+    """A numba device array (or the simulator's stand-in), not a host array."""
+    return hasattr(a, "copy_to_host") and not isinstance(a, np.ndarray)
+
+
 def available() -> bool:
     """A CUDA device, or the numba simulator (NUMBA_ENABLE_CUDASIM=1)."""
     return bool(cuda.is_available())
@@ -306,18 +311,25 @@ def simulated() -> bool:
 def score_gpu(
     cipher, keys, scorer, model: beam.BeamModel, threads: int = 128
 ) -> tuple[np.ndarray, np.ndarray]:
-    """(scores, objectives) from the CUDA kernel (or its simulator)."""
+    """(scores, objectives) from the CUDA kernel (or its simulator). ``keys`` is a host
+    array, or a device array the generator kernel left there (``mt_kernel.keys_device``)."""
     if not available():
         raise RuntimeError("no CUDA device (set NUMBA_ENABLE_CUDASIM=1 to use the simulator)")
     p = prepare(cipher, scorer, model)
-    k = _check_keys(keys, p.length)
+    if on_device(keys):  # mt_kernel.keys_device rows: already there, int64 (B, K)
+        dk = keys
+        if dk.ndim != 2 or dk.shape[1] < p.length or dk.dtype != np.int64:
+            raise ValueError(
+                f"device keys must be int64 (B, >= {p.length}), got {dk.dtype} {dk.shape}"
+            )
+    else:
+        dk = cuda.to_device(_check_keys(keys, p.length))
     dev = [cuda.to_device(a) for a in p.args]
-    dk = cuda.to_device(k)
     flat, tab_off, *scalars = p.rest
     dflat, doff = cuda.to_device(flat), cuda.to_device(tab_off)
-    out = cuda.device_array(k.shape[0], dtype=np.float64)
-    obj = cuda.device_array(k.shape[0], dtype=np.float64)
-    blocks = (k.shape[0] + threads - 1) // threads
+    out = cuda.device_array(dk.shape[0], dtype=np.float64)
+    obj = cuda.device_array(dk.shape[0], dtype=np.float64)
+    blocks = (dk.shape[0] + threads - 1) // threads
     _kernel[blocks, threads](*dev, dk, dflat, doff, *scalars, out, obj)
     return out.copy_to_host(), obj.copy_to_host()
 
