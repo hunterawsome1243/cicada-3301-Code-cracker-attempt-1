@@ -1,0 +1,67 @@
+{
+ "preset": "kn4-lp-heldout:beam-skip",
+ "scorer": "kn4-lp-heldout",
+ "decoder": "beam-skip",
+ "L": 240,
+ "units": "mean log2-probability per rune (higher = more language-like)",
+ "scorer_fingerprint": "215159dcb2b0384e0f1613c206879213ac070dbe4aff171e9617f140f46eddc7",
+ "method": "Gumbel MoM fit to 25 block maxima of 1000 beam decodes (beam-skip); max of N = k*1000 is Gumbel(mu_b + beta ln k, beta); null mean/sd over every one of the 25,000 draws (calib.calibrate's record uses its first 10,000)",
+ "draws": 25000,
+ "seed": 3301,
+ "null": {
+  "n": 25000,
+  "mean": -5.903878922817172,
+  "sd": 0.10857329268077748
+ },
+ "fit": {
+  "block": 1000,
+  "mu_block": -5.579602412521899,
+  "beta": 0.027632974528858607,
+  "n_blocks": 25
+ },
+ "check": {
+  "mean_max_25000": -5.4457304681340855,
+  "predicted_mean_max_25000": -5.474705113075875,
+  "max_25000": -5.4457304681340855,
+  "max_error": 0.028974644941789585
+ },
+ "bars": {
+  "claim": {
+   "N": 1000000,
+   "alpha": 0.01,
+   "bar": -5.261604780433731,
+   "ci": [
+    -5.393701694686341,
+    -5.132396234329605
+   ],
+   "bootstrap": 200,
+   "expected_false_positives": 0.01005033585350145
+  },
+  "family": {
+   "N": 4294967296,
+   "alpha": 0.01,
+   "bar": -5.030449443459915,
+   "ci": [
+    -5.26119904976201,
+    -4.80883675710792
+   ],
+   "bootstrap": 200,
+   "expected_false_positives": 0.01005033585350145
+  }
+ },
+ "scale": "reduced",
+ "installable": false,
+ "written_by": "scripts/scorer_power.py",
+ "numbering": "LP2-0-57",
+ "created": "2026-10-27T22:27:41+00:00",
+ "decoder_params": {
+  "width": 8,
+  "interrupt_prob": 0.0,
+  "p_keep": 0.19,
+  "max_skip": 6
+ },
+ "beam_sha256": "4cd3d7ba59e6bbce7f8bcd07c8eb21ec81a26d7c47897ab79d7169d19561626e",
+ "canonical_F": null,
+ "doublets": "none",
+ "null_source": "runeforge.scoring.beam_calib._chunk"
+}

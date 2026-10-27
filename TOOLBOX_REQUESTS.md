@@ -135,3 +135,111 @@ tests/test_gpu_mt.py
 Until then a later edit of a kernel only invalidates its parity records: `sweep --backend gpu`
 compares the record's `kernel_sha256` and `mt_kernel_sha256` with the files. It does not touch
 any lane evidence.
+
+## TR-7 (2026-10-27): install the Kneser-Ney calibrations, only after 10^6-draw fits — open
+
+**Frozen path:** `runeforge/scoring/calib/presets/` (`runeforge/scoring/calib/*`).
+
+**Why.** The Phase 2 Kneser-Ney presets (`runeforge/scoring/presets.py`: `kn4-lp-heldout`,
+`kn4-cicada`, `kn5-cicada`, `kn6-cicada`, `kn8-cicada`, `kn8-general`, `kn8-latin`,
+`kn8-old-english`, `kn8-vowel-dropped`, `kn8-cicada-wb`; `docs/kn-scorer-design.md`) have no
+record under the frozen calibration directory, so `threshold_for` has no bar for them,
+`runeforge lane` lists "no bar for this lane's N" and the sweep refuses every `kn*` lane. The
+reduced-scale fits the power harness writes to `reports/scorer_power/fits/` (100,000 draws,
+marked `scale: reduced`) are for the report's scale check only and must never be installed.
+
+**What.** Nothing is staged yet. Once `python scripts/scorer_power.py --full` (10^6 draws per
+scorer and length, 5-20 CPU-hours: Hunter's call per the PREREG-budget rule) has written its
+records to `reports/calib-staging/`, or after a direct fit:
+
+```bash
+python scripts/calibrate.py --preset kn8-cicada:rigid --L 240 --L 120 --out-dir reports/calib-staging
+python scripts/calibrate.py --preset kn4-cicada:beam-skip --L 240 --workers 4 --out-dir reports/calib-staging
+```
+
+copy the files into `runeforge/scoring/calib/presets/` unchanged. Each record carries the scorer
+fingerprint `calib.load` checks (a KN fingerprint covers order, base, dense_levels, discounts and
+every table: a rename or a commit never changes it, one changed training rune does), and the
+beam records carry what TR-5 asks `calib.load` to check. Only the dense presets
+(`kn4-lp-heldout`, `kn4-cicada`, `kn5-cicada`) take a `:beam*` decoder; a sparse or
+word-boundary preset with one is refused by `presets.split_preset` and `LaneSpec`, so no such
+calibration can exist. The bars at N = 10^6 and 2^32 in `reports/scorer_power.md` are the
+reduced-scale ones until this is done, and the report says so.
+
+## TR-8 (2026-10-27): the non-English register stat should use the KN register presets — open
+
+**Frozen path:** `runeforge/stats/decode.py` (`runeforge/stats/*`), line
+`NON_ENGLISH_PRESETS = ("latin-ngram3", "old-english-ngram3")`.
+
+**Why.** Every decode's language-agnostic stats record its best non-English register
+(`decode.py`, `best non-English register`), so a sweep can be re-read for a non-English
+plaintext later. The two order-3 Witten-Bell presets there are the Phase 1 baselines; the
+Phase 2 presets of the same corpora are order-8 Kneser-Ney with a 90/10 word split, and the
+vowel-dropped register (spec section 3.1; `vowel-dropped-english`, derived from
+`english-general`) has no entry at all today.
+
+**What.** Proposed line:
+
+```python
+NON_ENGLISH_PRESETS = ("kn8-latin", "kn8-old-english", "kn8-vowel-dropped")
+```
+
+Each preset fits in 1-5 s once per process (`presets.get` is cached) and skips when its corpus
+is not built (the existing `CorpusMissingError` branch). The stat's scale changes with the
+presets (an order-8 model's scores differ from the order-3 ones), so rows written before and
+after the change are not comparable on that field: record the preset names with the stat, as
+the field already does (`register`). Wait for `reports/scorer_power.md` section 4 (the register
+confusion matrix) before approving, so the replacement is a measured gain and not a guess.
+
+## TR-9 (2026-10-27): a `heldout:<corpus>` plant source for lane controls — open
+
+**Frozen path:** `runeforge/runner/control.py`, `plant_source` (`solved[:<id>]` and
+`corpus:<name>` today).
+
+**Why.** A corpus-trained KN preset trains on the words `[0, floor(0.9 * n_words))` of its
+corpus (`presets.SPLITS`, pinned to the built corpus and checked at `presets.get`); the tail is
+held out of every KN preset with a pinned `split` by construction and is what the power harness
+plants on (`presets.heldout_stream`). It is **not** held out of the Phase 1 `ngram` presets,
+which train on the whole corpus: `check_held_out` refuses `heldout:cicada-english` for
+`cicada-ngram3` (no split) and accepts it for `kn4-cicada`. A lane control cannot reach it:
+`corpus:cicada-english` is rightly refused for `kn4-cicada` by `check_held_out` (training
+text), and the unfrozen `check_held_out` already accepts `heldout:<name>` under that rule, but
+the frozen `plant_source` raises `unknown plant source` for it. Until then a KN lane's control plants on `solved:<id>`
+(lp-solved is held out of every corpus preset) or on another corpus, which measures power on a
+different register than the harness does.
+
+**What.** Proposed branch in `plant_source`, between the `corpus` branch and the `raise`:
+
+```python
+if kind == "heldout":
+    presets.check_corpus_name(name)
+    return presets.heldout_stream(name)[0].astype(np.int64)
+```
+
+`heldout_stream` refuses a corpus without a pinned split and a rebuilt corpus whose split
+moved, so no test change is needed beyond a case in `tests/test_controls.py` (frozen) that a
+`heldout:` plant on its own KN preset (`kn4-cicada`, `heldout:cicada-english`) passes
+`check_held_out` and recovers, and that the same source is refused for `cicada-ngram3`
+(`tests/test_kn.py` already pins both refusal and acceptance on `check_held_out`).
+
+## TR-10 (2026-10-27): freeze the Kneser-Ney scorer with its tests — open
+
+Spec section 6: the files of a phase are frozen in the commit that turns that phase's tests green.
+`tests/test_kn.py` is green (78 tests, including the export round trip, the beam replay parity
+for `kn4-lp-heldout` and `kn4-cicada` and WELCOME's 11-of-25 interrupters re-derived under
+`kn4-lp-heldout`). Proposed lines for FROZEN.txt:
+
+```
+runeforge/scoring/kn.py
+runeforge/scoring/kn_fit.py
+runeforge/scoring/boundaries.py
+tests/test_kn.py
+```
+
+`runeforge/scoring/presets.py` stays unfrozen (presets are added there; `SPLITS` is pinned by
+the corpus `indices_sha256` and checked at `get`), and so do `scripts/export_kn.py` and
+`scripts/scorer_power.py` (regenerating scripts). After the freeze a change to the fit
+(discount rule, continuation counts, hash layout) invalidates every staged or installed KN
+calibration through the fingerprint, as a change to `runeforge/beam.py` invalidates the beam
+ones (TR-5), and the `knx-1` manifests under `reports/kn-export/` are regenerated with
+`scripts/export_kn.py`.

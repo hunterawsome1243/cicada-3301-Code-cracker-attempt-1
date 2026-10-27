@@ -163,9 +163,23 @@ class LaneSpec(BaseModel):
         hold them, and crosser step 6 could not adjudicate a true key (review round 2)."""
         from runeforge.scoring import presets
 
-        decoder = presets.split_preset(self.preset)[1]
+        scorer, _, decoder = self.preset.partition(":")  # not split_preset: that refuses first
+        decoder = decoder or "rigid"
         params = presets.DECODER_PARAMS[decoder]
         out = []
+        # belt and braces with presets.split_preset (docs/kn-scorer-design.md section 5):
+        # runeforge.beam reads dense (29**i, 29) tables, which a sparse or word-boundary
+        # Kneser-Ney scorer does not have
+        if presets.is_wb(scorer):
+            out.append(
+                f"scorer {scorer} is a word-boundary model: adjudication and reports only this "
+                "phase, no lane decoder"
+            )
+        if decoder != "rigid" and not presets.beam_compatible(scorer):
+            out.append(
+                f"scorer {scorer} has sparse levels (no dense tables): it pairs with the rigid "
+                f"decoder only; the beam decoders take {presets.dense_presets()}"
+            )
         if params.get("interrupt_prob", 0) > 0 and not self.interrupt_prob:
             out.append(
                 f"decoder {decoder} models F-interrupters but the lane's interrupt_prob is 0: "

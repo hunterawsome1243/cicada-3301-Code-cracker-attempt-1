@@ -1,0 +1,108 @@
+{
+  "base": 29,
+  "boundary_symbol": null,
+  "dense_levels": 4,
+  "fingerprint": "900d079fac14000de773279e9104974233c2387f9e4966162b99e9619ca0c613",
+  "key_packing": "k-gram key = sum_j x[i-k+1+j] * B**(k-1-j): oldest symbol most significant, newest least; history of a gram = key // B; suffix = key mod B**(k-1); rolling (n-1)-history H <- (H*B + x) mod B**(n-1)",
+  "levels": [
+    {
+      "count_type": "continuation",
+      "counts_of_counts": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "discount_source": "fallback-0.5",
+      "discounts": [
+        0.5,
+        0.5,
+        0.5
+      ],
+      "kind": "dense",
+      "level": 1,
+      "n_entries": 29,
+      "offset": 0
+    },
+    {
+      "count_type": "continuation",
+      "counts_of_counts": [
+        65,
+        39,
+        46,
+        42
+      ],
+      "discount_source": "modified-kn",
+      "discounts": [
+        0.4545454545454546,
+        0.3916083916083919,
+        1.3399209486166008
+      ],
+      "kind": "dense",
+      "level": 2,
+      "n_entries": 841,
+      "offset": 29
+    },
+    {
+      "count_type": "continuation",
+      "counts_of_counts": [
+        1973,
+        1098,
+        745,
+        598
+      ],
+      "discount_source": "modified-kn",
+      "discounts": [
+        0.4732549772127609,
+        1.0366804425587246,
+        1.4805021402779546
+      ],
+      "kind": "dense",
+      "level": 3,
+      "n_entries": 24389,
+      "offset": 870
+    },
+    {
+      "count_type": "raw",
+      "counts_of_counts": [
+        13884,
+        5898,
+        3459,
+        2365
+      ],
+      "discount_source": "modified-kn",
+      "discounts": [
+        0.5406542056074766,
+        1.048767600612278,
+        1.5213677984831657
+      ],
+      "kind": "dense",
+      "level": 4,
+      "n_entries": 707281,
+      "offset": 25259
+    }
+  ],
+  "lookup": "per position (x, H, m = min(i, n-1)): acc = 0; for k = m+1 down to D+1: hk = H mod B**(k-1); if k-1 > D: probe level k-1 for hk, skip the level when absent, bow = its bow; else bow = dense_bow[hk]; probe level k for hk*B + x: present -> return acc + lp; else acc += bow. Then kd = min(m+1, D); return acc + dense_lp[level kd][(H mod B**(kd-1))*B + x]. Hash probe: slot = (key * 0x9E3779B97F4A7C15 mod 2**64) >> (64 - bits); linear probing up to max_probe slots; EMPTY = 2**64-1 ends the probe.",
+  "numbering": "LP2-0-57",
+  "order": 4,
+  "score_rule": "window score = sum over positions of log2 P(x_i | history) / L, L = cipher runes (word-boundary symbols are scored but not counted in L)",
+  "training": {
+    "corpora": [
+      "cicada-english"
+    ],
+    "exclude": [],
+    "indices_sha256s": {
+      "cicada-english": "6786ad18d89ee6ce3116690a9b0ba6bb2e1076d7ad154e77ff607b0799ae3281"
+    },
+    "n_runes": 275694,
+    "n_sequences": 1,
+    "preset": "kn4-cicada",
+    "split": {
+      "indices_sha256": "6786ad18d89ee6ce3116690a9b0ba6bb2e1076d7ad154e77ff607b0799ae3281",
+      "n_words": 74803,
+      "rule": "words [0, floor(0.9*n_words)) train",
+      "train_words": 67322
+    }
+  },
+  "version": "knx-1"
+}

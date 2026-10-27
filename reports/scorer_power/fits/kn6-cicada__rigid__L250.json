@@ -1,0 +1,60 @@
+{
+ "preset": "kn6-cicada:rigid",
+ "scorer": "kn6-cicada",
+ "decoder": "rigid",
+ "L": 250,
+ "units": "mean log2-probability per rune (higher = more language-like)",
+ "scorer_fingerprint": "5149fcaf127d9b887c5a5772a575b19226691cee125c95313f9e15cb5f4c5f5e",
+ "method": "Gumbel MoM fit to 100 block maxima of 1000 uniform random strings; max of N = k*1000 is Gumbel(mu_b + beta ln k, beta); null mean/sd over every one of the 100,000 draws (calib.calibrate's record uses its first 10,000)",
+ "draws": 100000,
+ "seed": 3301,
+ "null": {
+  "n": 100000,
+  "mean": -6.553731961784091,
+  "sd": 0.09801829145446571
+ },
+ "fit": {
+  "block": 1000,
+  "mu_block": -6.226592729229164,
+  "beta": 0.030467698241780188,
+  "n_blocks": 100
+ },
+ "check": {
+  "mean_max_25000": -6.128117197379471,
+  "predicted_mean_max_25000": -6.11093455922067,
+  "max_100000": -6.1096280850768085,
+  "predicted_mean_max_100000": -6.068697360951788,
+  "max_error": 0.040930724125020745
+ },
+ "bars": {
+  "claim": {
+   "N": 1000000,
+   "alpha": 0.01,
+   "bar": -5.875973367352485,
+   "ci": [
+    -5.932004126557299,
+    -5.823648216350123
+   ],
+   "bootstrap": 200,
+   "expected_false_positives": 0.01005033585350145
+  },
+  "family": {
+   "N": 4294967296,
+   "alpha": 0.01,
+   "bar": -5.621105001786552,
+   "ci": [
+    -5.716463841576876,
+    -5.534458630660608
+   ],
+   "bootstrap": 200,
+   "expected_false_positives": 0.01005033585350145
+  }
+ },
+ "scale": "reduced",
+ "installable": false,
+ "written_by": "scripts/scorer_power.py",
+ "numbering": "LP2-0-57",
+ "created": "2026-10-27T22:25:05+00:00",
+ "null_source": "scripts/scorer_power.py uniform_scores",
+ "mask": null
+}

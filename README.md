@@ -5,7 +5,7 @@ Cicada 3301's *Liber Primus* (LP2 pages 0–55), built so that every result — 
 negative — is reproducible, pre-registered and publishable.
 
 **Status: Phase 1 (foundation) built; the session toolbox built; the Phase 2 beam
-interrupt decoder built; no attack lane has run.**
+interrupt decoder and Kneser-Ney scorer built; no attack lane has run.**
 The canon is rebuilt from raw transcriptions and cross-checked against three other
 lineages, all nine solved sections reproduce rune-for-rune, the published statistical
 fingerprint is reproduced as tests, and the oracle and ledger work. The toolbox the
@@ -22,8 +22,22 @@ runs at about 10³ keys/s. The Phase 3 kernels (`runeforge/gpu/`, numba.cuda: th
 and the `mt19937-py27` keystream, which stays on the device for the decoder) are built and
 match the numpy references exactly on their CPU twins and the CUDA simulator; they have not yet
 run on a real GPU, and `sweep --backend gpu` refuses a lane until
-`python -m runeforge.gpu.parity <lane.yaml>` has passed on the device. Not built yet: the Phase 2
-Kneser-Ney scorer and kernels for the other generators.
+`python -m runeforge.gpu.parity <lane.yaml>` has passed on the device. The Phase 2 Kneser-Ney
+scorer (`runeforge/scoring/kn.py`, `kn_fit.py`, `boundaries.py`; `docs/kn-scorer-design.md`)
+is built: interpolated modified Kneser-Ney over rune indices, in the Phase 1 score units.
+Presets `kn4-lp-heldout`, `kn4-cicada` and `kn5-cicada` are dense (every level a complete
+float32 table) and pair with every decoder, the beam ones included; `kn6-cicada`,
+`kn8-cicada`, `kn8-general`, `kn8-latin`, `kn8-old-english` and `kn8-vowel-dropped` (four
+dense levels, sparse tables above) take the rigid decoder only; `kn8-cicada-wb` (word-boundary
+symbol) is for adjudication and reports and is refused with every decoder. Corpus presets
+train on the first 90 % of words and plant on the held-out tail. `python scripts/export_kn.py
+--preset <name>` writes the `knx-1` table (`reports/kn-export/<name>.npz`, regenerated) and
+its committed manifest and proves the file bit for bit against the scorer; the layout a
+CUDA scorer would read is in `runeforge/gpu/kernels/README.md`. The scorer's measured power
+envelope is the power table `reports/scorer_power.md` (`scripts/scorer_power.py`); its
+calibrations wait for 10⁶-draw fits before Hunter installs them (`TOOLBOX_REQUESTS.md`
+TR-7). Not built yet: a CUDA kernel for the Kneser-Ney scorer and kernels for the other
+generators.
 
 ## The canon
 
@@ -196,7 +210,8 @@ runeforge/
   beam.py          beam decoder: F-interrupters + anti-repeat key skips, batched + reference
   stats/           IoC, entropy, chi2, doublets, periodic IoC/kappa scans, shared-key scan
   stats/fingerprint.py  murphy's constraints C1-C6 and the fingerprint gate
-  scoring/         baseline rune n-gram scorer (Phase 2 replaces it), named presets,
+  scoring/         ngram.py (Phase 1 order-3 Witten-Bell), kn.py + kn_fit.py + boundaries.py
+                   (Phase 2 Kneser-Ney, knx-1 export), presets.py (named presets),
                    calib/ (family-wise bars from observed maxima), beam_calib.py (beam nulls)
   generators/      keystream generators: sha256-ctr (nulls), mt19937-py27, numpy-pcg64
   corpus.py        rune corpora built by scripts/build_corpus.py
@@ -221,11 +236,13 @@ tests/             Rules 1-3 and the toolbox
 
 ## Roadmap
 
-- **Phase 2: rune-native scorer.** Build Gutenberg, Cicada-register and alternate-language
-  corpora; a 6–8-gram Kneser-Ney model with a word-boundary symbol, exported as a flat
-  `float32` table; null distributions per page length and register; a power table
-  (`reports/scorer_power.md`); and the beam interrupt decoder (built:
-  `reports/beam_decoder.md`; it recovers a planted DIVINITY key the rigid decoder rejects).
+- **Phase 2: rune-native scorer.** Built: Gutenberg, Cicada-register and alternate-language
+  corpora (`scripts/build_corpus.py`); the 4–8-gram Kneser-Ney presets with a word-boundary
+  variant, exported as flat `float32` tables (`scripts/export_kn.py`, `knx-1`); the beam
+  interrupt decoder (`reports/beam_decoder.md`; it recovers a planted DIVINITY key the rigid
+  decoder rejects). The null distributions per length and register and the power table are
+  `reports/scorer_power.md` (`scripts/scorer_power.py`; reduced scale first, `--full` on
+  Hunter's call).
 - **Phase 3: CUDA sweep engine.** GPU kernels behind `runeforge sweep --backend gpu`,
   parity-tested against the CPU runner, at ≥ 10⁷ seeds/s, and the Dukotah never-run/parked
   queue. The queue

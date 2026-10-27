@@ -1,0 +1,60 @@
+{
+ "preset": "kn8-vowel-dropped:rigid",
+ "scorer": "kn8-vowel-dropped",
+ "decoder": "rigid",
+ "L": 240,
+ "units": "mean log2-probability per rune (higher = more language-like)",
+ "scorer_fingerprint": "331aa34e380c6407320ec9497c0e8d59f8c9c7ea80579921509e4a58d0acb104",
+ "method": "Gumbel MoM fit to 100 block maxima of 1000 uniform random strings; max of N = k*1000 is Gumbel(mu_b + beta ln k, beta); null mean/sd over every one of the 100,000 draws (calib.calibrate's record uses its first 10,000)",
+ "draws": 100000,
+ "seed": 3301,
+ "null": {
+  "n": 100000,
+  "mean": -6.876812730477492,
+  "sd": 0.15400441511082985
+ },
+ "fit": {
+  "block": 1000,
+  "mu_block": -6.379944749000761,
+  "beta": 0.04675284236953529,
+  "n_blocks": 100
+ },
+ "check": {
+  "mean_max_25000": -6.199286187145239,
+  "predicted_mean_max_25000": -6.202466681959223,
+  "max_100000": -6.137713215996822,
+  "predicted_mean_max_100000": -6.1376534802160085,
+  "max_error": 0.0031804948139839695
+ },
+ "bars": {
+  "claim": {
+   "N": 1000000,
+   "alpha": 0.01,
+   "bar": -5.841917503639358,
+   "ci": [
+    -5.9278319105511255,
+    -5.752901944803594
+   ],
+   "bootstrap": 200,
+   "expected_false_positives": 0.01005033585350145
+  },
+  "family": {
+   "N": 4294967296,
+   "alpha": 0.01,
+   "bar": -5.4508206631190905,
+   "ci": [
+    -5.597195649882644,
+    -5.2980932115254395
+   ],
+   "bootstrap": 200,
+   "expected_false_positives": 0.01005033585350145
+  }
+ },
+ "scale": "reduced",
+ "installable": false,
+ "written_by": "scripts/scorer_power.py",
+ "numbering": "LP2-0-57",
+ "created": "2026-10-27T22:25:54+00:00",
+ "null_source": "scripts/scorer_power.py uniform_scores",
+ "mask": null
+}

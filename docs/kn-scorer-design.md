@@ -23,7 +23,7 @@ and §6 (P2). Everything here is an implementation contract; the numbers it prod
 | "full page" row | **both** L = 240 (the lane window; installed bars exist) and L = 263 (the median of the 55 non-empty unsolved pages; range 66–277) | the spec asks for a page; 240 gives the installed-vs-refit scale check |
 | intervals | 200-resample bootstrap of the block maxima on every bar; Wilson 95 % on every power cell | a point bar at 2³² from 100 block maxima carries ~1 β |
 | wb boundary log-probs | **summed** (the word-length signal), divided by L = cipher runes; a `score_boundaries=False` variant is measured once in the report | the authors' word-length distribution is the signal the spec names |
-| wrong-key-null check | a reported KS statistic per family, never an assert; the short-key Vigenère family is excluded from the "wrong key = uniform string" claim | a partially matching periodic key leaves structure |
+| wrong-key-null check | a reported KS statistic per family, never an assert; the short-key Vigenère family is excluded from the "wrong key = uniform string" claim, and so are atbash+shift (58 keys: a wrong key is a monoalphabetic substitution of the plaintext) and the totient stream (its wrong keys are offsets of one deterministic, non-uniform stream); finite families enumerate or draw their wrong keys without replacement and also report the count above the Gumbel bar at N = their key count | a partially matching periodic key leaves structure; a substitution of English is not a uniform string (review 2026-10-27) |
 | `--full` harness run (5–20 CPU-hours) | Hunter's call; the reduced-scale report is published first and says so | PREREG-budget rule |
 | export artefacts (40–160 MB) | regenerated, gitignored; manifests (JSON) committed under `reports/kn-export/` | "CUDA-loadable table exported" is met by the script + manifest + round-trip test |
 
@@ -82,11 +82,14 @@ N-grams never cross a sequence join; no start symbol.
    the continuation count; at k = n the raw count.
 3. Discounts per level from that level's effective counts-of-counts n1..n4:
    `Y = n1/(n1+2n2)`, `D1 = 1 − 2Y n2/n1`, `D2 = 2 − 3Y n3/n2`, `D3+ = 3 − 4Y n4/n3`.
-   **Fallback rule (fixed):** D1 is undefined when n1 == 0 or n2 == 0 → D1 = 0.5; D2 is
-   undefined when n2 == 0 or n3 == 0 → D2 = D1; D3+ is undefined when n3 == 0 or n4 == 0 →
-   D3+ = D2; then clip D_r to [0.05, r]. `discount_source[k]` ∈ {`modified-kn`, `partial:D2<-D1`,
-   `partial:D3<-D2`, `partial:D2<-D1,D3<-D2`, `fallback-0.5`}. A preset may pin `discounts`
-   explicitly (tests).
+   **Fallback rule (fixed):** D1 is undefined when n1 == 0 or n2 == 0 → **every** discount
+   of the level is 0.5 (source `fallback-0.5`; `discount_source` has no vocabulary for a mixed
+   level, so the whole level falls back); otherwise D2 is undefined when n3 == 0 → D2 = D1, and
+   D3+ is undefined when n3 == 0 or n4 == 0 → D3+ = D2; then clip D_r to [0.05, r].
+   `discount_source[k]` ∈ {`modified-kn`, `partial:D2<-D1`, `partial:D3<-D2`,
+   `partial:D2<-D1,D3<-D2`, `fallback-0.5`}. A preset may pin `discounts` explicitly (tests).
+   (Wording aligned with `kn_fit.discounts` on 2026-10-27 after review: the earlier text read as
+   D2 = 2 − 3·Y·n3/n2 with Y = 0 for n1 == 0, n2 > 0, a case no fitted level reaches.)
 4. Probabilities, lowest level first. Level 1: C = Σ cc_1, N_j = symbols in class j;
    `P_1(w) = max(cc_1(w) − D(cc_1(w)), 0)/C + γ_1/V`, `γ_1 = (D1 N_1 + D2 N_2 + D3+ N_3+)/C`, V = B
    (uniform floor: every symbol > 0). Level k ≥ 2, seen history h: `P_k(w|h) = max(cc − D(cc), 0)/cc(h)
@@ -121,7 +124,12 @@ symbols scored, not counted in L). `score_batch(plains (B_rows, L), starts=None,
 level on the live subset); `logprobs` returns the per-position vector; `score(plain)` =
 `logprobs(plain).sum()/L` with the same `np.sum(dtype=float64)` call as the batch (|Δ| ≤ 1e-9
 in the test). A wb model without `starts` raises ValueError. Scores of uniform noise under a
-trained model are expected around −7…−8 at order 8 (units unchanged: mean log2-prob per rune).
+trained model were expected around −7…−8 at order 8 before any fit (units unchanged: mean
+log2-prob per rune); the fitted `kn8-cicada` measures about −6.5 at L 100–1000, and the
+measured bands live in `reports/scorer_power.md`, never here. `score_batch` works on row chunks
+of at most `kn.ROW_CHUNK_POSITIONS` positions (a bounded working set; no number changes). A wb
+model validates rune rows against 0..28 before extension (29 is never supplied in a decode).
+A window of 0 cipher runes scores NaN (as `NGramScorer`), documented on both methods.
 
 ### 2.5 Boundaries
 Decodes arrive as pure (B, L) rune arrays; the cipher's word starts are window data
@@ -153,7 +161,9 @@ preset with any decoder, so no lane can name one until a window-conditioning rul
 it at `get()` (a rebuilt corpus that moved the split is refused, not silently refit).
 `heldout_stream(corpus)` returns the tail (runes, word_ids rebased). `check_held_out` keeps
 refusing `corpus:<name>` for any name in `train`, follows `derived_from` (vowel-dropped-english
-vs english-general share word ids and text), and keeps the `exclude` rule for `solved:<id>`.
+vs english-general share word ids and text), keeps the `exclude` rule for `solved:<id>`, and
+refuses `heldout:<name>` for a preset that trains on that corpus (or its derived family)
+without a pinned `split` (the Phase 1 `ngram` presets: the tail is their training text).
 `presets.get` stays `lru_cache`d; a fit takes 1–5 s.
 
 ## 4. Export (`knx-1`)

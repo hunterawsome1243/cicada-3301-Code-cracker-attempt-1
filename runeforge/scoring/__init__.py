@@ -9,9 +9,11 @@ from runeforge.scoring.calibration import (
     null_scores,
     shuffle_null,
 )
+from runeforge.scoring.kn import KNScorer
 from runeforge.scoring.ngram import NGramScorer
 
 __all__ = [
+    "KNScorer",
     "NGramScorer",
     "fit_gumbel_from_maxima",
     "gaussian_max_bar",
