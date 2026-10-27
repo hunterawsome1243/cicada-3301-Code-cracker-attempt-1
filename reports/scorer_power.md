@@ -4,7 +4,7 @@ not a solve
 
 **Not a solve.** This report measures instruments: how a wrong key scores under each scorer preset, where the bars sit at N = 10^6 and 2^32, and how often a planted correct key clears them. No key space of the unsolved pages was searched and nothing here is a decode of LP2.
 
-numbering: "LP2-0-57" · canon SHA-256 `023312066df471005264b9cbe7997cb77d2a9a6a2dc9b3316d22674023af1585` (12,956 runes, LP2 pages 0–55) · git `f95a3acea0d51a6296a6d0afc282bd4e6c418fa9` · scale **reduced** · created 2026-10-27T22:20:42+00:00 · `python scripts/scorer_power.py --quick --workers 4` → `reports/scorer_power.json`
+numbering: "LP2-0-57" · canon SHA-256 `023312066df471005264b9cbe7997cb77d2a9a6a2dc9b3316d22674023af1585` (12,956 runes, LP2 pages 0–55) · git `4b096a8e036a19c57f9b61d750fa567e5ced02df` · scale **reduced** · created 2026-10-27T22:33:55+00:00 · `python scripts/scorer_power.py --quick --workers 4` → `reports/scorer_power.json`
 
 This is the **reduced-scale** report: 100,000 null draws per (scorer, L) and 200 plants per cell. The bars are reduced-scale bars until `--full` (10^6 draws, Hunter's call) writes the installable records (TOOLBOX_REQUESTS.md TR-7); the fits under `reports/scorer_power/fits/` are marked `scale` and are never installed.
 
@@ -23,7 +23,7 @@ This is the **reduced-scale** report: 100,000 null draws per (scorer, L) and 200
 | validators | `scripts/check_results.py`, `scripts/validate_ledger.py` |
 | families (plant/decoy generators) | vigenere-short-key, atbash-shift, totient-stream, sha256-ctr/vigenere/raw, sha256-ctr/vigenere/atbash, sha256-ctr/vigenere/first-difference, sha256-ctr/vigenere/chain-increment, sha256-ctr/beaufort/raw, sha256-ctr/beaufort/atbash, sha256-ctr/beaufort/first-difference, sha256-ctr/beaufort/chain-increment, numpy-pcg64/vigenere/raw, numpy-pcg64/vigenere/atbash, numpy-pcg64/vigenere/first-difference, numpy-pcg64/vigenere/chain-increment, numpy-pcg64/beaufort/raw, numpy-pcg64/beaufort/atbash, numpy-pcg64/beaufort/first-difference, numpy-pcg64/beaufort/chain-increment |
 
-*numbering LP2-0-57 · canon `023312066df4…` · git `f95a3acea0d5` · scale reduced · N_claim = 10^6, N_family = 2^32, alpha = 0.01 · JSON `sections.reusable` · `python scripts/scorer_power.py --quick --section reusable`*
+*numbering LP2-0-57 · canon `023312066df4…` · git `4b096a8e036a` · scale reduced · N_claim = 10^6, N_family = 2^32, alpha = 0.01 · JSON `sections.reusable` · `python scripts/scorer_power.py --quick --section reusable`*
 
 ## 1. Not covered
 
@@ -66,7 +66,7 @@ This is the **reduced-scale** report: 100,000 null draws per (scorer, L) and 200
 - no GPU: every number is the numpy path; the CUDA kernel is Phase 3
 - no key space of the unsolved pages is searched here: this is an instrument report, not a lane; coverage of LP2 is 0 of every space
 
-*numbering LP2-0-57 · canon `023312066df4…` · git `f95a3acea0d5` · scale reduced · N_claim = 10^6, N_family = 2^32, alpha = 0.01 · JSON `sections.not_covered` · `python scripts/scorer_power.py --quick --section not_covered`*
+*numbering LP2-0-57 · canon `023312066df4…` · git `4b096a8e036a` · scale reduced · N_claim = 10^6, N_family = 2^32, alpha = 0.01 · JSON `sections.not_covered` · `python scripts/scorer_power.py --quick --section not_covered`*
 
 ## 2. Nulls and bars
 
@@ -156,7 +156,7 @@ Null (a): 100,000 uniform random strings per (scorer, L) (`calib.measure`); Gumb
 | kn8-vowel-dropped | 1000 | −6.8856 | 0.0755 | −6.6522 | 0.0229 | 100 | −6.3892 [−6.4456, −6.3415] | −6.1981 [−6.2944, −6.1168] | 0.015 | 0.391 | 0.001 |
 | kn8-cicada-wb | 1000 | −7.6390 | 0.0655 | −7.4451 | 0.0230 | 100 | −7.1809 [−7.2222, −7.1396] | −6.9888 [−7.0617, −6.9177] | n/a | 0.992 | 0.009 |
 
-*numbering LP2-0-57 · canon `023312066df4…` · git `f95a3acea0d5` · scale reduced · N_claim = 10^6, N_family = 2^32, alpha = 0.01 · JSON `sections.nulls.cells[*] (null, fit, bars, ks_max_in_claim, check)` · `python scripts/scorer_power.py --quick --section nulls`*
+*numbering LP2-0-57 · canon `023312066df4…` · git `4b096a8e036a` · scale reduced · N_claim = 10^6, N_family = 2^32, alpha = 0.01 · JSON `sections.nulls.cells[*] (null, fit, bars, ks_max_in_claim, check)` · `python scripts/scorer_power.py --quick --section nulls`*
 
 Scale check: the installed / staged record against this run's refit.
 
@@ -169,7 +169,7 @@ Scale check: the installed / staged record against this run's refit.
 | cicada-ngram3 | 240 | installed `cicada-ngram3__rigid__L240.json` | 1,000,000 | −8.5054 / 0.0917 | −8.4879 / 0.0969 | 0.0773 | 0.1208 | yes | same |
 | general-ngram3 | 240 | installed `general-ngram3__rigid__L240.json` | 1,000,000 | −8.6128 / 0.0980 | −8.5847 / 0.1099 | 0.1654 | 0.2653 | yes | same |
 
-*numbering LP2-0-57 · canon `023312066df4…` · git `f95a3acea0d5` · scale reduced · N_claim = 10^6, N_family = 2^32, alpha = 0.01 · JSON `sections.nulls.cells[*].scale_check` · `python scripts/scorer_power.py --quick --section nulls`*
+*numbering LP2-0-57 · canon `023312066df4…` · git `4b096a8e036a` · scale reduced · N_claim = 10^6, N_family = 2^32, alpha = 0.01 · JSON `sections.nulls.cells[*].scale_check` · `python scripts/scorer_power.py --quick --section nulls`*
 
 Wrong-key nulls per family (null b), the nb cell with the largest KS in the claim (the wb cell's KS carries the mask dependence of section 6 and is printed there):
 
@@ -195,7 +195,7 @@ Wrong-key nulls per family (null b), the nb cell with the largest KS in the clai
 | numpy-pcg64/beaufort/first-difference | 5000 | 2^32+ | −7.1732 | 0.0737 | −6.8981 | 0.017 | 0.020 | yes | 0 | n/a |
 | numpy-pcg64/beaufort/chain-increment | 5000 | 2^32+ | −7.1751 | 0.0725 | −6.8865 | 0.018 | 0.020 | yes | 0 | n/a |
 
-*numbering LP2-0-57 · canon `023312066df4…` · git `f95a3acea0d5` · scale reduced · N_claim = 10^6, N_family = 2^32, alpha = 0.01 · JSON `sections.nulls.cells[scorer=lp-ngram3-heldout, L=1000].wrong_key` · `python scripts/scorer_power.py --quick --section nulls`*
+*numbering LP2-0-57 · canon `023312066df4…` · git `4b096a8e036a` · scale reduced · N_claim = 10^6, N_family = 2^32, alpha = 0.01 · JSON `sections.nulls.cells[scorer=lp-ngram3-heldout, L=1000].wrong_key` · `python scripts/scorer_power.py --quick --section nulls`*
 
 ## 3. Power table
 
@@ -212,9 +212,9 @@ Wrong-key nulls per family (null b), the nb cell with the largest KS in the clai
 | english-general | 100 | kn6-cicada | yes | −3.2406 (0.311, −4.2843) | −5.4360 | 1.000 [0.981, 1.000] | 1.000 / 1.000 | 1.000 | 20/20 | met (>= 0.9) |
 | english-general | 100 | kn8-cicada | yes | −3.2301 (0.309, −4.2637) | −5.4228 | 1.000 [0.981, 1.000] | 1.000 / 1.000 | 1.000 | 20/20 | met (>= 0.9) |
 | english-general | 100 | kn8-general | yes | −2.5993 (0.283, −3.2973) | −5.5029 | 1.000 [0.981, 1.000] | 1.000 / 1.000 | 1.000 | 20/20 | met (>= 0.9) |
-| english-general | 100 | kn8-latin | yes | −5.8261 (0.427, −7.0944) | −5.8227 | 0.480 [0.412, 0.549] | 0.665 / 0.335 | 0.040 | 20/20 | not met |
-| english-general | 100 | kn8-old-english | yes | −4.8373 (0.178, −5.2752) | −5.2763 | 1.000 [0.981, 1.000] | 1.000 / 0.990 | 0.530 | 20/20 | met (>= 0.9) |
-| english-general | 100 | kn8-vowel-dropped | yes | −5.4276 (0.195, −5.8829) | −5.3387 | 0.355 [0.292, 0.423] | 0.600 / 0.095 | 0.000 | 20/20 | not met |
+| english-general | 100 | kn8-latin | yes | −5.8261 (0.427, −7.0944) | −5.8227 | 0.480 [0.412, 0.549] | 0.665 / 0.335 | 0.040 | 20/20 | n/a: register scorer, not a claim scorer |
+| english-general | 100 | kn8-old-english | yes | −4.8373 (0.178, −5.2752) | −5.2763 | 1.000 [0.981, 1.000] | 1.000 / 0.990 | 0.530 | 20/20 | n/a: register scorer, not a claim scorer |
+| english-general | 100 | kn8-vowel-dropped | yes | −5.4276 (0.195, −5.8829) | −5.3387 | 0.355 [0.292, 0.423] | 0.600 / 0.095 | 0.000 | 20/20 | n/a: register scorer, not a claim scorer |
 | english-general | 100 | kn8-cicada-wb | yes | −3.2236 (0.345, −4.4658) | −6.1773 | 1.000 [0.981, 1.000] | 1.000 / 1.000 | 1.000 | 20/20 | met (>= 0.9) |
 | english-general | 240 | lp-ngram3-heldout | yes | −4.3200 (0.177, −4.7470) | −6.1625 | 1.000 [0.981, 1.000] | 1.000 / 1.000 | 1.000 | 20/20 | met (>= 0.9) |
 | english-general | 240 | cicada-ngram3 | yes | −3.5776 (0.167, −4.1801) | −7.3733 | 1.000 [0.981, 1.000] | 1.000 / 1.000 | 1.000 | 20/20 | met (>= 0.9) |
@@ -225,9 +225,9 @@ Wrong-key nulls per family (null b), the nb cell with the largest KS in the clai
 | english-general | 240 | kn6-cicada | yes | −3.2494 (0.221, −3.9960) | −5.8961 | 1.000 [0.981, 1.000] | 1.000 / 1.000 | 1.000 | 20/20 | met (>= 0.9) |
 | english-general | 240 | kn8-cicada | yes | −3.2369 (0.220, −3.9528) | −5.8932 | 1.000 [0.981, 1.000] | 1.000 / 1.000 | 1.000 | 20/20 | met (>= 0.9) |
 | english-general | 240 | kn8-general | yes | −2.5844 (0.237, −3.1339) | −5.8583 | 1.000 [0.981, 1.000] | 1.000 / 1.000 | 1.000 | 20/20 | met (>= 0.9) |
-| english-general | 240 | kn8-latin | yes | −5.8597 (0.292, −6.6838) | −6.5941 | 0.995 [0.972, 0.999] | 0.995 / 0.985 | 0.825 | 20/20 | met (>= 0.9) |
-| english-general | 240 | kn8-old-english | yes | −4.8175 (0.138, −5.2810) | −5.7147 | 1.000 [0.981, 1.000] | 1.000 / 1.000 | 1.000 | 20/20 | met (>= 0.9) |
-| english-general | 240 | kn8-vowel-dropped | yes | −5.4496 (0.124, −5.7734) | −5.8419 | 1.000 [0.981, 1.000] | 1.000 / 0.995 | 0.495 | 20/20 | met (>= 0.9) |
+| english-general | 240 | kn8-latin | yes | −5.8597 (0.292, −6.6838) | −6.5941 | 0.995 [0.972, 0.999] | 0.995 / 0.985 | 0.825 | 20/20 | n/a: register scorer, not a claim scorer |
+| english-general | 240 | kn8-old-english | yes | −4.8175 (0.138, −5.2810) | −5.7147 | 1.000 [0.981, 1.000] | 1.000 / 1.000 | 1.000 | 20/20 | n/a: register scorer, not a claim scorer |
+| english-general | 240 | kn8-vowel-dropped | yes | −5.4496 (0.124, −5.7734) | −5.8419 | 1.000 [0.981, 1.000] | 1.000 / 0.995 | 0.495 | 20/20 | n/a: register scorer, not a claim scorer |
 | english-general | 240 | kn8-cicada-wb | yes | −3.2260 (0.270, −4.2305) | −6.7496 | 1.000 [0.981, 1.000] | 1.000 / 1.000 | 1.000 | 20/20 | met (>= 0.9) |
 | english-general | 250 | lp-ngram3-heldout | yes | −4.3268 (0.168, −4.7309) | −6.2196 | 1.000 [0.981, 1.000] | 1.000 / 1.000 | 1.000 | 20/20 | met (>= 0.9) |
 | english-general | 250 | cicada-ngram3 | yes | −3.5625 (0.141, −3.9563) | −7.3684 | 1.000 [0.981, 1.000] | 1.000 / 1.000 | 1.000 | 20/20 | met (>= 0.9) |
@@ -238,9 +238,9 @@ Wrong-key nulls per family (null b), the nb cell with the largest KS in the clai
 | english-general | 250 | kn6-cicada | yes | −3.2341 (0.222, −3.7967) | −5.8760 | 1.000 [0.981, 1.000] | 1.000 / 1.000 | 1.000 | 20/20 | met (>= 0.9) |
 | english-general | 250 | kn8-cicada | yes | −3.2227 (0.222, −3.7750) | −5.8725 | 1.000 [0.981, 1.000] | 1.000 / 1.000 | 1.000 | 20/20 | met (>= 0.9) |
 | english-general | 250 | kn8-general | yes | −2.5955 (0.229, −3.1373) | −5.8878 | 1.000 [0.981, 1.000] | 1.000 / 1.000 | 1.000 | 20/20 | met (>= 0.9) |
-| english-general | 250 | kn8-latin | yes | −5.8701 (0.264, −6.7155) | −6.6535 | 0.995 [0.972, 0.999] | 1.000 / 0.995 | 0.915 | 20/20 | met (>= 0.9) |
-| english-general | 250 | kn8-old-english | yes | −4.8295 (0.143, −5.1993) | −5.6854 | 1.000 [0.981, 1.000] | 1.000 / 1.000 | 1.000 | 20/20 | met (>= 0.9) |
-| english-general | 250 | kn8-vowel-dropped | yes | −5.4488 (0.122, −5.7704) | −5.8881 | 1.000 [0.981, 1.000] | 1.000 / 1.000 | 0.705 | 20/20 | met (>= 0.9) |
+| english-general | 250 | kn8-latin | yes | −5.8701 (0.264, −6.7155) | −6.6535 | 0.995 [0.972, 0.999] | 1.000 / 0.995 | 0.915 | 20/20 | n/a: register scorer, not a claim scorer |
+| english-general | 250 | kn8-old-english | yes | −4.8295 (0.143, −5.1993) | −5.6854 | 1.000 [0.981, 1.000] | 1.000 / 1.000 | 1.000 | 20/20 | n/a: register scorer, not a claim scorer |
+| english-general | 250 | kn8-vowel-dropped | yes | −5.4488 (0.122, −5.7704) | −5.8881 | 1.000 [0.981, 1.000] | 1.000 / 1.000 | 0.705 | 20/20 | n/a: register scorer, not a claim scorer |
 | english-general | 250 | kn8-cicada-wb | yes | −3.2017 (0.252, −3.9494) | −6.8308 | 1.000 [0.981, 1.000] | 1.000 / 1.000 | 1.000 | 20/20 | met (>= 0.9) |
 | english-general | 263 | lp-ngram3-heldout | yes | −4.3537 (0.165, −4.8799) | −6.2653 | 1.000 [0.981, 1.000] | 1.000 / 1.000 | 1.000 | 20/20 | met (>= 0.9) |
 | english-general | 263 | cicada-ngram3 | yes | −3.5865 (0.152, −4.0503) | −7.4153 | 1.000 [0.981, 1.000] | 1.000 / 1.000 | 1.000 | 20/20 | met (>= 0.9) |
@@ -251,9 +251,9 @@ Wrong-key nulls per family (null b), the nb cell with the largest KS in the clai
 | english-general | 263 | kn6-cicada | yes | −3.2509 (0.216, −3.7732) | −5.8795 | 1.000 [0.981, 1.000] | 1.000 / 1.000 | 1.000 | 20/20 | met (>= 0.9) |
 | english-general | 263 | kn8-cicada | yes | −3.2354 (0.214, −3.7553) | −5.8760 | 1.000 [0.981, 1.000] | 1.000 / 1.000 | 1.000 | 20/20 | met (>= 0.9) |
 | english-general | 263 | kn8-general | yes | −2.5811 (0.225, −3.1156) | −5.8803 | 1.000 [0.981, 1.000] | 1.000 / 1.000 | 1.000 | 20/20 | met (>= 0.9) |
-| english-general | 263 | kn8-latin | yes | −5.8346 (0.286, −6.4845) | −6.7173 | 1.000 [0.981, 1.000] | 1.000 / 1.000 | 0.965 | 20/20 | met (>= 0.9) |
-| english-general | 263 | kn8-old-english | yes | −4.8543 (0.132, −5.1665) | −5.7267 | 1.000 [0.981, 1.000] | 1.000 / 1.000 | 1.000 | 20/20 | met (>= 0.9) |
-| english-general | 263 | kn8-vowel-dropped | yes | −5.4558 (0.109, −5.6996) | −5.9329 | 1.000 [0.981, 1.000] | 1.000 / 1.000 | 0.880 | 20/20 | met (>= 0.9) |
+| english-general | 263 | kn8-latin | yes | −5.8346 (0.286, −6.4845) | −6.7173 | 1.000 [0.981, 1.000] | 1.000 / 1.000 | 0.965 | 20/20 | n/a: register scorer, not a claim scorer |
+| english-general | 263 | kn8-old-english | yes | −4.8543 (0.132, −5.1665) | −5.7267 | 1.000 [0.981, 1.000] | 1.000 / 1.000 | 1.000 | 20/20 | n/a: register scorer, not a claim scorer |
+| english-general | 263 | kn8-vowel-dropped | yes | −5.4558 (0.109, −5.6996) | −5.9329 | 1.000 [0.981, 1.000] | 1.000 / 1.000 | 0.880 | 20/20 | n/a: register scorer, not a claim scorer |
 | english-general | 263 | kn8-cicada-wb | yes | −3.2241 (0.254, −3.9570) | −6.7725 | 1.000 [0.981, 1.000] | 1.000 / 1.000 | 1.000 | 20/20 | met (>= 0.9) |
 | english-general | 500 | lp-ngram3-heldout | yes | −4.3263 (0.118, −4.6386) | −6.5338 | 1.000 [0.981, 1.000] | 1.000 / 1.000 | 1.000 | 20/20 | met (>= 0.9) |
 | english-general | 500 | cicada-ngram3 | yes | −3.5519 (0.110, −3.8531) | −8.1089 | 1.000 [0.981, 1.000] | 1.000 / 1.000 | 1.000 | 20/20 | met (>= 0.9) |
@@ -264,9 +264,9 @@ Wrong-key nulls per family (null b), the nb cell with the largest KS in the clai
 | english-general | 500 | kn6-cicada | yes | −3.2298 (0.175, −3.6841) | −6.0826 | 1.000 [0.981, 1.000] | 1.000 / 1.000 | 1.000 | 20/20 | met (>= 0.9) |
 | english-general | 500 | kn8-cicada | yes | −3.2172 (0.173, −3.6665) | −6.0793 | 1.000 [0.981, 1.000] | 1.000 / 1.000 | 1.000 | 20/20 | met (>= 0.9) |
 | english-general | 500 | kn8-general | yes | −2.5754 (0.183, −3.0380) | −6.1430 | 1.000 [0.981, 1.000] | 1.000 / 1.000 | 1.000 | 20/20 | met (>= 0.9) |
-| english-general | 500 | kn8-latin | yes | −5.8645 (0.218, −6.3530) | −6.9992 | 1.000 [0.981, 1.000] | 1.000 / 1.000 | 1.000 | 20/20 | met (>= 0.9) |
-| english-general | 500 | kn8-old-english | yes | −4.8426 (0.097, −5.1447) | −5.9216 | 1.000 [0.981, 1.000] | 1.000 / 1.000 | 1.000 | 20/20 | met (>= 0.9) |
-| english-general | 500 | kn8-vowel-dropped | yes | −5.4505 (0.092, −5.6973) | −6.1131 | 1.000 [0.981, 1.000] | 1.000 / 1.000 | 1.000 | 20/20 | met (>= 0.9) |
+| english-general | 500 | kn8-latin | yes | −5.8645 (0.218, −6.3530) | −6.9992 | 1.000 [0.981, 1.000] | 1.000 / 1.000 | 1.000 | 20/20 | n/a: register scorer, not a claim scorer |
+| english-general | 500 | kn8-old-english | yes | −4.8426 (0.097, −5.1447) | −5.9216 | 1.000 [0.981, 1.000] | 1.000 / 1.000 | 1.000 | 20/20 | n/a: register scorer, not a claim scorer |
+| english-general | 500 | kn8-vowel-dropped | yes | −5.4505 (0.092, −5.6973) | −6.1131 | 1.000 [0.981, 1.000] | 1.000 / 1.000 | 1.000 | 20/20 | n/a: register scorer, not a claim scorer |
 | english-general | 500 | kn8-cicada-wb | yes | −3.1923 (0.208, −3.8319) | −7.0063 | 1.000 [0.981, 1.000] | 1.000 / 1.000 | 1.000 | 20/20 | met (>= 0.9) |
 | english-general | 1000 | lp-ngram3-heldout | yes | −4.3420 (0.103, −4.6203) | −6.6876 | 1.000 [0.981, 1.000] | 1.000 / 1.000 | 1.000 | 20/20 | met (>= 0.9) |
 | english-general | 1000 | cicada-ngram3 | yes | −3.5670 (0.097, −3.8394) | −8.5408 | 1.000 [0.981, 1.000] | 1.000 / 1.000 | 1.000 | 20/20 | met (>= 0.9) |
@@ -277,9 +277,9 @@ Wrong-key nulls per family (null b), the nb cell with the largest KS in the clai
 | english-general | 1000 | kn6-cicada | yes | −3.2377 (0.146, −3.6183) | −6.2380 | 1.000 [0.981, 1.000] | 1.000 / 1.000 | 1.000 | 20/20 | met (>= 0.9) |
 | english-general | 1000 | kn8-cicada | yes | −3.2256 (0.144, −3.5930) | −6.2361 | 1.000 [0.981, 1.000] | 1.000 / 1.000 | 1.000 | 20/20 | met (>= 0.9) |
 | english-general | 1000 | kn8-general | yes | −2.6008 (0.175, −2.9179) | −6.2725 | 1.000 [0.981, 1.000] | 1.000 / 1.000 | 1.000 | 20/20 | met (>= 0.9) |
-| english-general | 1000 | kn8-latin | yes | −5.8587 (0.160, −6.2334) | −7.2757 | 1.000 [0.981, 1.000] | 1.000 / 1.000 | 1.000 | 20/20 | met (>= 0.9) |
-| english-general | 1000 | kn8-old-english | yes | −4.8395 (0.069, −5.0267) | −6.0991 | 1.000 [0.981, 1.000] | 1.000 / 1.000 | 1.000 | 20/20 | met (>= 0.9) |
-| english-general | 1000 | kn8-vowel-dropped | yes | −5.4518 (0.061, −5.5936) | −6.3892 | 1.000 [0.981, 1.000] | 1.000 / 1.000 | 1.000 | 20/20 | met (>= 0.9) |
+| english-general | 1000 | kn8-latin | yes | −5.8587 (0.160, −6.2334) | −7.2757 | 1.000 [0.981, 1.000] | 1.000 / 1.000 | 1.000 | 20/20 | n/a: register scorer, not a claim scorer |
+| english-general | 1000 | kn8-old-english | yes | −4.8395 (0.069, −5.0267) | −6.0991 | 1.000 [0.981, 1.000] | 1.000 / 1.000 | 1.000 | 20/20 | n/a: register scorer, not a claim scorer |
+| english-general | 1000 | kn8-vowel-dropped | yes | −5.4518 (0.061, −5.5936) | −6.3892 | 1.000 [0.981, 1.000] | 1.000 / 1.000 | 1.000 | 20/20 | n/a: register scorer, not a claim scorer |
 | english-general | 1000 | kn8-cicada-wb | yes | −3.2083 (0.176, −3.7174) | −7.1809 | 1.000 [0.981, 1.000] | 1.000 / 1.000 | 1.000 | 20/20 | met (>= 0.9) |
 | cicada-english | 100 | lp-ngram3-heldout | yes | −4.1980 (0.234, −4.9585) | −5.5252 | 1.000 [0.981, 1.000] | 1.000 / 1.000 | 0.995 | 20/20 | met (>= 0.9) |
 | cicada-english | 100 | cicada-ngram3 | no | −3.1930 (0.143, −3.5515) | −6.4415 | 1.000 [0.981, 1.000] | 1.000 / 1.000 | 1.000 | 20/20 | not applicable: trained-on text |
@@ -290,9 +290,9 @@ Wrong-key nulls per family (null b), the nb cell with the largest KS in the clai
 | cicada-english | 100 | kn6-cicada | yes | −2.5692 (0.267, −3.3305) | −5.4360 | 1.000 [0.981, 1.000] | 1.000 / 1.000 | 1.000 | 20/20 | met (>= 0.9) |
 | cicada-english | 100 | kn8-cicada | yes | −2.5651 (0.272, −3.3238) | −5.4228 | 1.000 [0.981, 1.000] | 1.000 / 1.000 | 1.000 | 20/20 | met (>= 0.9) |
 | cicada-english | 100 | kn8-general | yes | −2.7498 (0.238, −3.3635) | −5.5029 | 1.000 [0.981, 1.000] | 1.000 / 1.000 | 1.000 | 20/20 | met (>= 0.9) |
-| cicada-english | 100 | kn8-latin | yes | −5.5043 (0.429, −6.9434) | −5.8227 | 0.765 [0.702, 0.818] | 0.900 / 0.650 | 0.150 | 20/20 | not met |
-| cicada-english | 100 | kn8-old-english | yes | −4.8036 (0.208, −5.4040) | −5.2763 | 0.995 [0.972, 0.999] | 0.995 / 0.975 | 0.635 | 20/20 | met (>= 0.9) |
-| cicada-english | 100 | kn8-vowel-dropped | yes | −5.4129 (0.231, −6.2351) | −5.3387 | 0.420 [0.354, 0.489] | 0.605 / 0.115 | 0.005 | 19/20 | not met |
+| cicada-english | 100 | kn8-latin | yes | −5.5043 (0.429, −6.9434) | −5.8227 | 0.765 [0.702, 0.818] | 0.900 / 0.650 | 0.150 | 20/20 | n/a: register scorer, not a claim scorer |
+| cicada-english | 100 | kn8-old-english | yes | −4.8036 (0.208, −5.4040) | −5.2763 | 0.995 [0.972, 0.999] | 0.995 / 0.975 | 0.635 | 20/20 | n/a: register scorer, not a claim scorer |
+| cicada-english | 100 | kn8-vowel-dropped | yes | −5.4129 (0.231, −6.2351) | −5.3387 | 0.420 [0.354, 0.489] | 0.605 / 0.115 | 0.005 | 19/20 | n/a: register scorer, not a claim scorer |
 | cicada-english | 100 | kn8-cicada-wb | yes | −2.4762 (0.281, −3.4672) | −6.1773 | 1.000 [0.981, 1.000] | 1.000 / 1.000 | 1.000 | 20/20 | met (>= 0.9) |
 | cicada-english | 240 | lp-ngram3-heldout | yes | −4.2004 (0.184, −4.8182) | −6.1625 | 1.000 [0.981, 1.000] | 1.000 / 1.000 | 1.000 | 20/20 | met (>= 0.9) |
 | cicada-english | 240 | cicada-ngram3 | no | −3.1969 (0.097, −3.5609) | −7.3733 | 1.000 [0.981, 1.000] | 1.000 / 1.000 | 1.000 | 20/20 | not applicable: trained-on text |
@@ -303,9 +303,9 @@ Wrong-key nulls per family (null b), the nb cell with the largest KS in the clai
 | cicada-english | 240 | kn6-cicada | yes | −2.5542 (0.207, −3.4009) | −5.8961 | 1.000 [0.981, 1.000] | 1.000 / 1.000 | 1.000 | 20/20 | met (>= 0.9) |
 | cicada-english | 240 | kn8-cicada | yes | −2.5467 (0.210, −3.4005) | −5.8932 | 1.000 [0.981, 1.000] | 1.000 / 1.000 | 1.000 | 20/20 | met (>= 0.9) |
 | cicada-english | 240 | kn8-general | yes | −2.7400 (0.182, −3.2699) | −5.8583 | 1.000 [0.981, 1.000] | 1.000 / 1.000 | 1.000 | 20/20 | met (>= 0.9) |
-| cicada-english | 240 | kn8-latin | yes | −5.5689 (0.295, −6.3806) | −6.5941 | 1.000 [0.981, 1.000] | 1.000 / 1.000 | 0.965 | 20/20 | met (>= 0.9) |
-| cicada-english | 240 | kn8-old-english | yes | −4.8232 (0.140, −5.1294) | −5.7147 | 1.000 [0.981, 1.000] | 1.000 / 1.000 | 1.000 | 20/20 | met (>= 0.9) |
-| cicada-english | 240 | kn8-vowel-dropped | yes | −5.4240 (0.161, −5.7725) | −5.8419 | 1.000 [0.981, 1.000] | 1.000 / 0.985 | 0.545 | 20/20 | met (>= 0.9) |
+| cicada-english | 240 | kn8-latin | yes | −5.5689 (0.295, −6.3806) | −6.5941 | 1.000 [0.981, 1.000] | 1.000 / 1.000 | 0.965 | 20/20 | n/a: register scorer, not a claim scorer |
+| cicada-english | 240 | kn8-old-english | yes | −4.8232 (0.140, −5.1294) | −5.7147 | 1.000 [0.981, 1.000] | 1.000 / 1.000 | 1.000 | 20/20 | n/a: register scorer, not a claim scorer |
+| cicada-english | 240 | kn8-vowel-dropped | yes | −5.4240 (0.161, −5.7725) | −5.8419 | 1.000 [0.981, 1.000] | 1.000 / 0.985 | 0.545 | 20/20 | n/a: register scorer, not a claim scorer |
 | cicada-english | 240 | kn8-cicada-wb | yes | −2.4450 (0.220, −3.3977) | −6.7496 | 1.000 [0.981, 1.000] | 1.000 / 1.000 | 1.000 | 20/20 | met (>= 0.9) |
 | cicada-english | 250 | lp-ngram3-heldout | yes | −4.1985 (0.166, −4.7903) | −6.2196 | 1.000 [0.981, 1.000] | 1.000 / 1.000 | 1.000 | 20/20 | met (>= 0.9) |
 | cicada-english | 250 | cicada-ngram3 | no | −3.2092 (0.104, −3.6258) | −7.3684 | 1.000 [0.981, 1.000] | 1.000 / 1.000 | 1.000 | 20/20 | not applicable: trained-on text |
@@ -316,9 +316,9 @@ Wrong-key nulls per family (null b), the nb cell with the largest KS in the clai
 | cicada-english | 250 | kn6-cicada | yes | −2.5771 (0.203, −3.5145) | −5.8760 | 1.000 [0.981, 1.000] | 1.000 / 1.000 | 1.000 | 20/20 | met (>= 0.9) |
 | cicada-english | 250 | kn8-cicada | yes | −2.5653 (0.204, −3.4653) | −5.8725 | 1.000 [0.981, 1.000] | 1.000 / 1.000 | 1.000 | 20/20 | met (>= 0.9) |
 | cicada-english | 250 | kn8-general | yes | −2.7428 (0.169, −3.3353) | −5.8878 | 1.000 [0.981, 1.000] | 1.000 / 1.000 | 1.000 | 20/20 | met (>= 0.9) |
-| cicada-english | 250 | kn8-latin | yes | −5.5336 (0.272, −6.2294) | −6.6535 | 1.000 [0.981, 1.000] | 1.000 / 1.000 | 1.000 | 20/20 | met (>= 0.9) |
-| cicada-english | 250 | kn8-old-english | yes | −4.7919 (0.143, −5.1449) | −5.6854 | 1.000 [0.981, 1.000] | 1.000 / 1.000 | 1.000 | 20/20 | met (>= 0.9) |
-| cicada-english | 250 | kn8-vowel-dropped | yes | −5.3925 (0.154, −5.7949) | −5.8881 | 1.000 [0.981, 1.000] | 1.000 / 1.000 | 0.780 | 20/20 | met (>= 0.9) |
+| cicada-english | 250 | kn8-latin | yes | −5.5336 (0.272, −6.2294) | −6.6535 | 1.000 [0.981, 1.000] | 1.000 / 1.000 | 1.000 | 20/20 | n/a: register scorer, not a claim scorer |
+| cicada-english | 250 | kn8-old-english | yes | −4.7919 (0.143, −5.1449) | −5.6854 | 1.000 [0.981, 1.000] | 1.000 / 1.000 | 1.000 | 20/20 | n/a: register scorer, not a claim scorer |
+| cicada-english | 250 | kn8-vowel-dropped | yes | −5.3925 (0.154, −5.7949) | −5.8881 | 1.000 [0.981, 1.000] | 1.000 / 1.000 | 0.780 | 20/20 | n/a: register scorer, not a claim scorer |
 | cicada-english | 250 | kn8-cicada-wb | yes | −2.4601 (0.214, −3.4939) | −6.8308 | 1.000 [0.981, 1.000] | 1.000 / 1.000 | 1.000 | 20/20 | met (>= 0.9) |
 | cicada-english | 263 | lp-ngram3-heldout | yes | −4.2135 (0.162, −4.7502) | −6.2653 | 1.000 [0.981, 1.000] | 1.000 / 1.000 | 1.000 | 20/20 | met (>= 0.9) |
 | cicada-english | 263 | cicada-ngram3 | no | −3.1996 (0.098, −3.4925) | −7.4153 | 1.000 [0.981, 1.000] | 1.000 / 1.000 | 1.000 | 20/20 | not applicable: trained-on text |
@@ -329,9 +329,9 @@ Wrong-key nulls per family (null b), the nb cell with the largest KS in the clai
 | cicada-english | 263 | kn6-cicada | yes | −2.5621 (0.195, −3.3936) | −5.8795 | 1.000 [0.981, 1.000] | 1.000 / 1.000 | 1.000 | 20/20 | met (>= 0.9) |
 | cicada-english | 263 | kn8-cicada | yes | −2.5519 (0.196, −3.3767) | −5.8760 | 1.000 [0.981, 1.000] | 1.000 / 1.000 | 1.000 | 20/20 | met (>= 0.9) |
 | cicada-english | 263 | kn8-general | yes | −2.7279 (0.165, −3.2477) | −5.8803 | 1.000 [0.981, 1.000] | 1.000 / 1.000 | 1.000 | 20/20 | met (>= 0.9) |
-| cicada-english | 263 | kn8-latin | yes | −5.5148 (0.279, −6.1960) | −6.7173 | 1.000 [0.981, 1.000] | 1.000 / 1.000 | 1.000 | 20/20 | met (>= 0.9) |
-| cicada-english | 263 | kn8-old-english | yes | −4.8091 (0.140, −5.1629) | −5.7267 | 1.000 [0.981, 1.000] | 1.000 / 1.000 | 1.000 | 20/20 | met (>= 0.9) |
-| cicada-english | 263 | kn8-vowel-dropped | yes | −5.4148 (0.147, −5.8064) | −5.9329 | 1.000 [0.981, 1.000] | 1.000 / 1.000 | 0.855 | 20/20 | met (>= 0.9) |
+| cicada-english | 263 | kn8-latin | yes | −5.5148 (0.279, −6.1960) | −6.7173 | 1.000 [0.981, 1.000] | 1.000 / 1.000 | 1.000 | 20/20 | n/a: register scorer, not a claim scorer |
+| cicada-english | 263 | kn8-old-english | yes | −4.8091 (0.140, −5.1629) | −5.7267 | 1.000 [0.981, 1.000] | 1.000 / 1.000 | 1.000 | 20/20 | n/a: register scorer, not a claim scorer |
+| cicada-english | 263 | kn8-vowel-dropped | yes | −5.4148 (0.147, −5.8064) | −5.9329 | 1.000 [0.981, 1.000] | 1.000 / 1.000 | 0.855 | 20/20 | n/a: register scorer, not a claim scorer |
 | cicada-english | 263 | kn8-cicada-wb | yes | −2.4494 (0.205, −3.3778) | −6.7725 | 1.000 [0.981, 1.000] | 1.000 / 1.000 | 1.000 | 20/20 | met (>= 0.9) |
 | cicada-english | 500 | lp-ngram3-heldout | yes | −4.2244 (0.125, −4.6003) | −6.5338 | 1.000 [0.981, 1.000] | 1.000 / 1.000 | 1.000 | 20/20 | met (>= 0.9) |
 | cicada-english | 500 | cicada-ngram3 | no | −3.2012 (0.076, −3.4185) | −8.1089 | 1.000 [0.981, 1.000] | 1.000 / 1.000 | 1.000 | 20/20 | not applicable: trained-on text |
@@ -342,9 +342,9 @@ Wrong-key nulls per family (null b), the nb cell with the largest KS in the clai
 | cicada-english | 500 | kn6-cicada | yes | −2.5380 (0.139, −3.1590) | −6.0826 | 1.000 [0.981, 1.000] | 1.000 / 1.000 | 1.000 | 20/20 | met (>= 0.9) |
 | cicada-english | 500 | kn8-cicada | yes | −2.5285 (0.141, −3.1237) | −6.0793 | 1.000 [0.981, 1.000] | 1.000 / 1.000 | 1.000 | 20/20 | met (>= 0.9) |
 | cicada-english | 500 | kn8-general | yes | −2.7214 (0.128, −3.1217) | −6.1430 | 1.000 [0.981, 1.000] | 1.000 / 1.000 | 1.000 | 20/20 | met (>= 0.9) |
-| cicada-english | 500 | kn8-latin | yes | −5.5136 (0.195, −6.0489) | −6.9992 | 1.000 [0.981, 1.000] | 1.000 / 1.000 | 1.000 | 20/20 | met (>= 0.9) |
-| cicada-english | 500 | kn8-old-english | yes | −4.8154 (0.107, −5.1133) | −5.9216 | 1.000 [0.981, 1.000] | 1.000 / 1.000 | 1.000 | 20/20 | met (>= 0.9) |
-| cicada-english | 500 | kn8-vowel-dropped | yes | −5.4240 (0.113, −5.6536) | −6.1131 | 1.000 [0.981, 1.000] | 1.000 / 1.000 | 1.000 | 20/20 | met (>= 0.9) |
+| cicada-english | 500 | kn8-latin | yes | −5.5136 (0.195, −6.0489) | −6.9992 | 1.000 [0.981, 1.000] | 1.000 / 1.000 | 1.000 | 20/20 | n/a: register scorer, not a claim scorer |
+| cicada-english | 500 | kn8-old-english | yes | −4.8154 (0.107, −5.1133) | −5.9216 | 1.000 [0.981, 1.000] | 1.000 / 1.000 | 1.000 | 20/20 | n/a: register scorer, not a claim scorer |
+| cicada-english | 500 | kn8-vowel-dropped | yes | −5.4240 (0.113, −5.6536) | −6.1131 | 1.000 [0.981, 1.000] | 1.000 / 1.000 | 1.000 | 20/20 | n/a: register scorer, not a claim scorer |
 | cicada-english | 500 | kn8-cicada-wb | yes | −2.4194 (0.150, −3.0780) | −7.0063 | 1.000 [0.981, 1.000] | 1.000 / 1.000 | 1.000 | 20/20 | met (>= 0.9) |
 | cicada-english | 1000 | lp-ngram3-heldout | yes | −4.2150 (0.091, −4.4629) | −6.6876 | 1.000 [0.981, 1.000] | 1.000 / 1.000 | 1.000 | 20/20 | met (>= 0.9) |
 | cicada-english | 1000 | cicada-ngram3 | no | −3.1986 (0.053, −3.3497) | −8.5408 | 1.000 [0.981, 1.000] | 1.000 / 1.000 | 1.000 | 20/20 | not applicable: trained-on text |
@@ -355,9 +355,9 @@ Wrong-key nulls per family (null b), the nb cell with the largest KS in the clai
 | cicada-english | 1000 | kn6-cicada | yes | −2.5414 (0.099, −2.9308) | −6.2380 | 1.000 [0.981, 1.000] | 1.000 / 1.000 | 1.000 | 20/20 | met (>= 0.9) |
 | cicada-english | 1000 | kn8-cicada | yes | −2.5318 (0.101, −2.9105) | −6.2361 | 1.000 [0.981, 1.000] | 1.000 / 1.000 | 1.000 | 20/20 | met (>= 0.9) |
 | cicada-english | 1000 | kn8-general | yes | −2.7263 (0.090, −2.9718) | −6.2725 | 1.000 [0.981, 1.000] | 1.000 / 1.000 | 1.000 | 20/20 | met (>= 0.9) |
-| cicada-english | 1000 | kn8-latin | yes | −5.5232 (0.137, −5.8628) | −7.2757 | 1.000 [0.981, 1.000] | 1.000 / 1.000 | 1.000 | 20/20 | met (>= 0.9) |
-| cicada-english | 1000 | kn8-old-english | yes | −4.8170 (0.088, −5.0186) | −6.0991 | 1.000 [0.981, 1.000] | 1.000 / 1.000 | 1.000 | 20/20 | met (>= 0.9) |
-| cicada-english | 1000 | kn8-vowel-dropped | yes | −5.4205 (0.093, −5.6394) | −6.3892 | 1.000 [0.981, 1.000] | 1.000 / 1.000 | 1.000 | 20/20 | met (>= 0.9) |
+| cicada-english | 1000 | kn8-latin | yes | −5.5232 (0.137, −5.8628) | −7.2757 | 1.000 [0.981, 1.000] | 1.000 / 1.000 | 1.000 | 20/20 | n/a: register scorer, not a claim scorer |
+| cicada-english | 1000 | kn8-old-english | yes | −4.8170 (0.088, −5.0186) | −6.0991 | 1.000 [0.981, 1.000] | 1.000 / 1.000 | 1.000 | 20/20 | n/a: register scorer, not a claim scorer |
+| cicada-english | 1000 | kn8-vowel-dropped | yes | −5.4205 (0.093, −5.6394) | −6.3892 | 1.000 [0.981, 1.000] | 1.000 / 1.000 | 1.000 | 20/20 | n/a: register scorer, not a claim scorer |
 | cicada-english | 1000 | kn8-cicada-wb | yes | −2.4229 (0.108, −2.8785) | −7.1809 | 1.000 [0.981, 1.000] | 1.000 / 1.000 | 1.000 | 20/20 | met (>= 0.9) |
 | latin | 100 | lp-ngram3-heldout | yes | −4.8018 (0.214, −5.5166) | −5.5252 | 1.000 [0.981, 1.000] | 1.000 / 0.995 | 0.675 | 20/20 | met (>= 0.5) |
 | latin | 100 | cicada-ngram3 | yes | −4.2785 (0.276, −5.1237) | −6.4415 | 1.000 [0.981, 1.000] | 1.000 / 1.000 | 1.000 | 20/20 | met (>= 0.5) |
@@ -368,9 +368,9 @@ Wrong-key nulls per family (null b), the nb cell with the largest KS in the clai
 | latin | 100 | kn6-cicada | yes | −4.2457 (0.208, −4.7276) | −5.4360 | 1.000 [0.981, 1.000] | 1.000 / 1.000 | 1.000 | 20/20 | met (>= 0.5) |
 | latin | 100 | kn8-cicada | yes | −4.2017 (0.206, −4.7010) | −5.4228 | 1.000 [0.981, 1.000] | 1.000 / 1.000 | 1.000 | 20/20 | met (>= 0.5) |
 | latin | 100 | kn8-general | yes | −4.2763 (0.212, −4.8612) | −5.5029 | 1.000 [0.981, 1.000] | 1.000 / 1.000 | 1.000 | 20/20 | met (>= 0.5) |
-| latin | 100 | kn8-latin | yes | −2.3191 (0.249, −3.2136) | −5.8227 | 1.000 [0.981, 1.000] | 1.000 / 1.000 | 1.000 | 20/20 | met (>= 0.5) |
-| latin | 100 | kn8-old-english | yes | −4.9434 (0.189, −5.4788) | −5.2763 | 0.950 [0.910, 0.973] | 0.985 / 0.895 | 0.320 | 20/20 | met (>= 0.5) |
-| latin | 100 | kn8-vowel-dropped | yes | −5.5621 (0.187, −6.0131) | −5.3387 | 0.110 [0.074, 0.161] | 0.350 / 0.015 | 0.000 | 20/20 | not met |
+| latin | 100 | kn8-latin | yes | −2.3191 (0.249, −3.2136) | −5.8227 | 1.000 [0.981, 1.000] | 1.000 / 1.000 | 1.000 | 20/20 | n/a: register scorer, not a claim scorer |
+| latin | 100 | kn8-old-english | yes | −4.9434 (0.189, −5.4788) | −5.2763 | 0.950 [0.910, 0.973] | 0.985 / 0.895 | 0.320 | 20/20 | n/a: register scorer, not a claim scorer |
+| latin | 100 | kn8-vowel-dropped | yes | −5.5621 (0.187, −6.0131) | −5.3387 | 0.110 [0.074, 0.161] | 0.350 / 0.015 | 0.000 | 20/20 | n/a: register scorer, not a claim scorer |
 | latin | 100 | kn8-cicada-wb | yes | −4.7335 (0.262, −5.5128) | −6.1773 | 1.000 [0.981, 1.000] | 1.000 / 1.000 | 1.000 | 20/20 | met (>= 0.5) |
 | latin | 240 | lp-ngram3-heldout | yes | −4.8332 (0.142, −5.2940) | −6.1625 | 1.000 [0.981, 1.000] | 1.000 / 1.000 | 1.000 | 20/20 | met (>= 0.5) |
 | latin | 240 | cicada-ngram3 | yes | −4.2890 (0.202, −4.9671) | −7.3733 | 1.000 [0.981, 1.000] | 1.000 / 1.000 | 1.000 | 20/20 | met (>= 0.5) |
@@ -381,9 +381,9 @@ Wrong-key nulls per family (null b), the nb cell with the largest KS in the clai
 | latin | 240 | kn6-cicada | yes | −4.2597 (0.143, −4.6340) | −5.8961 | 1.000 [0.981, 1.000] | 1.000 / 1.000 | 1.000 | 20/20 | met (>= 0.5) |
 | latin | 240 | kn8-cicada | yes | −4.2128 (0.144, −4.5782) | −5.8932 | 1.000 [0.981, 1.000] | 1.000 / 1.000 | 1.000 | 20/20 | met (>= 0.5) |
 | latin | 240 | kn8-general | yes | −4.2863 (0.144, −4.7493) | −5.8583 | 1.000 [0.981, 1.000] | 1.000 / 1.000 | 1.000 | 20/20 | met (>= 0.5) |
-| latin | 240 | kn8-latin | yes | −2.2775 (0.221, −2.8947) | −6.5941 | 1.000 [0.981, 1.000] | 1.000 / 1.000 | 1.000 | 20/20 | met (>= 0.5) |
-| latin | 240 | kn8-old-english | yes | −4.9166 (0.119, −5.2866) | −5.7147 | 1.000 [0.981, 1.000] | 1.000 / 1.000 | 1.000 | 20/20 | met (>= 0.5) |
-| latin | 240 | kn8-vowel-dropped | yes | −5.5885 (0.121, −5.8672) | −5.8419 | 0.980 [0.950, 0.992] | 1.000 / 0.960 | 0.140 | 20/20 | met (>= 0.5) |
+| latin | 240 | kn8-latin | yes | −2.2775 (0.221, −2.8947) | −6.5941 | 1.000 [0.981, 1.000] | 1.000 / 1.000 | 1.000 | 20/20 | n/a: register scorer, not a claim scorer |
+| latin | 240 | kn8-old-english | yes | −4.9166 (0.119, −5.2866) | −5.7147 | 1.000 [0.981, 1.000] | 1.000 / 1.000 | 1.000 | 20/20 | n/a: register scorer, not a claim scorer |
+| latin | 240 | kn8-vowel-dropped | yes | −5.5885 (0.121, −5.8672) | −5.8419 | 0.980 [0.950, 0.992] | 1.000 / 0.960 | 0.140 | 20/20 | n/a: register scorer, not a claim scorer |
 | latin | 240 | kn8-cicada-wb | yes | −4.7250 (0.160, −5.1574) | −6.7496 | 1.000 [0.981, 1.000] | 1.000 / 1.000 | 1.000 | 20/20 | met (>= 0.5) |
 | latin | 250 | lp-ngram3-heldout | yes | −4.8233 (0.137, −5.2766) | −6.2196 | 1.000 [0.981, 1.000] | 1.000 / 1.000 | 1.000 | 20/20 | met (>= 0.5) |
 | latin | 250 | cicada-ngram3 | yes | −4.2722 (0.181, −4.9940) | −7.3684 | 1.000 [0.981, 1.000] | 1.000 / 1.000 | 1.000 | 20/20 | met (>= 0.5) |
@@ -394,9 +394,9 @@ Wrong-key nulls per family (null b), the nb cell with the largest KS in the clai
 | latin | 250 | kn6-cicada | yes | −4.2589 (0.131, −4.6514) | −5.8760 | 1.000 [0.981, 1.000] | 1.000 / 1.000 | 1.000 | 20/20 | met (>= 0.5) |
 | latin | 250 | kn8-cicada | yes | −4.2102 (0.130, −4.6013) | −5.8725 | 1.000 [0.981, 1.000] | 1.000 / 1.000 | 1.000 | 20/20 | met (>= 0.5) |
 | latin | 250 | kn8-general | yes | −4.2751 (0.130, −4.7312) | −5.8878 | 1.000 [0.981, 1.000] | 1.000 / 1.000 | 1.000 | 20/20 | met (>= 0.5) |
-| latin | 250 | kn8-latin | yes | −2.2894 (0.207, −2.8767) | −6.6535 | 1.000 [0.981, 1.000] | 1.000 / 1.000 | 1.000 | 20/20 | met (>= 0.5) |
-| latin | 250 | kn8-old-english | yes | −4.9237 (0.111, −5.2310) | −5.6854 | 1.000 [0.981, 1.000] | 1.000 / 1.000 | 1.000 | 20/20 | met (>= 0.5) |
-| latin | 250 | kn8-vowel-dropped | yes | −5.5805 (0.124, −5.9318) | −5.8881 | 0.990 [0.964, 0.997] | 1.000 / 0.975 | 0.290 | 20/20 | met (>= 0.5) |
+| latin | 250 | kn8-latin | yes | −2.2894 (0.207, −2.8767) | −6.6535 | 1.000 [0.981, 1.000] | 1.000 / 1.000 | 1.000 | 20/20 | n/a: register scorer, not a claim scorer |
+| latin | 250 | kn8-old-english | yes | −4.9237 (0.111, −5.2310) | −5.6854 | 1.000 [0.981, 1.000] | 1.000 / 1.000 | 1.000 | 20/20 | n/a: register scorer, not a claim scorer |
+| latin | 250 | kn8-vowel-dropped | yes | −5.5805 (0.124, −5.9318) | −5.8881 | 0.990 [0.964, 0.997] | 1.000 / 0.975 | 0.290 | 20/20 | n/a: register scorer, not a claim scorer |
 | latin | 250 | kn8-cicada-wb | yes | −4.7218 (0.154, −5.1005) | −6.8308 | 1.000 [0.981, 1.000] | 1.000 / 1.000 | 1.000 | 20/20 | met (>= 0.5) |
 | latin | 263 | lp-ngram3-heldout | yes | −4.8351 (0.156, −5.3001) | −6.2653 | 1.000 [0.981, 1.000] | 1.000 / 1.000 | 1.000 | 20/20 | met (>= 0.5) |
 | latin | 263 | cicada-ngram3 | yes | −4.2846 (0.195, −4.9462) | −7.4153 | 1.000 [0.981, 1.000] | 1.000 / 1.000 | 1.000 | 20/20 | met (>= 0.5) |
@@ -407,9 +407,9 @@ Wrong-key nulls per family (null b), the nb cell with the largest KS in the clai
 | latin | 263 | kn6-cicada | yes | −4.2614 (0.135, −4.6520) | −5.8795 | 1.000 [0.981, 1.000] | 1.000 / 1.000 | 1.000 | 20/20 | met (>= 0.5) |
 | latin | 263 | kn8-cicada | yes | −4.2146 (0.135, −4.5903) | −5.8760 | 1.000 [0.981, 1.000] | 1.000 / 1.000 | 1.000 | 20/20 | met (>= 0.5) |
 | latin | 263 | kn8-general | yes | −4.2765 (0.141, −4.7247) | −5.8803 | 1.000 [0.981, 1.000] | 1.000 / 1.000 | 1.000 | 20/20 | met (>= 0.5) |
-| latin | 263 | kn8-latin | yes | −2.2596 (0.188, −2.6988) | −6.7173 | 1.000 [0.981, 1.000] | 1.000 / 1.000 | 1.000 | 20/20 | met (>= 0.5) |
-| latin | 263 | kn8-old-english | yes | −4.9320 (0.106, −5.2015) | −5.7267 | 1.000 [0.981, 1.000] | 1.000 / 1.000 | 1.000 | 20/20 | met (>= 0.5) |
-| latin | 263 | kn8-vowel-dropped | yes | −5.5745 (0.106, −5.8977) | −5.9329 | 1.000 [0.981, 1.000] | 1.000 / 0.990 | 0.520 | 19/20 | met (>= 0.5) |
+| latin | 263 | kn8-latin | yes | −2.2596 (0.188, −2.6988) | −6.7173 | 1.000 [0.981, 1.000] | 1.000 / 1.000 | 1.000 | 20/20 | n/a: register scorer, not a claim scorer |
+| latin | 263 | kn8-old-english | yes | −4.9320 (0.106, −5.2015) | −5.7267 | 1.000 [0.981, 1.000] | 1.000 / 1.000 | 1.000 | 20/20 | n/a: register scorer, not a claim scorer |
+| latin | 263 | kn8-vowel-dropped | yes | −5.5745 (0.106, −5.8977) | −5.9329 | 1.000 [0.981, 1.000] | 1.000 / 0.990 | 0.520 | 19/20 | n/a: register scorer, not a claim scorer |
 | latin | 263 | kn8-cicada-wb | yes | −4.7230 (0.151, −5.1495) | −6.7725 | 1.000 [0.981, 1.000] | 1.000 / 1.000 | 1.000 | 20/20 | met (>= 0.5) |
 | latin | 500 | lp-ngram3-heldout | yes | −4.8111 (0.121, −5.1598) | −6.5338 | 1.000 [0.981, 1.000] | 1.000 / 1.000 | 1.000 | 20/20 | met (>= 0.5) |
 | latin | 500 | cicada-ngram3 | yes | −4.2649 (0.150, −4.8233) | −8.1089 | 1.000 [0.981, 1.000] | 1.000 / 1.000 | 1.000 | 20/20 | met (>= 0.5) |
@@ -420,9 +420,9 @@ Wrong-key nulls per family (null b), the nb cell with the largest KS in the clai
 | latin | 500 | kn6-cicada | yes | −4.2436 (0.107, −4.5632) | −6.0826 | 1.000 [0.981, 1.000] | 1.000 / 1.000 | 1.000 | 20/20 | met (>= 0.5) |
 | latin | 500 | kn8-cicada | yes | −4.1996 (0.107, −4.5079) | −6.0793 | 1.000 [0.981, 1.000] | 1.000 / 1.000 | 1.000 | 20/20 | met (>= 0.5) |
 | latin | 500 | kn8-general | yes | −4.2714 (0.106, −4.5858) | −6.1430 | 1.000 [0.981, 1.000] | 1.000 / 1.000 | 1.000 | 20/20 | met (>= 0.5) |
-| latin | 500 | kn8-latin | yes | −2.2506 (0.159, −2.6697) | −6.9992 | 1.000 [0.981, 1.000] | 1.000 / 1.000 | 1.000 | 20/20 | met (>= 0.5) |
-| latin | 500 | kn8-old-english | yes | −4.9238 (0.078, −5.1585) | −5.9216 | 1.000 [0.981, 1.000] | 1.000 / 1.000 | 1.000 | 20/20 | met (>= 0.5) |
-| latin | 500 | kn8-vowel-dropped | yes | −5.5713 (0.080, −5.7617) | −6.1131 | 1.000 [0.981, 1.000] | 1.000 / 1.000 | 1.000 | 20/20 | met (>= 0.5) |
+| latin | 500 | kn8-latin | yes | −2.2506 (0.159, −2.6697) | −6.9992 | 1.000 [0.981, 1.000] | 1.000 / 1.000 | 1.000 | 20/20 | n/a: register scorer, not a claim scorer |
+| latin | 500 | kn8-old-english | yes | −4.9238 (0.078, −5.1585) | −5.9216 | 1.000 [0.981, 1.000] | 1.000 / 1.000 | 1.000 | 20/20 | n/a: register scorer, not a claim scorer |
+| latin | 500 | kn8-vowel-dropped | yes | −5.5713 (0.080, −5.7617) | −6.1131 | 1.000 [0.981, 1.000] | 1.000 / 1.000 | 1.000 | 20/20 | n/a: register scorer, not a claim scorer |
 | latin | 500 | kn8-cicada-wb | yes | −4.7019 (0.117, −4.9801) | −7.0063 | 1.000 [0.981, 1.000] | 1.000 / 1.000 | 1.000 | 20/20 | met (>= 0.5) |
 | latin | 1000 | lp-ngram3-heldout | yes | −4.8215 (0.087, −5.1003) | −6.6876 | 1.000 [0.981, 1.000] | 1.000 / 1.000 | 1.000 | 20/20 | met (>= 0.5) |
 | latin | 1000 | cicada-ngram3 | yes | −4.2732 (0.107, −4.6449) | −8.5408 | 1.000 [0.981, 1.000] | 1.000 / 1.000 | 1.000 | 20/20 | met (>= 0.5) |
@@ -433,9 +433,9 @@ Wrong-key nulls per family (null b), the nb cell with the largest KS in the clai
 | latin | 1000 | kn6-cicada | yes | −4.2507 (0.076, −4.4842) | −6.2380 | 1.000 [0.981, 1.000] | 1.000 / 1.000 | 1.000 | 20/20 | met (>= 0.5) |
 | latin | 1000 | kn8-cicada | yes | −4.2029 (0.078, −4.4376) | −6.2361 | 1.000 [0.981, 1.000] | 1.000 / 1.000 | 1.000 | 20/20 | met (>= 0.5) |
 | latin | 1000 | kn8-general | yes | −4.2732 (0.072, −4.5308) | −6.2725 | 1.000 [0.981, 1.000] | 1.000 / 1.000 | 1.000 | 20/20 | met (>= 0.5) |
-| latin | 1000 | kn8-latin | yes | −2.2747 (0.117, −2.5692) | −7.2757 | 1.000 [0.981, 1.000] | 1.000 / 1.000 | 1.000 | 20/20 | met (>= 0.5) |
-| latin | 1000 | kn8-old-english | yes | −4.9294 (0.047, −5.0246) | −6.0991 | 1.000 [0.981, 1.000] | 1.000 / 1.000 | 1.000 | 20/20 | met (>= 0.5) |
-| latin | 1000 | kn8-vowel-dropped | yes | −5.5844 (0.051, −5.6808) | −6.3892 | 1.000 [0.981, 1.000] | 1.000 / 1.000 | 1.000 | 20/20 | met (>= 0.5) |
+| latin | 1000 | kn8-latin | yes | −2.2747 (0.117, −2.5692) | −7.2757 | 1.000 [0.981, 1.000] | 1.000 / 1.000 | 1.000 | 20/20 | n/a: register scorer, not a claim scorer |
+| latin | 1000 | kn8-old-english | yes | −4.9294 (0.047, −5.0246) | −6.0991 | 1.000 [0.981, 1.000] | 1.000 / 1.000 | 1.000 | 20/20 | n/a: register scorer, not a claim scorer |
+| latin | 1000 | kn8-vowel-dropped | yes | −5.5844 (0.051, −5.6808) | −6.3892 | 1.000 [0.981, 1.000] | 1.000 / 1.000 | 1.000 | 20/20 | n/a: register scorer, not a claim scorer |
 | latin | 1000 | kn8-cicada-wb | yes | −4.7148 (0.072, −4.8991) | −7.1809 | 1.000 [0.981, 1.000] | 1.000 / 1.000 | 1.000 | 20/20 | met (>= 0.5) |
 | vowel-dropped-english | 100 | lp-ngram3-heldout | yes | −5.6434 (0.230, −6.2802) | −5.5252 | 0.295 [0.236, 0.362] | 0.600 / 0.110 | 0.005 | 20/20 | not met |
 | vowel-dropped-english | 100 | cicada-ngram3 | yes | −6.7595 (0.436, −8.0587) | −6.4415 | 0.225 [0.173, 0.288] | 0.425 / 0.125 | 0.005 | 20/20 | not met |
@@ -446,9 +446,9 @@ Wrong-key nulls per family (null b), the nb cell with the largest KS in the clai
 | vowel-dropped-english | 100 | kn6-cicada | yes | −5.8384 (0.199, −6.3037) | −5.4360 | 0.010 [0.003, 0.036] | 0.055 / 0.010 | 0.000 | 17/20 | not met |
 | vowel-dropped-english | 100 | kn8-cicada | yes | −5.8254 (0.204, −6.2997) | −5.4228 | 0.015 [0.005, 0.043] | 0.050 / 0.010 | 0.000 | 17/20 | not met |
 | vowel-dropped-english | 100 | kn8-general | yes | −5.9597 (0.207, −6.4411) | −5.5029 | 0.010 [0.003, 0.036] | 0.025 / 0.005 | 0.005 | 15/20 | not met |
-| vowel-dropped-english | 100 | kn8-latin | yes | −7.2493 (0.361, −8.2810) | −5.8227 | 0.000 [0.000, 0.019] | 0.005 / 0.000 | 0.000 | 3/20 | not met |
-| vowel-dropped-english | 100 | kn8-old-english | yes | −5.7851 (0.175, −6.2763) | −5.2763 | 0.000 [0.000, 0.019] | 0.015 / 0.000 | 0.000 | 17/20 | not met |
-| vowel-dropped-english | 100 | kn8-vowel-dropped | yes | −3.4593 (0.277, −4.1989) | −5.3387 | 1.000 [0.981, 1.000] | 1.000 / 1.000 | 1.000 | 20/20 | met (>= 0.5) |
+| vowel-dropped-english | 100 | kn8-latin | yes | −7.2493 (0.361, −8.2810) | −5.8227 | 0.000 [0.000, 0.019] | 0.005 / 0.000 | 0.000 | 3/20 | n/a: register scorer, not a claim scorer |
+| vowel-dropped-english | 100 | kn8-old-english | yes | −5.7851 (0.175, −6.2763) | −5.2763 | 0.000 [0.000, 0.019] | 0.015 / 0.000 | 0.000 | 17/20 | n/a: register scorer, not a claim scorer |
+| vowel-dropped-english | 100 | kn8-vowel-dropped | yes | −3.4593 (0.277, −4.1989) | −5.3387 | 1.000 [0.981, 1.000] | 1.000 / 1.000 | 1.000 | 20/20 | n/a: register scorer, not a claim scorer |
 | vowel-dropped-english | 100 | kn8-cicada-wb | yes | −7.3351 (0.465, −8.5820) | −6.1773 | 0.010 [0.003, 0.036] | 0.010 / 0.010 | 0.000 | 19/20 | not met |
 | vowel-dropped-english | 240 | lp-ngram3-heldout | yes | −5.6522 (0.160, −6.0281) | −6.1625 | 1.000 [0.981, 1.000] | 1.000 / 1.000 | 0.790 | 20/20 | met (>= 0.5) |
 | vowel-dropped-english | 240 | cicada-ngram3 | yes | −6.7715 (0.323, −7.5590) | −7.3733 | 0.965 [0.930, 0.983] | 0.995 / 0.900 | 0.260 | 20/20 | met (>= 0.5) |
@@ -459,9 +459,9 @@ Wrong-key nulls per family (null b), the nb cell with the largest KS in the clai
 | vowel-dropped-english | 240 | kn6-cicada | yes | −5.8504 (0.152, −6.1792) | −5.8961 | 0.625 [0.556, 0.689] | 0.735 / 0.485 | 0.095 | 20/20 | met (>= 0.5) |
 | vowel-dropped-english | 240 | kn8-cicada | yes | −5.8381 (0.156, −6.1735) | −5.8932 | 0.645 [0.577, 0.708] | 0.725 / 0.490 | 0.120 | 20/20 | met (>= 0.5) |
 | vowel-dropped-english | 240 | kn8-general | yes | −5.9735 (0.158, −6.3302) | −5.8583 | 0.225 [0.173, 0.288] | 0.395 / 0.145 | 0.015 | 20/20 | not met |
-| vowel-dropped-english | 240 | kn8-latin | yes | −7.2639 (0.255, −7.8233) | −6.5941 | 0.000 [0.000, 0.019] | 0.000 / 0.000 | 0.000 | 13/20 | not met |
-| vowel-dropped-english | 240 | kn8-old-english | yes | −5.7947 (0.125, −6.1450) | −5.7147 | 0.265 [0.209, 0.330] | 0.435 / 0.200 | 0.000 | 20/20 | not met |
-| vowel-dropped-english | 240 | kn8-vowel-dropped | yes | −3.4617 (0.207, −3.9823) | −5.8419 | 1.000 [0.981, 1.000] | 1.000 / 1.000 | 1.000 | 20/20 | met (>= 0.5) |
+| vowel-dropped-english | 240 | kn8-latin | yes | −7.2639 (0.255, −7.8233) | −6.5941 | 0.000 [0.000, 0.019] | 0.000 / 0.000 | 0.000 | 13/20 | n/a: register scorer, not a claim scorer |
+| vowel-dropped-english | 240 | kn8-old-english | yes | −5.7947 (0.125, −6.1450) | −5.7147 | 0.265 [0.209, 0.330] | 0.435 / 0.200 | 0.000 | 20/20 | n/a: register scorer, not a claim scorer |
+| vowel-dropped-english | 240 | kn8-vowel-dropped | yes | −3.4617 (0.207, −3.9823) | −5.8419 | 1.000 [0.981, 1.000] | 1.000 / 1.000 | 1.000 | 20/20 | n/a: register scorer, not a claim scorer |
 | vowel-dropped-english | 240 | kn8-cicada-wb | yes | −7.3634 (0.314, −8.2568) | −6.7496 | 0.030 [0.014, 0.064] | 0.065 / 0.010 | 0.000 | 20/20 | not met |
 | vowel-dropped-english | 250 | lp-ngram3-heldout | yes | −5.6496 (0.133, −5.9989) | −6.2196 | 1.000 [0.981, 1.000] | 1.000 / 1.000 | 0.975 | 20/20 | met (>= 0.5) |
 | vowel-dropped-english | 250 | cicada-ngram3 | yes | −6.7352 (0.276, −7.3818) | −7.3684 | 0.990 [0.964, 0.997] | 1.000 / 0.960 | 0.245 | 20/20 | met (>= 0.5) |
@@ -472,9 +472,9 @@ Wrong-key nulls per family (null b), the nb cell with the largest KS in the clai
 | vowel-dropped-english | 250 | kn6-cicada | yes | −5.8484 (0.133, −6.1742) | −5.8760 | 0.585 [0.516, 0.651] | 0.740 / 0.375 | 0.055 | 19/20 | met (>= 0.5) |
 | vowel-dropped-english | 250 | kn8-cicada | yes | −5.8355 (0.134, −6.1662) | −5.8725 | 0.615 [0.546, 0.680] | 0.750 / 0.450 | 0.060 | 19/20 | met (>= 0.5) |
 | vowel-dropped-english | 250 | kn8-general | yes | −5.9695 (0.135, −6.3190) | −5.8878 | 0.250 [0.195, 0.314] | 0.410 / 0.135 | 0.015 | 19/20 | not met |
-| vowel-dropped-english | 250 | kn8-latin | yes | −7.2861 (0.244, −7.8378) | −6.6535 | 0.005 [0.001, 0.028] | 0.015 / 0.000 | 0.000 | 13/20 | not met |
-| vowel-dropped-english | 250 | kn8-old-english | yes | −5.7976 (0.116, −6.0574) | −5.6854 | 0.175 [0.129, 0.234] | 0.290 / 0.095 | 0.000 | 19/20 | not met |
-| vowel-dropped-english | 250 | kn8-vowel-dropped | yes | −3.4599 (0.205, −3.9210) | −5.8881 | 1.000 [0.981, 1.000] | 1.000 / 1.000 | 1.000 | 20/20 | met (>= 0.5) |
+| vowel-dropped-english | 250 | kn8-latin | yes | −7.2861 (0.244, −7.8378) | −6.6535 | 0.005 [0.001, 0.028] | 0.015 / 0.000 | 0.000 | 13/20 | n/a: register scorer, not a claim scorer |
+| vowel-dropped-english | 250 | kn8-old-english | yes | −5.7976 (0.116, −6.0574) | −5.6854 | 0.175 [0.129, 0.234] | 0.290 / 0.095 | 0.000 | 19/20 | n/a: register scorer, not a claim scorer |
+| vowel-dropped-english | 250 | kn8-vowel-dropped | yes | −3.4599 (0.205, −3.9210) | −5.8881 | 1.000 [0.981, 1.000] | 1.000 / 1.000 | 1.000 | 20/20 | n/a: register scorer, not a claim scorer |
 | vowel-dropped-english | 250 | kn8-cicada-wb | yes | −7.3614 (0.307, −8.1128) | −6.8308 | 0.045 [0.024, 0.083] | 0.090 / 0.025 | 0.000 | 20/20 | not met |
 | vowel-dropped-english | 263 | lp-ngram3-heldout | yes | −5.6853 (0.126, −5.9740) | −6.2653 | 1.000 [0.981, 1.000] | 1.000 / 1.000 | 0.995 | 20/20 | met (>= 0.5) |
 | vowel-dropped-english | 263 | cicada-ngram3 | yes | −6.8219 (0.243, −7.4255) | −7.4153 | 0.995 [0.972, 0.999] | 1.000 / 0.975 | 0.155 | 20/20 | met (>= 0.5) |
@@ -485,9 +485,9 @@ Wrong-key nulls per family (null b), the nb cell with the largest KS in the clai
 | vowel-dropped-english | 263 | kn6-cicada | yes | −5.8836 (0.111, −6.1496) | −5.8795 | 0.470 [0.402, 0.539] | 0.640 / 0.320 | 0.010 | 20/20 | not met |
 | vowel-dropped-english | 263 | kn8-cicada | yes | −5.8717 (0.113, −6.1452) | −5.8760 | 0.500 [0.431, 0.569] | 0.655 / 0.360 | 0.015 | 20/20 | met (>= 0.5) |
 | vowel-dropped-english | 263 | kn8-general | yes | −6.0083 (0.117, −6.2683) | −5.8803 | 0.150 [0.107, 0.206] | 0.265 / 0.070 | 0.000 | 19/20 | not met |
-| vowel-dropped-english | 263 | kn8-latin | yes | −7.3346 (0.236, −8.0706) | −6.7173 | 0.000 [0.000, 0.019] | 0.015 / 0.000 | 0.000 | 10/20 | not met |
-| vowel-dropped-english | 263 | kn8-old-english | yes | −5.8164 (0.099, −6.0671) | −5.7267 | 0.155 [0.111, 0.212] | 0.345 / 0.070 | 0.000 | 20/20 | not met |
-| vowel-dropped-english | 263 | kn8-vowel-dropped | yes | −3.4536 (0.211, −4.0483) | −5.9329 | 1.000 [0.981, 1.000] | 1.000 / 1.000 | 1.000 | 20/20 | met (>= 0.5) |
+| vowel-dropped-english | 263 | kn8-latin | yes | −7.3346 (0.236, −8.0706) | −6.7173 | 0.000 [0.000, 0.019] | 0.015 / 0.000 | 0.000 | 10/20 | n/a: register scorer, not a claim scorer |
+| vowel-dropped-english | 263 | kn8-old-english | yes | −5.8164 (0.099, −6.0671) | −5.7267 | 0.155 [0.111, 0.212] | 0.345 / 0.070 | 0.000 | 20/20 | n/a: register scorer, not a claim scorer |
+| vowel-dropped-english | 263 | kn8-vowel-dropped | yes | −3.4536 (0.211, −4.0483) | −5.9329 | 1.000 [0.981, 1.000] | 1.000 / 1.000 | 1.000 | 20/20 | n/a: register scorer, not a claim scorer |
 | vowel-dropped-english | 263 | kn8-cicada-wb | yes | −7.4480 (0.270, −8.3012) | −6.7725 | 0.000 [0.000, 0.019] | 0.000 / 0.000 | 0.000 | 20/20 | not met |
 | vowel-dropped-english | 500 | lp-ngram3-heldout | yes | −5.6757 (0.104, −5.8968) | −6.5338 | 1.000 [0.981, 1.000] | 1.000 / 1.000 | 1.000 | 20/20 | met (>= 0.5) |
 | vowel-dropped-english | 500 | cicada-ngram3 | yes | −6.7938 (0.198, −7.3285) | −8.1089 | 1.000 [0.981, 1.000] | 1.000 / 1.000 | 1.000 | 20/20 | met (>= 0.5) |
@@ -498,9 +498,9 @@ Wrong-key nulls per family (null b), the nb cell with the largest KS in the clai
 | vowel-dropped-english | 500 | kn6-cicada | yes | −5.8682 (0.101, −6.0919) | −6.0826 | 0.985 [0.957, 0.995] | 1.000 / 0.960 | 0.595 | 20/20 | met (>= 0.5) |
 | vowel-dropped-english | 500 | kn8-cicada | yes | −5.8559 (0.104, −6.0838) | −6.0793 | 0.995 [0.972, 0.999] | 1.000 / 0.965 | 0.640 | 20/20 | met (>= 0.5) |
 | vowel-dropped-english | 500 | kn8-general | yes | −5.9905 (0.103, −6.1783) | −6.1430 | 0.930 [0.886, 0.958] | 0.990 / 0.875 | 0.425 | 20/20 | met (>= 0.5) |
-| vowel-dropped-english | 500 | kn8-latin | yes | −7.3122 (0.200, −7.7390) | −6.9992 | 0.065 [0.038, 0.108] | 0.115 / 0.050 | 0.000 | 14/20 | not met |
-| vowel-dropped-english | 500 | kn8-old-english | yes | −5.8136 (0.077, −5.9981) | −5.9216 | 0.915 [0.868, 0.946] | 0.975 / 0.795 | 0.090 | 19/20 | met (>= 0.5) |
-| vowel-dropped-english | 500 | kn8-vowel-dropped | yes | −3.4437 (0.182, −3.9011) | −6.1131 | 1.000 [0.981, 1.000] | 1.000 / 1.000 | 1.000 | 20/20 | met (>= 0.5) |
+| vowel-dropped-english | 500 | kn8-latin | yes | −7.3122 (0.200, −7.7390) | −6.9992 | 0.065 [0.038, 0.108] | 0.115 / 0.050 | 0.000 | 14/20 | n/a: register scorer, not a claim scorer |
+| vowel-dropped-english | 500 | kn8-old-english | yes | −5.8136 (0.077, −5.9981) | −5.9216 | 0.915 [0.868, 0.946] | 0.975 / 0.795 | 0.090 | 19/20 | n/a: register scorer, not a claim scorer |
+| vowel-dropped-english | 500 | kn8-vowel-dropped | yes | −3.4437 (0.182, −3.9011) | −6.1131 | 1.000 [0.981, 1.000] | 1.000 / 1.000 | 1.000 | 20/20 | n/a: register scorer, not a claim scorer |
 | vowel-dropped-english | 500 | kn8-cicada-wb | yes | −7.4034 (0.231, −8.0205) | −7.0063 | 0.040 [0.020, 0.077] | 0.050 / 0.030 | 0.000 | 20/20 | not met |
 | vowel-dropped-english | 1000 | lp-ngram3-heldout | yes | −5.6689 (0.066, −5.8036) | −6.6876 | 1.000 [0.981, 1.000] | 1.000 / 1.000 | 1.000 | 20/20 | met (>= 0.5) |
 | vowel-dropped-english | 1000 | cicada-ngram3 | yes | −6.8030 (0.137, −7.1248) | −8.5408 | 1.000 [0.981, 1.000] | 1.000 / 1.000 | 1.000 | 20/20 | met (>= 0.5) |
@@ -511,9 +511,9 @@ Wrong-key nulls per family (null b), the nb cell with the largest KS in the clai
 | vowel-dropped-english | 1000 | kn6-cicada | yes | −5.8731 (0.069, −6.0151) | −6.2380 | 1.000 [0.981, 1.000] | 1.000 / 1.000 | 1.000 | 20/20 | met (>= 0.5) |
 | vowel-dropped-english | 1000 | kn8-cicada | yes | −5.8607 (0.070, −6.0065) | −6.2361 | 1.000 [0.981, 1.000] | 1.000 / 1.000 | 1.000 | 20/20 | met (>= 0.5) |
 | vowel-dropped-english | 1000 | kn8-general | yes | −5.9999 (0.071, −6.1489) | −6.2725 | 1.000 [0.981, 1.000] | 1.000 / 1.000 | 1.000 | 19/20 | met (>= 0.5) |
-| vowel-dropped-english | 1000 | kn8-latin | yes | −7.3172 (0.114, −7.6068) | −7.2757 | 0.330 [0.269, 0.398] | 0.430 / 0.260 | 0.035 | 18/20 | not met |
-| vowel-dropped-english | 1000 | kn8-old-english | yes | −5.8114 (0.055, −5.9445) | −6.0991 | 1.000 [0.981, 1.000] | 1.000 / 1.000 | 1.000 | 20/20 | met (>= 0.5) |
-| vowel-dropped-english | 1000 | kn8-vowel-dropped | yes | −3.4205 (0.145, −3.7537) | −6.3892 | 1.000 [0.981, 1.000] | 1.000 / 1.000 | 1.000 | 20/20 | met (>= 0.5) |
+| vowel-dropped-english | 1000 | kn8-latin | yes | −7.3172 (0.114, −7.6068) | −7.2757 | 0.330 [0.269, 0.398] | 0.430 / 0.260 | 0.035 | 18/20 | n/a: register scorer, not a claim scorer |
+| vowel-dropped-english | 1000 | kn8-old-english | yes | −5.8114 (0.055, −5.9445) | −6.0991 | 1.000 [0.981, 1.000] | 1.000 / 1.000 | 1.000 | 20/20 | n/a: register scorer, not a claim scorer |
+| vowel-dropped-english | 1000 | kn8-vowel-dropped | yes | −3.4205 (0.145, −3.7537) | −6.3892 | 1.000 [0.981, 1.000] | 1.000 / 1.000 | 1.000 | 20/20 | n/a: register scorer, not a claim scorer |
 | vowel-dropped-english | 1000 | kn8-cicada-wb | yes | −7.3881 (0.182, −7.8821) | −7.1809 | 0.110 [0.074, 0.161] | 0.170 / 0.065 | 0.010 | 20/20 | not met |
 | old-english | 100 | lp-ngram3-heldout | yes | −5.3963 (0.241, −5.9187) | −5.5252 | 0.710 [0.644, 0.768] | 0.895 / 0.455 | 0.030 | 20/20 | no target in the spec |
 | old-english | 100 | cicada-ngram3 | yes | −5.6151 (0.405, −6.6057) | −6.4415 | 0.995 [0.972, 0.999] | 1.000 / 0.980 | 0.305 | 20/20 | no target in the spec |
@@ -602,9 +602,9 @@ Wrong-key nulls per family (null b), the nb cell with the largest KS in the clai
 | heldout-solved-sections | 100 | kn6-cicada | yes | −2.6890 (0.152, −3.0934) | −5.4360 | 1.000 [0.981, 1.000] | 1.000 / 1.000 | 1.000 | 20/20 | met (>= 0.9) |
 | heldout-solved-sections | 100 | kn8-cicada | yes | −2.6775 (0.155, −3.1123) | −5.4228 | 1.000 [0.981, 1.000] | 1.000 / 1.000 | 1.000 | 20/20 | met (>= 0.9) |
 | heldout-solved-sections | 100 | kn8-general | yes | −2.7968 (0.132, −3.2385) | −5.5029 | 1.000 [0.981, 1.000] | 1.000 / 1.000 | 1.000 | 20/20 | met (>= 0.9) |
-| heldout-solved-sections | 100 | kn8-latin | yes | −5.8193 (0.326, −6.5054) | −5.8227 | 0.425 [0.359, 0.494] | 0.740 / 0.255 | 0.020 | 20/20 | not met |
-| heldout-solved-sections | 100 | kn8-old-english | yes | −4.8803 (0.190, −5.2906) | −5.2763 | 0.990 [0.964, 0.997] | 1.000 / 0.950 | 0.420 | 20/20 | met (>= 0.9) |
-| heldout-solved-sections | 100 | kn8-vowel-dropped | yes | −5.5600 (0.146, −5.9738) | −5.3387 | 0.055 [0.031, 0.096] | 0.330 / 0.000 | 0.000 | 20/20 | not met |
+| heldout-solved-sections | 100 | kn8-latin | yes | −5.8193 (0.326, −6.5054) | −5.8227 | 0.425 [0.359, 0.494] | 0.740 / 0.255 | 0.020 | 20/20 | n/a: register scorer, not a claim scorer |
+| heldout-solved-sections | 100 | kn8-old-english | yes | −4.8803 (0.190, −5.2906) | −5.2763 | 0.990 [0.964, 0.997] | 1.000 / 0.950 | 0.420 | 20/20 | n/a: register scorer, not a claim scorer |
+| heldout-solved-sections | 100 | kn8-vowel-dropped | yes | −5.5600 (0.146, −5.9738) | −5.3387 | 0.055 [0.031, 0.096] | 0.330 / 0.000 | 0.000 | 20/20 | n/a: register scorer, not a claim scorer |
 | heldout-solved-sections | 100 | kn8-cicada-wb | yes | −2.6307 (0.184, −2.9966) | −6.1773 | 1.000 [0.981, 1.000] | 1.000 / 1.000 | 1.000 | 20/20 | met (>= 0.9) |
 | heldout-solved-sections | 240 | lp-ngram3-heldout | yes | −3.8723 (0.272, −4.2799) | −6.1625 | 1.000 [0.981, 1.000] | 1.000 / 1.000 | 1.000 | 20/20 | met (>= 0.9) |
 | heldout-solved-sections | 240 | cicada-ngram3 | yes | −3.3222 (0.081, −3.5194) | −7.3733 | 1.000 [0.981, 1.000] | 1.000 / 1.000 | 1.000 | 20/20 | met (>= 0.9) |
@@ -615,9 +615,9 @@ Wrong-key nulls per family (null b), the nb cell with the largest KS in the clai
 | heldout-solved-sections | 240 | kn6-cicada | yes | −2.6517 (0.078, −2.8519) | −5.8961 | 1.000 [0.981, 1.000] | 1.000 / 1.000 | 1.000 | 20/20 | met (>= 0.9) |
 | heldout-solved-sections | 240 | kn8-cicada | yes | −2.6427 (0.090, −2.8485) | −5.8932 | 1.000 [0.981, 1.000] | 1.000 / 1.000 | 1.000 | 20/20 | met (>= 0.9) |
 | heldout-solved-sections | 240 | kn8-general | yes | −2.7856 (0.079, −2.9852) | −5.8583 | 1.000 [0.981, 1.000] | 1.000 / 1.000 | 1.000 | 20/20 | met (>= 0.9) |
-| heldout-solved-sections | 240 | kn8-latin | yes | −5.8951 (0.199, −6.2563) | −6.5941 | 1.000 [0.981, 1.000] | 1.000 / 1.000 | 0.850 | 20/20 | met (>= 0.9) |
-| heldout-solved-sections | 240 | kn8-old-english | yes | −4.8823 (0.139, −5.1454) | −5.7147 | 1.000 [0.981, 1.000] | 1.000 / 1.000 | 1.000 | 20/20 | met (>= 0.9) |
-| heldout-solved-sections | 240 | kn8-vowel-dropped | yes | −5.5786 (0.084, −5.7736) | −5.8419 | 1.000 [0.981, 1.000] | 1.000 / 0.960 | 0.020 | 19/20 | met (>= 0.9) |
+| heldout-solved-sections | 240 | kn8-latin | yes | −5.8951 (0.199, −6.2563) | −6.5941 | 1.000 [0.981, 1.000] | 1.000 / 1.000 | 0.850 | 20/20 | n/a: register scorer, not a claim scorer |
+| heldout-solved-sections | 240 | kn8-old-english | yes | −4.8823 (0.139, −5.1454) | −5.7147 | 1.000 [0.981, 1.000] | 1.000 / 1.000 | 1.000 | 20/20 | n/a: register scorer, not a claim scorer |
+| heldout-solved-sections | 240 | kn8-vowel-dropped | yes | −5.5786 (0.084, −5.7736) | −5.8419 | 1.000 [0.981, 1.000] | 1.000 / 0.960 | 0.020 | 19/20 | n/a: register scorer, not a claim scorer |
 | heldout-solved-sections | 240 | kn8-cicada-wb | yes | −2.5772 (0.107, −2.8101) | −6.7496 | 1.000 [0.981, 1.000] | 1.000 / 1.000 | 1.000 | 20/20 | met (>= 0.9) |
 | heldout-solved-sections | 250 | lp-ngram3-heldout | yes | −3.8707 (0.276, −4.2358) | −6.2196 | 1.000 [0.981, 1.000] | 1.000 / 1.000 | 1.000 | 20/20 | met (>= 0.9) |
 | heldout-solved-sections | 250 | cicada-ngram3 | yes | −3.3150 (0.073, −3.5162) | −7.3684 | 1.000 [0.981, 1.000] | 1.000 / 1.000 | 1.000 | 20/20 | met (>= 0.9) |
@@ -628,9 +628,9 @@ Wrong-key nulls per family (null b), the nb cell with the largest KS in the clai
 | heldout-solved-sections | 250 | kn6-cicada | yes | −2.6475 (0.077, −2.8453) | −5.8760 | 1.000 [0.981, 1.000] | 1.000 / 1.000 | 1.000 | 20/20 | met (>= 0.9) |
 | heldout-solved-sections | 250 | kn8-cicada | yes | −2.6386 (0.089, −2.8443) | −5.8725 | 1.000 [0.981, 1.000] | 1.000 / 1.000 | 1.000 | 20/20 | met (>= 0.9) |
 | heldout-solved-sections | 250 | kn8-general | yes | −2.7764 (0.074, −2.9587) | −5.8878 | 1.000 [0.981, 1.000] | 1.000 / 1.000 | 1.000 | 20/20 | met (>= 0.9) |
-| heldout-solved-sections | 250 | kn8-latin | yes | −5.9032 (0.185, −6.2349) | −6.6535 | 1.000 [0.981, 1.000] | 1.000 / 1.000 | 1.000 | 20/20 | met (>= 0.9) |
-| heldout-solved-sections | 250 | kn8-old-english | yes | −4.8821 (0.136, −5.1298) | −5.6854 | 1.000 [0.981, 1.000] | 1.000 / 1.000 | 1.000 | 20/20 | met (>= 0.9) |
-| heldout-solved-sections | 250 | kn8-vowel-dropped | yes | −5.5833 (0.084, −5.7930) | −5.8881 | 1.000 [0.981, 1.000] | 1.000 / 1.000 | 0.235 | 20/20 | met (>= 0.9) |
+| heldout-solved-sections | 250 | kn8-latin | yes | −5.9032 (0.185, −6.2349) | −6.6535 | 1.000 [0.981, 1.000] | 1.000 / 1.000 | 1.000 | 20/20 | n/a: register scorer, not a claim scorer |
+| heldout-solved-sections | 250 | kn8-old-english | yes | −4.8821 (0.136, −5.1298) | −5.6854 | 1.000 [0.981, 1.000] | 1.000 / 1.000 | 1.000 | 20/20 | n/a: register scorer, not a claim scorer |
+| heldout-solved-sections | 250 | kn8-vowel-dropped | yes | −5.5833 (0.084, −5.7930) | −5.8881 | 1.000 [0.981, 1.000] | 1.000 / 1.000 | 0.235 | 20/20 | n/a: register scorer, not a claim scorer |
 | heldout-solved-sections | 250 | kn8-cicada-wb | yes | −2.5706 (0.113, −2.8016) | −6.8308 | 1.000 [0.981, 1.000] | 1.000 / 1.000 | 1.000 | 20/20 | met (>= 0.9) |
 | heldout-solved-sections | 263 | lp-ngram3-heldout | yes | −3.8745 (0.263, −4.2459) | −6.2653 | 1.000 [0.981, 1.000] | 1.000 / 1.000 | 1.000 | 20/20 | met (>= 0.9) |
 | heldout-solved-sections | 263 | cicada-ngram3 | yes | −3.3200 (0.069, −3.4944) | −7.4153 | 1.000 [0.981, 1.000] | 1.000 / 1.000 | 1.000 | 20/20 | met (>= 0.9) |
@@ -641,9 +641,9 @@ Wrong-key nulls per family (null b), the nb cell with the largest KS in the clai
 | heldout-solved-sections | 263 | kn6-cicada | yes | −2.6485 (0.076, −2.8327) | −5.8795 | 1.000 [0.981, 1.000] | 1.000 / 1.000 | 1.000 | 20/20 | met (>= 0.9) |
 | heldout-solved-sections | 263 | kn8-cicada | yes | −2.6384 (0.086, −2.8316) | −5.8760 | 1.000 [0.981, 1.000] | 1.000 / 1.000 | 1.000 | 20/20 | met (>= 0.9) |
 | heldout-solved-sections | 263 | kn8-general | yes | −2.7780 (0.070, −2.9617) | −5.8803 | 1.000 [0.981, 1.000] | 1.000 / 1.000 | 1.000 | 20/20 | met (>= 0.9) |
-| heldout-solved-sections | 263 | kn8-latin | yes | −5.8691 (0.173, −6.2297) | −6.7173 | 1.000 [0.981, 1.000] | 1.000 / 1.000 | 1.000 | 20/20 | met (>= 0.9) |
-| heldout-solved-sections | 263 | kn8-old-english | yes | −4.9005 (0.136, −5.1250) | −5.7267 | 1.000 [0.981, 1.000] | 1.000 / 1.000 | 1.000 | 20/20 | met (>= 0.9) |
-| heldout-solved-sections | 263 | kn8-vowel-dropped | yes | −5.5699 (0.083, −5.8024) | −5.9329 | 1.000 [0.981, 1.000] | 1.000 / 1.000 | 0.640 | 19/20 | met (>= 0.9) |
+| heldout-solved-sections | 263 | kn8-latin | yes | −5.8691 (0.173, −6.2297) | −6.7173 | 1.000 [0.981, 1.000] | 1.000 / 1.000 | 1.000 | 20/20 | n/a: register scorer, not a claim scorer |
+| heldout-solved-sections | 263 | kn8-old-english | yes | −4.9005 (0.136, −5.1250) | −5.7267 | 1.000 [0.981, 1.000] | 1.000 / 1.000 | 1.000 | 20/20 | n/a: register scorer, not a claim scorer |
+| heldout-solved-sections | 263 | kn8-vowel-dropped | yes | −5.5699 (0.083, −5.8024) | −5.9329 | 1.000 [0.981, 1.000] | 1.000 / 1.000 | 0.640 | 19/20 | n/a: register scorer, not a claim scorer |
 | heldout-solved-sections | 263 | kn8-cicada-wb | yes | −2.5711 (0.105, −2.8217) | −6.7725 | 1.000 [0.981, 1.000] | 1.000 / 1.000 | 1.000 | 20/20 | met (>= 0.9) |
 | heldout-solved-sections | 500 | lp-ngram3-heldout | yes | −3.8635 (0.203, −4.1468) | −6.5338 | 1.000 [0.981, 1.000] | 1.000 / 1.000 | 1.000 | 20/20 | met (>= 0.9) |
 | heldout-solved-sections | 500 | cicada-ngram3 | yes | −3.3126 (0.040, −3.3809) | −8.1089 | 1.000 [0.981, 1.000] | 1.000 / 1.000 | 1.000 | 20/20 | met (>= 0.9) |
@@ -654,12 +654,12 @@ Wrong-key nulls per family (null b), the nb cell with the largest KS in the clai
 | heldout-solved-sections | 500 | kn6-cicada | yes | −2.6359 (0.045, −2.7490) | −6.0826 | 1.000 [0.981, 1.000] | 1.000 / 1.000 | 1.000 | 20/20 | met (>= 0.9) |
 | heldout-solved-sections | 500 | kn8-cicada | yes | −2.6245 (0.065, −2.7464) | −6.0793 | 1.000 [0.981, 1.000] | 1.000 / 1.000 | 1.000 | 20/20 | met (>= 0.9) |
 | heldout-solved-sections | 500 | kn8-general | yes | −2.7714 (0.043, −2.8574) | −6.1430 | 1.000 [0.981, 1.000] | 1.000 / 1.000 | 1.000 | 20/20 | met (>= 0.9) |
-| heldout-solved-sections | 500 | kn8-latin | yes | −5.9016 (0.084, −6.0868) | −6.9992 | 1.000 [0.981, 1.000] | 1.000 / 1.000 | 1.000 | 20/20 | met (>= 0.9) |
-| heldout-solved-sections | 500 | kn8-old-english | yes | −4.8900 (0.101, −5.0369) | −5.9216 | 1.000 [0.981, 1.000] | 1.000 / 1.000 | 1.000 | 20/20 | met (>= 0.9) |
-| heldout-solved-sections | 500 | kn8-vowel-dropped | yes | −5.5823 (0.063, −5.7027) | −6.1131 | 1.000 [0.981, 1.000] | 1.000 / 1.000 | 1.000 | 20/20 | met (>= 0.9) |
+| heldout-solved-sections | 500 | kn8-latin | yes | −5.9016 (0.084, −6.0868) | −6.9992 | 1.000 [0.981, 1.000] | 1.000 / 1.000 | 1.000 | 20/20 | n/a: register scorer, not a claim scorer |
+| heldout-solved-sections | 500 | kn8-old-english | yes | −4.8900 (0.101, −5.0369) | −5.9216 | 1.000 [0.981, 1.000] | 1.000 / 1.000 | 1.000 | 20/20 | n/a: register scorer, not a claim scorer |
+| heldout-solved-sections | 500 | kn8-vowel-dropped | yes | −5.5823 (0.063, −5.7027) | −6.1131 | 1.000 [0.981, 1.000] | 1.000 / 1.000 | 1.000 | 20/20 | n/a: register scorer, not a claim scorer |
 | heldout-solved-sections | 500 | kn8-cicada-wb | yes | −2.5539 (0.043, −2.6823) | −7.0063 | 1.000 [0.981, 1.000] | 1.000 / 1.000 | 1.000 | 20/20 | met (>= 0.9) |
 
-*numbering LP2-0-57 · canon `023312066df4…` · git `f95a3acea0d5` · scale reduced · N_claim = 10^6, N_family = 2^32, alpha = 0.01 · JSON `sections.power.rows[*] (claim.power, claim.ci, family.power, rank1)` · `python scripts/scorer_power.py --quick --section power` · 200 plants per cell*
+*numbering LP2-0-57 · canon `023312066df4…` · git `4b096a8e036a` · scale reduced · N_claim = 10^6, N_family = 2^32, alpha = 0.01 · JSON `sections.power.rows[*] (claim.power, claim.ci, family.power, rank1)` · `python scripts/scorer_power.py --quick --section power` · 200 plants per cell*
 
 ## 4. Register confusion matrix
 
@@ -740,7 +740,7 @@ L = 1000: planted mean under each scorer (power at the bar@10^6 in brackets; `t`
 
 best held-out scorer per register: english-general → kn8-general, cicada-english → kn8-cicada-wb, latin → kn8-latin, vowel-dropped-english → kn8-vowel-dropped, old-english → kn8-old-english
 
-*numbering LP2-0-57 · canon `023312066df4…` · git `f95a3acea0d5` · scale reduced · N_claim = 10^6, N_family = 2^32, alpha = 0.01 · JSON `sections.confusion.lengths[L].matrix` · `python scripts/scorer_power.py --quick --section confusion`*
+*numbering LP2-0-57 · canon `023312066df4…` · git `4b096a8e036a` · scale reduced · N_claim = 10^6, N_family = 2^32, alpha = 0.01 · JSON `sections.confusion.lengths[L].matrix` · `python scripts/scorer_power.py --quick --section confusion`*
 
 ## 5. Beam cells
 
@@ -773,7 +773,7 @@ Nulls: 25,000 draws per (scorer, decoder, L) for the beam decoders (`beam_calib`
 | kn4-cicada | beam-skip | 240 | 25,000 | n/a | −6.4850 | 0.0838 | −6.2069 | 0.0209 | −5.9661 [−6.0581, −5.8860] | −5.7911 | none |
 | kn4-cicada | beam-skip-int | 240 | 25,000 | 14 | −6.3579 | 0.0797 | −6.0946 | 0.0276 | −5.7772 [−5.8761, −5.6954] | −5.5465 | none |
 
-*numbering LP2-0-57 · canon `023312066df4…` · git `f95a3acea0d5` · scale reduced · N_claim = 10^6, N_family = 2^32, alpha = 0.01 · JSON `sections.beam.nulls[*]` · `python scripts/scorer_power.py --quick --section beam`*
+*numbering LP2-0-57 · canon `023312066df4…` · git `4b096a8e036a` · scale reduced · N_claim = 10^6, N_family = 2^32, alpha = 0.01 · JSON `sections.beam.nulls[*]` · `python scripts/scorer_power.py --quick --section beam`*
 
 Plants: held-out solved-section text through `pipeline.encrypt` under the forward model, decoded with the true seed and the decoys by the preset's decoder (`pipeline.decrypt`); identified = rank 1 and recovery >= 0.90. A pairing the lane spec refuses (`decoder_problems`) is still measured and marked.
 
@@ -852,7 +852,7 @@ Plants: held-out solved-section text through `pipeline.encrypt` under the forwar
 | kn4-cicada | beam-skip-int | anti-repeat | 240 | 50/50 | 50/50 | 0.975 | −3.0097 (−3.1491) | −6.0826 | 1.000 [0.929, 1.000] | 1.000 | no |
 | kn4-cicada | beam-skip-int | anti-repeat + interrupts | 240 | 50/50 | 50/50 | 0.988 | −2.9623 (−3.1026) | −6.0651 | 1.000 [0.929, 1.000] | 1.000 | yes |
 
-*numbering LP2-0-57 · canon `023312066df4…` · git `f95a3acea0d5` · scale reduced · N_claim = 10^6, N_family = 2^32, alpha = 0.01 · JSON `sections.beam.cells[*]` · `python scripts/scorer_power.py --quick --section beam` · 50 plants x 99 decoys per cell*
+*numbering LP2-0-57 · canon `023312066df4…` · git `4b096a8e036a` · scale reduced · N_claim = 10^6, N_family = 2^32, alpha = 0.01 · JSON `sections.beam.cells[*]` · `python scripts/scorer_power.py --quick --section beam` · 50 plants x 99 decoys per cell*
 
 ## 6. Boundaries
 
@@ -873,7 +873,7 @@ Mask dependence: per-mask means range [−7.8871, −7.4114], sd of the mask mea
 
 Gain of summing the boundaries over the variant: −3.12 null-sd units (english-general, L = 240, 200 plants).
 
-*numbering LP2-0-57 · canon `023312066df4…` · git `f95a3acea0d5` · scale reduced · N_claim = 10^6, N_family = 2^32, alpha = 0.01 · JSON `sections.boundaries (page_start_masks, sampled_masks, dependence, gain)` · `python scripts/scorer_power.py --quick --section boundaries`*
+*numbering LP2-0-57 · canon `023312066df4…` · git `4b096a8e036a` · scale reduced · N_claim = 10^6, N_family = 2^32, alpha = 0.01 · JSON `sections.boundaries (page_start_masks, sampled_masks, dependence, gain)` · `python scripts/scorer_power.py --quick --section boundaries`*
 
 Wrong-key nulls of the wb scorer (`kn8-cicada-wb`, L = 1000): the decodes carry the cipher window's own mask while null (a) averages over sampled masks, so these KS statistics measure the mask dependence as well and are outside the 'wrong key = uniform string' claim (section 1).
 
@@ -899,7 +899,7 @@ Wrong-key nulls of the wb scorer (`kn8-cicada-wb`, L = 1000): the decodes carry 
 | numpy-pcg64/beaufort/first-difference | 5000 | 2^32+ | −7.8242 | 0.0496 | −7.6361 | 0.894 | 0.020 | no | 0 | n/a |
 | numpy-pcg64/beaufort/chain-increment | 5000 | 2^32+ | −7.7214 | 0.0490 | −7.5466 | 0.539 | 0.020 | no | 0 | n/a |
 
-*numbering LP2-0-57 · canon `023312066df4…` · git `f95a3acea0d5` · scale reduced · N_claim = 10^6, N_family = 2^32, alpha = 0.01 · JSON `sections.nulls.cells[scorer=kn8-cicada-wb, L=1000].wrong_key` · `python scripts/scorer_power.py --quick --section nulls`*
+*numbering LP2-0-57 · canon `023312066df4…` · git `4b096a8e036a` · scale reduced · N_claim = 10^6, N_family = 2^32, alpha = 0.01 · JSON `sections.nulls.cells[scorer=kn8-cicada-wb, L=1000].wrong_key` · `python scripts/scorer_power.py --quick --section nulls`*
 
 ## 7. Order and discounts
 
@@ -937,38 +937,38 @@ Order comparison at L = 240, register cicada-english:
 | kn8-vowel-dropped | 8 | −6.8768 | 0.1540 | 0.0468 | −5.8419 | −5.4240 | 9.43 | 1.000 |
 | kn8-cicada-wb | 8 | −7.6436 | 0.1345 | 0.0436 | −6.7496 | −2.4450 | 38.66 | 1.000 |
 
-*numbering LP2-0-57 · canon `023312066df4…` · git `f95a3acea0d5` · scale reduced · N_claim = 10^6, N_family = 2^32, alpha = 0.01 · JSON `sections.order.presets[*], sections.order.comparison[*]` · `python scripts/scorer_power.py --quick --section order`*
+*numbering LP2-0-57 · canon `023312066df4…` · git `4b096a8e036a` · scale reduced · N_claim = 10^6, N_family = 2^32, alpha = 0.01 · JSON `sections.order.presets[*], sections.order.comparison[*]` · `python scripts/scorer_power.py --quick --section order`*
 
 ## 8. Throughput
 
 | scorer | order | D | table MB | keys/s L=240 | keys/s L=1000 |
 |---|---|---|---|---|---|
-| lp-ngram3-heldout | n/a | n/a | n/a | 258,719 | 69,228 |
-| cicada-ngram3 | n/a | n/a | n/a | 294,286 | 71,443 |
-| general-ngram3 | n/a | n/a | n/a | 283,219 | 64,249 |
-| kn4-lp-heldout | 4 | 4 | 2.9 | 71,244 | 17,812 |
-| kn4-cicada | 4 | 4 | 2.9 | 79,499 | 19,351 |
-| kn5-cicada | 5 | 5 | 85.0 | 66,590 | 15,014 |
-| kn6-cicada | 6 | 4 | 9.8 | 30,480 | 6,554 |
-| kn8-cicada | 8 | 4 | 16.8 | 17,310 | 4,265 |
-| kn8-general | 8 | 4 | 33.0 | 15,282 | 4,105 |
-| kn8-latin | 8 | 4 | 9.9 | 17,951 | 4,456 |
-| kn8-old-english | 8 | 4 | 9.6 | 19,330 | 4,434 |
-| kn8-vowel-dropped | 8 | 4 | 31.2 | 16,975 | 4,002 |
-| kn8-cicada-wb | 8 | 4 | 14.9 | 13,261 | 3,260 |
-| kn8-cicada@D5 | 8 | 5 | 176.5 | 18,980 | 4,382 |
+| lp-ngram3-heldout | n/a | n/a | n/a | 270,158 | 57,400 |
+| cicada-ngram3 | n/a | n/a | n/a | 275,706 | 57,565 |
+| general-ngram3 | n/a | n/a | n/a | 240,963 | 67,894 |
+| kn4-lp-heldout | 4 | 4 | 2.9 | 66,594 | 19,081 |
+| kn4-cicada | 4 | 4 | 2.9 | 72,771 | 18,071 |
+| kn5-cicada | 5 | 5 | 85.0 | 60,068 | 15,458 |
+| kn6-cicada | 6 | 4 | 9.8 | 26,761 | 6,699 |
+| kn8-cicada | 8 | 4 | 16.8 | 17,302 | 4,086 |
+| kn8-general | 8 | 4 | 33.0 | 15,831 | 3,644 |
+| kn8-latin | 8 | 4 | 9.9 | 20,148 | 4,283 |
+| kn8-old-english | 8 | 4 | 9.6 | 19,000 | 3,997 |
+| kn8-vowel-dropped | 8 | 4 | 31.2 | 16,033 | 3,740 |
+| kn8-cicada-wb | 8 | 4 | 14.9 | 12,653 | 3,053 |
+| kn8-cicada@D5 | 8 | 5 | 176.5 | 17,394 | 4,590 |
 
-- D = 4 vs 5, sparse (kn8-cicada pinned at D = 4 vs the same fit with five dense levels (ad hoc)): D = 5 runs at 1.10x the D = 4 keys/s at L = 240 and 1.03x at L = 1000, with 176.5 MB of tables against 16.8 MB.
-- D = 4 vs 5, dense (the dense kn4-cicada vs kn5-cicada): D = 5 runs at 0.84x the D = 4 keys/s at L = 240 and 0.78x at L = 1000, with 85.0 MB of tables against 2.9 MB.
+- D = 4 vs 5, sparse (kn8-cicada pinned at D = 4 vs the same fit with five dense levels (ad hoc)): D = 5 runs at 1.01x the D = 4 keys/s at L = 240 and 1.12x at L = 1000, with 176.5 MB of tables against 16.8 MB.
+- D = 4 vs 5, dense (the dense kn4-cicada vs kn5-cicada): D = 5 runs at 0.83x the D = 4 keys/s at L = 240 and 0.86x at L = 1000, with 85.0 MB of tables against 2.9 MB.
 
-*numbering LP2-0-57 · canon `023312066df4…` · git `f95a3acea0d5` · scale reduced · N_claim = 10^6, N_family = 2^32, alpha = 0.01 · JSON `sections.throughput.rows[*].keys_per_s_L240, .d4_vs_d5` · `python scripts/scorer_power.py --quick --section throughput` · score_batch, best of two timings, 20,000 / 5,000 rows, host x86_64*
+*numbering LP2-0-57 · canon `023312066df4…` · git `4b096a8e036a` · scale reduced · N_claim = 10^6, N_family = 2^32, alpha = 0.01 · JSON `sections.throughput.rows[*].keys_per_s_L240, .d4_vs_d5` · `python scripts/scorer_power.py --quick --section throughput` · score_batch, best of two timings, 20,000 / 5,000 rows, host x86_64*
 
 ## 9. The three conditionals and reopens_if
 
 - key space swept: none of LP2: the families (section 2) are the plant/decoy generators of the measurement; no seed range of any lane was searched
 - decoder transition model: rigid (one key symbol per rune) for every power row; beam, beam-skip and beam-skip-int at width 8 (presets.DECODER_PARAMS) in the beam cells, with the three dense scorers only
 - adjudicator register: the scorers listed in section 0: Cicada-English, general English, Latin, Old English and vowel-dropped English registers (kn8-*), plus the Phase 1 order-3 baselines; power is reported per register x scorer (section 4)
-- Latin power at L = 240 (best held-out scorer lp-ngram3-heldout): 1.000 [0.981, 1.000] at the bar@10^6 (`sections.conditionals.latin_power_at_240`)
+- Latin power at L = 240 under the English-register claim scorer with the highest Latin power (lp-ngram3-heldout; ties go to the first listed): 1.000 [0.981, 1.000] at the bar@10^6 (`sections.conditionals.latin_power_at_240`)
 - standing conditional: every later negative is English-register-first: a Latin or other non-English plaintext is detected only to the power this table measures for that register (SESSION_PROMPT.md section B)
 - reopens_if:
   - a scorer's fingerprint changes (a refit, a corpus rebuild that moves the split)
@@ -977,13 +977,13 @@ Order comparison at L = 240, register cicada-english:
   - a word-boundary conditioning rule is staged (the wb null is mask-dependent)
   - a beam-compatible kn6/kn8 export lands on the GPU (the dense/sparse split moves)
 
-*numbering LP2-0-57 · canon `023312066df4…` · git `f95a3acea0d5` · scale reduced · N_claim = 10^6, N_family = 2^32, alpha = 0.01 · JSON `sections.conditionals` · `python scripts/scorer_power.py --quick --section conditionals`*
+*numbering LP2-0-57 · canon `023312066df4…` · git `4b096a8e036a` · scale reduced · N_claim = 10^6, N_family = 2^32, alpha = 0.01 · JSON `sections.conditionals` · `python scripts/scorer_power.py --quick --section conditionals`*
 
 ## 10. Reproduce
 
-- `python scripts/scorer_power.py --quick --workers 4` at git `f95a3acea0d51a6296a6d0afc282bd4e6c418fa9`; canon SHA-256 `023312066df471005264b9cbe7997cb77d2a9a6a2dc9b3316d22674023af1585`, numbering `LP2-0-57`; Python 3.13.16, numpy 2.5.4; `runeforge/beam.py` SHA-256 `4cd3d7ba59e6…`
+- `python scripts/scorer_power.py --quick --workers 4` at git `4b096a8e036a19c57f9b61d750fa567e5ced02df`; canon SHA-256 `023312066df471005264b9cbe7997cb77d2a9a6a2dc9b3316d22674023af1585`, numbering `LP2-0-57`; Python 3.13.16, numpy 2.5.4; `runeforge/beam.py` SHA-256 `4cd3d7ba59e6…`
 - fit records: `reports/scorer_power/fits/` (scale-marked; never installable unless full)
 - one section: `python scripts/scorer_power.py --quick --section reusable`, `python scripts/scorer_power.py --quick --section not_covered`, `python scripts/scorer_power.py --quick --section nulls`, `python scripts/scorer_power.py --quick --section power`, `python scripts/scorer_power.py --quick --section confusion`, `python scripts/scorer_power.py --quick --section beam`, `python scripts/scorer_power.py --quick --section boundaries`, `python scripts/scorer_power.py --quick --section order`, `python scripts/scorer_power.py --quick --section throughput`, `python scripts/scorer_power.py --quick --section conditionals`, `python scripts/scorer_power.py --quick --section reproduce`
 - render only: `python scripts/scorer_power.py --render-only --out reports/scorer_power.json`
-- timings (s): reusable 0.0, nulls 327.0, power 24.0, confusion 0.0, beam 150.9, boundaries 8.4, order 3.7, throughput 48.2, not_covered 0.0, conditionals 0.0, reproduce 0.0
+- timings (s): reusable 0.0, nulls 332.9, power 24.2, confusion 0.0, beam 158.1, boundaries 8.3, order 3.8, throughput 49.8, not_covered 0.0, conditionals 0.0, reproduce 0.0
 - do-not-re-run list: none (this harness writes no ledger row; its numbers are regenerated, never cited as coverage)
