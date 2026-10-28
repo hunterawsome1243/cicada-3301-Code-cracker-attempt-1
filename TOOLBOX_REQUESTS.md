@@ -243,3 +243,17 @@ the corpus `indices_sha256` and checked at `get`), and so do `scripts/export_kn.
 calibration through the fingerprint, as a change to `runeforge/beam.py` invalidates the beam
 ones (TR-5), and the `knx-1` manifests under `reports/kn-export/` are regenerated with
 `scripts/export_kn.py`.
+
+## TR-11 (2026-10-28): a ledger status for a finished red-team lane — open
+
+**Frozen paths:** `runeforge/ledger.py` (`Status`), `scripts/validate_ledger.py` (`STATUSES`).
+
+**Why.** A red-team lane searches no key space, so none of the statuses fits its end: `negative` needs
+a passing positive control and a threshold (a red-team lane has neither), `inconclusive` means "the
+instrument could not decide", and the others describe searches. `R1-REDTEAM-OWN-CLAIMS` (verdict
+FOUND-ERROR, `lanes/R1-REDTEAM-OWN-CLAIMS/RESULTS.md`) is recorded as `inconclusive` with the verdict
+field carrying the result and a note saying so, which a reader of `runeforge status` could misread.
+Upstream records such lanes as `audit` (Dukotah `LEDGER.json`, R26-D-REDTEAM).
+
+**What.** Add `"audit"` to `Status` and `STATUSES`, allowed only with `category: redteam` and a verdict
+of `FOUND-ERROR` or `NO-ERROR-FOUND`; then a supersedes row moves R1 from `inconclusive` to `audit`.

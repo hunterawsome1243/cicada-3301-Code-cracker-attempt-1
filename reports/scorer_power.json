@@ -69,6 +69,7 @@
   },
   "not_covered": [
    "scale reduced: 100,000 null draws per (scorer, L) and 200 plants per cell; the 10^6-draw fits that TOOLBOX_REQUESTS.md TR-7 installs are --full",
+   "reduced-scale bars vary between seeds by more than their bootstrap intervals show: red-team R1 (lanes/R1-REDTEAM-OWN-CLAIMS/out_A2.json) replicated the kn4-cicada L = 240 fit 200 times at 100,000 draws; bar@10^6 has replicate mean -6.0145, sd 0.0335, and this report's -6.0705 sits at the 3rd percentile (bar@2^32 at the 2nd), so powers in cells near a bar move with the seed (kn4-cicada vowel-dropped L = 240: 0.55 here, 0.38-0.40 at replicate-mean bars); the --full fits settle it",
    "heldout-solved-sections: L > 500 not covered (1,533 held-out runes)",
    "cicada-ngram3 x cicada-english: plant text is training text (no split); the cell is not a power",
    "general-ngram3 x english-general: plant text is training text (no split); the cell is not a power",
@@ -632,7 +633,7 @@
      "fit_record": [
       "reports/scorer_power/fits/lp-ngram3-heldout__rigid__L100.json"
      ],
-     "seconds": 4.7
+     "seconds": 5.5
     },
     {
      "scorer": "cicada-ngram3",
@@ -960,7 +961,7 @@
      "fit_record": [
       "reports/scorer_power/fits/cicada-ngram3__rigid__L100.json"
      ],
-     "seconds": 4.5
+     "seconds": 5.2
     },
     {
      "scorer": "general-ngram3",
@@ -1288,7 +1289,7 @@
      "fit_record": [
       "reports/scorer_power/fits/general-ngram3__rigid__L100.json"
      ],
-     "seconds": 0.5
+     "seconds": 0.8
     },
     {
      "scorer": "kn4-lp-heldout",
@@ -1616,7 +1617,7 @@
      "fit_record": [
       "reports/scorer_power/fits/kn4-lp-heldout__rigid__L100.json"
      ],
-     "seconds": 1.2
+     "seconds": 1.5
     },
     {
      "scorer": "kn4-cicada",
@@ -1944,7 +1945,7 @@
      "fit_record": [
       "reports/scorer_power/fits/kn4-cicada__rigid__L100.json"
      ],
-     "seconds": 1.3
+     "seconds": 1.5
     },
     {
      "scorer": "kn5-cicada",
@@ -2928,7 +2929,7 @@
      "fit_record": [
       "reports/scorer_power/fits/kn8-cicada__rigid__L100.json"
      ],
-     "seconds": 9.5
+     "seconds": 5.5
     },
     {
      "scorer": "kn8-general",
@@ -3256,7 +3257,7 @@
      "fit_record": [
       "reports/scorer_power/fits/kn8-general__rigid__L100.json"
      ],
-     "seconds": 5.3
+     "seconds": 10.9
     },
     {
      "scorer": "kn8-latin",
@@ -3584,7 +3585,7 @@
      "fit_record": [
       "reports/scorer_power/fits/kn8-latin__rigid__L100.json"
      ],
-     "seconds": 4.9
+     "seconds": 5.2
     },
     {
      "scorer": "kn8-old-english",
@@ -4240,7 +4241,7 @@
      "fit_record": [
       "reports/scorer_power/fits/kn8-vowel-dropped__rigid__L100.json"
      ],
-     "seconds": 5.8
+     "seconds": 5.7
     },
     {
      "scorer": "kn8-cicada-wb",
@@ -4568,7 +4569,7 @@
      "fit_record": [
       "reports/scorer_power/fits/kn8-cicada-wb__rigid__L100.json"
      ],
-     "seconds": 5.9
+     "seconds": 6.3
     },
     {
      "scorer": "lp-ngram3-heldout",
@@ -4796,7 +4797,7 @@
      "fit_record": [
       "reports/scorer_power/fits/general-ngram3__rigid__L120.json"
      ],
-     "seconds": 0.2
+     "seconds": 0.5
     },
     {
      "scorer": "lp-ngram3-heldout",
@@ -5139,7 +5140,7 @@
      "fit_record": [
       "reports/scorer_power/fits/lp-ngram3-heldout__rigid__L240.json"
      ],
-     "seconds": 6.5
+     "seconds": 7.0
     },
     {
      "scorer": "cicada-ngram3",
@@ -5825,7 +5826,7 @@
      "fit_record": [
       "reports/scorer_power/fits/general-ngram3__rigid__L240.json"
      ],
-     "seconds": 1.7
+     "seconds": 7.6
     },
     {
      "scorer": "kn4-lp-heldout",
@@ -6153,7 +6154,7 @@
      "fit_record": [
       "reports/scorer_power/fits/kn4-lp-heldout__rigid__L240.json"
      ],
-     "seconds": 3.5
+     "seconds": 3.6
     },
     {
      "scorer": "kn4-cicada",
@@ -6481,7 +6482,7 @@
      "fit_record": [
       "reports/scorer_power/fits/kn4-cicada__rigid__L240.json"
      ],
-     "seconds": 3.4
+     "seconds": 3.7
     },
     {
      "scorer": "kn5-cicada",
@@ -6809,7 +6810,7 @@
      "fit_record": [
       "reports/scorer_power/fits/kn5-cicada__rigid__L240.json"
      ],
-     "seconds": 8.3
+     "seconds": 4.8
     },
     {
      "scorer": "kn6-cicada",
@@ -7137,7 +7138,7 @@
      "fit_record": [
       "reports/scorer_power/fits/kn6-cicada__rigid__L240.json"
      ],
-     "seconds": 8.5
+     "seconds": 9.2
     },
     {
      "scorer": "kn8-cicada",
@@ -7465,7 +7466,7 @@
      "fit_record": [
       "reports/scorer_power/fits/kn8-cicada__rigid__L240.json"
      ],
-     "seconds": 12.4
+     "seconds": 18.6
     },
     {
      "scorer": "kn8-general",
@@ -7793,7 +7794,7 @@
      "fit_record": [
       "reports/scorer_power/fits/kn8-general__rigid__L240.json"
      ],
-     "seconds": 17.5
+     "seconds": 15.3
     },
     {
      "scorer": "kn8-latin",
@@ -8121,7 +8122,7 @@
      "fit_record": [
       "reports/scorer_power/fits/kn8-latin__rigid__L240.json"
      ],
-     "seconds": 10.1
+     "seconds": 11.9
     },
     {
      "scorer": "kn8-old-english",
@@ -8449,7 +8450,7 @@
      "fit_record": [
       "reports/scorer_power/fits/kn8-old-english__rigid__L240.json"
      ],
-     "seconds": 10.4
+     "seconds": 12.1
     },
     {
      "scorer": "kn8-vowel-dropped",
@@ -8777,7 +8778,7 @@
      "fit_record": [
       "reports/scorer_power/fits/kn8-vowel-dropped__rigid__L240.json"
      ],
-     "seconds": 13.3
+     "seconds": 15.1
     },
     {
      "scorer": "kn8-cicada-wb",
@@ -9105,7 +9106,7 @@
      "fit_record": [
       "reports/scorer_power/fits/kn8-cicada-wb__rigid__L240.json"
      ],
-     "seconds": 13.8
+     "seconds": 15.6
     },
     {
      "scorer": "lp-ngram3-heldout",
@@ -9433,7 +9434,7 @@
      "fit_record": [
       "reports/scorer_power/fits/lp-ngram3-heldout__rigid__L250.json"
      ],
-     "seconds": 6.8
+     "seconds": 6.5
     },
     {
      "scorer": "cicada-ngram3",
@@ -9761,7 +9762,7 @@
      "fit_record": [
       "reports/scorer_power/fits/cicada-ngram3__rigid__L250.json"
      ],
-     "seconds": 5.7
+     "seconds": 6.5
     },
     {
      "scorer": "general-ngram3",
@@ -10089,7 +10090,7 @@
      "fit_record": [
       "reports/scorer_power/fits/general-ngram3__rigid__L250.json"
      ],
-     "seconds": 1.3
+     "seconds": 7.3
     },
     {
      "scorer": "kn4-lp-heldout",
@@ -10417,7 +10418,7 @@
      "fit_record": [
       "reports/scorer_power/fits/kn4-lp-heldout__rigid__L250.json"
      ],
-     "seconds": 3.1
+     "seconds": 3.5
     },
     {
      "scorer": "kn4-cicada",
@@ -10745,7 +10746,7 @@
      "fit_record": [
       "reports/scorer_power/fits/kn4-cicada__rigid__L250.json"
      ],
-     "seconds": 3.0
+     "seconds": 2.9
     },
     {
      "scorer": "kn5-cicada",
@@ -11073,7 +11074,7 @@
      "fit_record": [
       "reports/scorer_power/fits/kn5-cicada__rigid__L250.json"
      ],
-     "seconds": 5.1
+     "seconds": 11.1
     },
     {
      "scorer": "kn6-cicada",
@@ -11401,7 +11402,7 @@
      "fit_record": [
       "reports/scorer_power/fits/kn6-cicada__rigid__L250.json"
      ],
-     "seconds": 8.6
+     "seconds": 9.0
     },
     {
      "scorer": "kn8-cicada",
@@ -11729,7 +11730,7 @@
      "fit_record": [
       "reports/scorer_power/fits/kn8-cicada__rigid__L250.json"
      ],
-     "seconds": 17.8
+     "seconds": 12.7
     },
     {
      "scorer": "kn8-general",
@@ -12057,7 +12058,7 @@
      "fit_record": [
       "reports/scorer_power/fits/kn8-general__rigid__L250.json"
      ],
-     "seconds": 13.0
+     "seconds": 14.4
     },
     {
      "scorer": "kn8-latin",
@@ -12385,7 +12386,7 @@
      "fit_record": [
       "reports/scorer_power/fits/kn8-latin__rigid__L250.json"
      ],
-     "seconds": 16.5
+     "seconds": 12.7
     },
     {
      "scorer": "kn8-old-english",
@@ -12713,7 +12714,7 @@
      "fit_record": [
       "reports/scorer_power/fits/kn8-old-english__rigid__L250.json"
      ],
-     "seconds": 11.3
+     "seconds": 12.2
     },
     {
      "scorer": "kn8-vowel-dropped",
@@ -13041,7 +13042,7 @@
      "fit_record": [
       "reports/scorer_power/fits/kn8-vowel-dropped__rigid__L250.json"
      ],
-     "seconds": 13.7
+     "seconds": 14.6
     },
     {
      "scorer": "kn8-cicada-wb",
@@ -13369,7 +13370,7 @@
      "fit_record": [
       "reports/scorer_power/fits/kn8-cicada-wb__rigid__L250.json"
      ],
-     "seconds": 14.9
+     "seconds": 17.1
     },
     {
      "scorer": "lp-ngram3-heldout",
@@ -13697,7 +13698,7 @@
      "fit_record": [
       "reports/scorer_power/fits/lp-ngram3-heldout__rigid__L263.json"
      ],
-     "seconds": 6.4
+     "seconds": 7.0
     },
     {
      "scorer": "cicada-ngram3",
@@ -14025,7 +14026,7 @@
      "fit_record": [
       "reports/scorer_power/fits/cicada-ngram3__rigid__L263.json"
      ],
-     "seconds": 0.9
+     "seconds": 1.7
     },
     {
      "scorer": "general-ngram3",
@@ -14353,7 +14354,7 @@
      "fit_record": [
       "reports/scorer_power/fits/general-ngram3__rigid__L263.json"
      ],
-     "seconds": 1.0
+     "seconds": 1.4
     },
     {
      "scorer": "kn4-lp-heldout",
@@ -14681,7 +14682,7 @@
      "fit_record": [
       "reports/scorer_power/fits/kn4-lp-heldout__rigid__L263.json"
      ],
-     "seconds": 3.4
+     "seconds": 3.2
     },
     {
      "scorer": "kn4-cicada",
@@ -15009,7 +15010,7 @@
      "fit_record": [
       "reports/scorer_power/fits/kn4-cicada__rigid__L263.json"
      ],
-     "seconds": 3.5
+     "seconds": 3.4
     },
     {
      "scorer": "kn5-cicada",
@@ -15337,7 +15338,7 @@
      "fit_record": [
       "reports/scorer_power/fits/kn5-cicada__rigid__L263.json"
      ],
-     "seconds": 4.5
+     "seconds": 4.9
     },
     {
      "scorer": "kn6-cicada",
@@ -15665,7 +15666,7 @@
      "fit_record": [
       "reports/scorer_power/fits/kn6-cicada__rigid__L263.json"
      ],
-     "seconds": 9.2
+     "seconds": 14.9
     },
     {
      "scorer": "kn8-cicada",
@@ -15993,7 +15994,7 @@
      "fit_record": [
       "reports/scorer_power/fits/kn8-cicada__rigid__L263.json"
      ],
-     "seconds": 18.5
+     "seconds": 19.6
     },
     {
      "scorer": "kn8-general",
@@ -16321,7 +16322,7 @@
      "fit_record": [
       "reports/scorer_power/fits/kn8-general__rigid__L263.json"
      ],
-     "seconds": 19.3
+     "seconds": 14.8
     },
     {
      "scorer": "kn8-latin",
@@ -16649,7 +16650,7 @@
      "fit_record": [
       "reports/scorer_power/fits/kn8-latin__rigid__L263.json"
      ],
-     "seconds": 17.4
+     "seconds": 18.9
     },
     {
      "scorer": "kn8-old-english",
@@ -16977,7 +16978,7 @@
      "fit_record": [
       "reports/scorer_power/fits/kn8-old-english__rigid__L263.json"
      ],
-     "seconds": 12.2
+     "seconds": 12.4
     },
     {
      "scorer": "kn8-vowel-dropped",
@@ -17305,7 +17306,7 @@
      "fit_record": [
       "reports/scorer_power/fits/kn8-vowel-dropped__rigid__L263.json"
      ],
-     "seconds": 16.1
+     "seconds": 15.1
     },
     {
      "scorer": "kn8-cicada-wb",
@@ -17633,7 +17634,7 @@
      "fit_record": [
       "reports/scorer_power/fits/kn8-cicada-wb__rigid__L263.json"
      ],
-     "seconds": 16.6
+     "seconds": 16.0
     },
     {
      "scorer": "lp-ngram3-heldout",
@@ -17961,7 +17962,7 @@
      "fit_record": [
       "reports/scorer_power/fits/lp-ngram3-heldout__rigid__L500.json"
      ],
-     "seconds": 8.9
+     "seconds": 9.5
     },
     {
      "scorer": "cicada-ngram3",
@@ -18289,7 +18290,7 @@
      "fit_record": [
       "reports/scorer_power/fits/cicada-ngram3__rigid__L500.json"
      ],
-     "seconds": 9.4
+     "seconds": 9.8
     },
     {
      "scorer": "general-ngram3",
@@ -18617,7 +18618,7 @@
      "fit_record": [
       "reports/scorer_power/fits/general-ngram3__rigid__L500.json"
      ],
-     "seconds": 3.5
+     "seconds": 3.4
     },
     {
      "scorer": "kn4-lp-heldout",
@@ -18945,7 +18946,7 @@
      "fit_record": [
       "reports/scorer_power/fits/kn4-lp-heldout__rigid__L500.json"
      ],
-     "seconds": 7.7
+     "seconds": 7.6
     },
     {
      "scorer": "kn4-cicada",
@@ -19273,7 +19274,7 @@
      "fit_record": [
       "reports/scorer_power/fits/kn4-cicada__rigid__L500.json"
      ],
-     "seconds": 7.3
+     "seconds": 7.6
     },
     {
      "scorer": "kn5-cicada",
@@ -19601,7 +19602,7 @@
      "fit_record": [
       "reports/scorer_power/fits/kn5-cicada__rigid__L500.json"
      ],
-     "seconds": 10.7
+     "seconds": 10.2
     },
     {
      "scorer": "kn6-cicada",
@@ -19929,7 +19930,7 @@
      "fit_record": [
       "reports/scorer_power/fits/kn6-cicada__rigid__L500.json"
      ],
-     "seconds": 20.0
+     "seconds": 20.2
     },
     {
      "scorer": "kn8-cicada",
@@ -20257,7 +20258,7 @@
      "fit_record": [
       "reports/scorer_power/fits/kn8-cicada__rigid__L500.json"
      ],
-     "seconds": 33.0
+     "seconds": 29.8
     },
     {
      "scorer": "kn8-general",
@@ -20585,7 +20586,7 @@
      "fit_record": [
       "reports/scorer_power/fits/kn8-general__rigid__L500.json"
      ],
-     "seconds": 31.0
+     "seconds": 37.8
     },
     {
      "scorer": "kn8-latin",
@@ -20913,7 +20914,7 @@
      "fit_record": [
       "reports/scorer_power/fits/kn8-latin__rigid__L500.json"
      ],
-     "seconds": 25.2
+     "seconds": 26.5
     },
     {
      "scorer": "kn8-old-english",
@@ -21241,7 +21242,7 @@
      "fit_record": [
       "reports/scorer_power/fits/kn8-old-english__rigid__L500.json"
      ],
-     "seconds": 30.9
+     "seconds": 33.9
     },
     {
      "scorer": "kn8-vowel-dropped",
@@ -21569,7 +21570,7 @@
      "fit_record": [
       "reports/scorer_power/fits/kn8-vowel-dropped__rigid__L500.json"
      ],
-     "seconds": 28.4
+     "seconds": 32.5
     },
     {
      "scorer": "kn8-cicada-wb",
@@ -21897,7 +21898,7 @@
      "fit_record": [
       "reports/scorer_power/fits/kn8-cicada-wb__rigid__L500.json"
      ],
-     "seconds": 29.8
+     "seconds": 31.3
     },
     {
      "scorer": "lp-ngram3-heldout",
@@ -22225,7 +22226,7 @@
      "fit_record": [
       "reports/scorer_power/fits/lp-ngram3-heldout__rigid__L1000.json"
      ],
-     "seconds": 9.5
+     "seconds": 10.5
     },
     {
      "scorer": "cicada-ngram3",
@@ -22553,7 +22554,7 @@
      "fit_record": [
       "reports/scorer_power/fits/cicada-ngram3__rigid__L1000.json"
      ],
-     "seconds": 9.4
+     "seconds": 10.4
     },
     {
      "scorer": "general-ngram3",
@@ -22881,7 +22882,7 @@
      "fit_record": [
       "reports/scorer_power/fits/general-ngram3__rigid__L1000.json"
      ],
-     "seconds": 9.5
+     "seconds": 10.6
     },
     {
      "scorer": "kn4-lp-heldout",
@@ -23209,7 +23210,7 @@
      "fit_record": [
       "reports/scorer_power/fits/kn4-lp-heldout__rigid__L1000.json"
      ],
-     "seconds": 16.0
+     "seconds": 19.6
     },
     {
      "scorer": "kn4-cicada",
@@ -23537,7 +23538,7 @@
      "fit_record": [
       "reports/scorer_power/fits/kn4-cicada__rigid__L1000.json"
      ],
-     "seconds": 14.7
+     "seconds": 14.9
     },
     {
      "scorer": "kn5-cicada",
@@ -23865,7 +23866,7 @@
      "fit_record": [
       "reports/scorer_power/fits/kn5-cicada__rigid__L1000.json"
      ],
-     "seconds": 18.4
+     "seconds": 17.7
     },
     {
      "scorer": "kn6-cicada",
@@ -24193,7 +24194,7 @@
      "fit_record": [
       "reports/scorer_power/fits/kn6-cicada__rigid__L1000.json"
      ],
-     "seconds": 37.7
+     "seconds": 39.6
     },
     {
      "scorer": "kn8-cicada",
@@ -24521,7 +24522,7 @@
      "fit_record": [
       "reports/scorer_power/fits/kn8-cicada__rigid__L1000.json"
      ],
-     "seconds": 63.4
+     "seconds": 78.3
     },
     {
      "scorer": "kn8-general",
@@ -24849,7 +24850,7 @@
      "fit_record": [
       "reports/scorer_power/fits/kn8-general__rigid__L1000.json"
      ],
-     "seconds": 58.6
+     "seconds": 60.2
     },
     {
      "scorer": "kn8-latin",
@@ -25177,7 +25178,7 @@
      "fit_record": [
       "reports/scorer_power/fits/kn8-latin__rigid__L1000.json"
      ],
-     "seconds": 54.9
+     "seconds": 56.0
     },
     {
      "scorer": "kn8-old-english",
@@ -25505,7 +25506,7 @@
      "fit_record": [
       "reports/scorer_power/fits/kn8-old-english__rigid__L1000.json"
      ],
-     "seconds": 54.1
+     "seconds": 57.7
     },
     {
      "scorer": "kn8-vowel-dropped",
@@ -25833,7 +25834,7 @@
      "fit_record": [
       "reports/scorer_power/fits/kn8-vowel-dropped__rigid__L1000.json"
      ],
-     "seconds": 58.4
+     "seconds": 67.0
     },
     {
      "scorer": "kn8-cicada-wb",
@@ -26161,7 +26162,7 @@
      "fit_record": [
       "reports/scorer_power/fits/kn8-cicada-wb__rigid__L1000.json"
      ],
-     "seconds": 60.4
+     "seconds": 60.6
     }
    ]
   },
@@ -29055,7 +29056,7 @@
        }
       }
      },
-     "seconds": 3.0
+     "seconds": 3.9
     },
     {
      "register": "english-general",
@@ -31944,7 +31945,7 @@
        }
       }
      },
-     "seconds": 3.9
+     "seconds": 5.1
     },
     {
      "register": "english-general",
@@ -34833,7 +34834,7 @@
        }
       }
      },
-     "seconds": 3.9
+     "seconds": 4.4
     },
     {
      "register": "english-general",
@@ -37722,7 +37723,7 @@
        }
       }
      },
-     "seconds": 4.0
+     "seconds": 4.8
     },
     {
      "register": "english-general",
@@ -40611,7 +40612,7 @@
        }
       }
      },
-     "seconds": 3.0
+     "seconds": 3.1
     },
     {
      "register": "english-general",
@@ -43500,7 +43501,7 @@
        }
       }
      },
-     "seconds": 5.9
+     "seconds": 5.7
     },
     {
      "register": "cicada-english",
@@ -49278,7 +49279,7 @@
        }
       }
      },
-     "seconds": 1.9
+     "seconds": 1.8
     },
     {
      "register": "cicada-english",
@@ -52167,7 +52168,7 @@
        }
       }
      },
-     "seconds": 1.8
+     "seconds": 1.9
     },
     {
      "register": "cicada-english",
@@ -55056,7 +55057,7 @@
        }
       }
      },
-     "seconds": 1.9
+     "seconds": 2.0
     },
     {
      "register": "cicada-english",
@@ -57945,7 +57946,7 @@
        }
       }
      },
-     "seconds": 3.1
+     "seconds": 3.0
     },
     {
      "register": "cicada-english",
@@ -63723,7 +63724,7 @@
        }
       }
      },
-     "seconds": 1.1
+     "seconds": 1.2
     },
     {
      "register": "latin",
@@ -66612,7 +66613,7 @@
        }
       }
      },
-     "seconds": 1.8
+     "seconds": 1.9
     },
     {
      "register": "latin",
@@ -69501,7 +69502,7 @@
        }
       }
      },
-     "seconds": 1.7
+     "seconds": 1.9
     },
     {
      "register": "latin",
@@ -72390,7 +72391,7 @@
        }
       }
      },
-     "seconds": 1.7
+     "seconds": 2.0
     },
     {
      "register": "latin",
@@ -75279,7 +75280,7 @@
        }
       }
      },
-     "seconds": 2.8
+     "seconds": 3.2
     },
     {
      "register": "latin",
@@ -78168,7 +78169,7 @@
        }
       }
      },
-     "seconds": 5.2
+     "seconds": 5.8
     },
     {
      "register": "vowel-dropped-english",
@@ -83946,7 +83947,7 @@
        }
       }
      },
-     "seconds": 1.6
+     "seconds": 2.0
     },
     {
      "register": "vowel-dropped-english",
@@ -86835,7 +86836,7 @@
        }
       }
      },
-     "seconds": 1.8
+     "seconds": 2.0
     },
     {
      "register": "vowel-dropped-english",
@@ -89724,7 +89725,7 @@
        }
       }
      },
-     "seconds": 1.8
+     "seconds": 2.1
     },
     {
      "register": "vowel-dropped-english",
@@ -92613,7 +92614,7 @@
        }
       }
      },
-     "seconds": 2.8
+     "seconds": 3.2
     },
     {
      "register": "vowel-dropped-english",
@@ -95502,7 +95503,7 @@
        }
       }
      },
-     "seconds": 5.3
+     "seconds": 6.0
     },
     {
      "register": "old-english",
@@ -98391,7 +98392,7 @@
        }
       }
      },
-     "seconds": 1.1
+     "seconds": 1.3
     },
     {
      "register": "old-english",
@@ -101280,7 +101281,7 @@
        }
       }
      },
-     "seconds": 1.8
+     "seconds": 2.1
     },
     {
      "register": "old-english",
@@ -104169,7 +104170,7 @@
        }
       }
      },
-     "seconds": 2.0
+     "seconds": 2.2
     },
     {
      "register": "old-english",
@@ -109947,7 +109948,7 @@
        }
       }
      },
-     "seconds": 2.8
+     "seconds": 3.2
     },
     {
      "register": "old-english",
@@ -112836,7 +112837,7 @@
        }
       }
      },
-     "seconds": 5.2
+     "seconds": 5.4
     },
     {
      "register": "heldout-solved-sections",
@@ -115725,7 +115726,7 @@
        }
       }
      },
-     "seconds": 0.9
+     "seconds": 1.2
     },
     {
      "register": "heldout-solved-sections",
@@ -118614,7 +118615,7 @@
        }
       }
      },
-     "seconds": 1.7
+     "seconds": 1.8
     },
     {
      "register": "heldout-solved-sections",
@@ -121503,7 +121504,7 @@
        }
       }
      },
-     "seconds": 1.7
+     "seconds": 1.9
     },
     {
      "register": "heldout-solved-sections",
@@ -124392,7 +124393,7 @@
        }
       }
      },
-     "seconds": 1.8
+     "seconds": 1.9
     },
     {
      "register": "heldout-solved-sections",
@@ -171256,7 +171257,7 @@
       "reports/scorer_power/fits/lp-ngram3-heldout__beam__L120.json"
      ],
      "null_source": "runeforge.scoring.beam_calib._chunk",
-     "seconds": 2.0
+     "seconds": 2.2
     },
     {
      "scorer": "lp-ngram3-heldout",
@@ -171327,7 +171328,7 @@
       "reports/scorer_power/fits/lp-ngram3-heldout__beam-skip__L120.json"
      ],
      "null_source": "runeforge.scoring.beam_calib._chunk",
-     "seconds": 3.7
+     "seconds": 4.0
     },
     {
      "scorer": "lp-ngram3-heldout",
@@ -171398,7 +171399,7 @@
       "reports/scorer_power/fits/lp-ngram3-heldout__beam-skip-int__L120.json"
      ],
      "null_source": "runeforge.scoring.beam_calib._chunk",
-     "seconds": 4.8
+     "seconds": 5.0
     },
     {
      "scorer": "kn4-lp-heldout",
@@ -171452,7 +171453,7 @@
      "scale_check": null,
      "fit_record": [],
      "null_source": "scripts/scorer_power.py uniform_scores",
-     "seconds": 0.7
+     "seconds": 0.6
     },
     {
      "scorer": "kn4-lp-heldout",
@@ -171508,7 +171509,7 @@
       "reports/scorer_power/fits/kn4-lp-heldout__beam__L120.json"
      ],
      "null_source": "runeforge.scoring.beam_calib._chunk",
-     "seconds": 2.1
+     "seconds": 2.2
     },
     {
      "scorer": "kn4-lp-heldout",
@@ -171620,7 +171621,7 @@
       "reports/scorer_power/fits/kn4-lp-heldout__beam-skip-int__L120.json"
      ],
      "null_source": "runeforge.scoring.beam_calib._chunk",
-     "seconds": 5.6
+     "seconds": 5.2
     },
     {
      "scorer": "kn4-cicada",
@@ -171674,7 +171675,7 @@
      "scale_check": null,
      "fit_record": [],
      "null_source": "scripts/scorer_power.py uniform_scores",
-     "seconds": 0.7
+     "seconds": 0.5
     },
     {
      "scorer": "kn4-cicada",
@@ -171730,7 +171731,7 @@
       "reports/scorer_power/fits/kn4-cicada__beam__L120.json"
      ],
      "null_source": "runeforge.scoring.beam_calib._chunk",
-     "seconds": 2.1
+     "seconds": 2.2
     },
     {
      "scorer": "kn4-cicada",
@@ -171786,7 +171787,7 @@
       "reports/scorer_power/fits/kn4-cicada__beam-skip__L120.json"
      ],
      "null_source": "runeforge.scoring.beam_calib._chunk",
-     "seconds": 4.2
+     "seconds": 4.1
     },
     {
      "scorer": "kn4-cicada",
@@ -171842,7 +171843,7 @@
       "reports/scorer_power/fits/kn4-cicada__beam-skip-int__L120.json"
      ],
      "null_source": "runeforge.scoring.beam_calib._chunk",
-     "seconds": 5.3
+     "seconds": 5.4
     },
     {
      "scorer": "lp-ngram3-heldout",
@@ -171985,7 +171986,7 @@
       "reports/scorer_power/fits/lp-ngram3-heldout__beam__L240.json"
      ],
      "null_source": "runeforge.scoring.beam_calib._chunk",
-     "seconds": 3.9
+     "seconds": 4.4
     },
     {
      "scorer": "lp-ngram3-heldout",
@@ -172056,7 +172057,7 @@
       "reports/scorer_power/fits/lp-ngram3-heldout__beam-skip__L240.json"
      ],
      "null_source": "runeforge.scoring.beam_calib._chunk",
-     "seconds": 7.8
+     "seconds": 9.0
     },
     {
      "scorer": "lp-ngram3-heldout",
@@ -172127,7 +172128,7 @@
       "reports/scorer_power/fits/lp-ngram3-heldout__beam-skip-int__L240.json"
      ],
      "null_source": "runeforge.scoring.beam_calib._chunk",
-     "seconds": 9.8
+     "seconds": 10.6
     },
     {
      "scorer": "kn4-lp-heldout",
@@ -172240,7 +172241,7 @@
       "reports/scorer_power/fits/kn4-lp-heldout__beam__L240.json"
      ],
      "null_source": "runeforge.scoring.beam_calib._chunk",
-     "seconds": 4.2
+     "seconds": 5.0
     },
     {
      "scorer": "kn4-lp-heldout",
@@ -172296,7 +172297,7 @@
       "reports/scorer_power/fits/kn4-lp-heldout__beam-skip__L240.json"
      ],
      "null_source": "runeforge.scoring.beam_calib._chunk",
-     "seconds": 9.0
+     "seconds": 9.3
     },
     {
      "scorer": "kn4-lp-heldout",
@@ -172352,7 +172353,7 @@
       "reports/scorer_power/fits/kn4-lp-heldout__beam-skip-int__L240.json"
      ],
      "null_source": "runeforge.scoring.beam_calib._chunk",
-     "seconds": 11.0
+     "seconds": 11.5
     },
     {
      "scorer": "kn4-cicada",
@@ -172465,7 +172466,7 @@
       "reports/scorer_power/fits/kn4-cicada__beam__L240.json"
      ],
      "null_source": "runeforge.scoring.beam_calib._chunk",
-     "seconds": 4.2
+     "seconds": 4.8
     },
     {
      "scorer": "kn4-cicada",
@@ -172521,7 +172522,7 @@
       "reports/scorer_power/fits/kn4-cicada__beam-skip__L240.json"
      ],
      "null_source": "runeforge.scoring.beam_calib._chunk",
-     "seconds": 8.8
+     "seconds": 9.9
     },
     {
      "scorer": "kn4-cicada",
@@ -172577,7 +172578,7 @@
       "reports/scorer_power/fits/kn4-cicada__beam-skip-int__L240.json"
      ],
      "null_source": "runeforge.scoring.beam_calib._chunk",
-     "seconds": 10.5
+     "seconds": 12.5
     }
    ],
    "cells": [
@@ -172747,7 +172748,7 @@
      "planted_min": -7.375880444049836,
      "best_decoy_max": -6.269131705289086,
      "runnable_pairing": true,
-     "seconds": 0.1,
+     "seconds": 0.2,
      "claim": {
       "bar": -5.742676657041844,
       "power": 0.42,
@@ -172846,7 +172847,7 @@
      "planted_min": -7.375926559170087,
      "best_decoy_max": -6.339163135488828,
      "runnable_pairing": true,
-     "seconds": 0.1,
+     "seconds": 0.2,
      "claim": {
       "bar": -5.742676657041844,
       "power": 0.26,
@@ -172945,7 +172946,7 @@
      "planted_min": -4.679859338700771,
      "best_decoy_max": -5.898234571019809,
      "runnable_pairing": true,
-     "seconds": 1.4,
+     "seconds": 1.7,
      "claim": {
       "bar": -5.5800689454912735,
       "power": 1.0,
@@ -173044,7 +173045,7 @@
      "planted_min": -7.166281904031833,
      "best_decoy_max": -6.146174724648396,
      "runnable_pairing": false,
-     "seconds": 1.4,
+     "seconds": 1.8,
      "claim": {
       "bar": -5.5800689454912735,
       "power": 0.22,
@@ -173143,7 +173144,7 @@
      "planted_min": -7.066144706805547,
      "best_decoy_max": -6.249734481672446,
      "runnable_pairing": true,
-     "seconds": 1.4,
+     "seconds": 1.7,
      "claim": {
       "bar": -5.5800689454912735,
       "power": 0.4,
@@ -173242,7 +173243,7 @@
      "planted_min": -7.210805333654085,
      "best_decoy_max": -6.251908034086227,
      "runnable_pairing": false,
-     "seconds": 2.5,
+     "seconds": 2.9,
      "claim": {
       "bar": -5.757218733687527,
       "power": 0.5,
@@ -173341,7 +173342,7 @@
      "planted_min": -4.853271570801735,
      "best_decoy_max": -6.218110071619352,
      "runnable_pairing": true,
-     "seconds": 2.6,
+     "seconds": 3.2,
      "claim": {
       "bar": -5.757218733687527,
       "power": 1.0,
@@ -173440,7 +173441,7 @@
      "planted_min": -6.957954581578573,
      "best_decoy_max": -6.229512855658928,
      "runnable_pairing": true,
-     "seconds": 2.6,
+     "seconds": 3.1,
      "claim": {
       "bar": -5.757218733687527,
       "power": 0.84,
@@ -173539,7 +173540,7 @@
      "planted_min": -4.697532426814238,
      "best_decoy_max": -6.089191706478596,
      "runnable_pairing": false,
-     "seconds": 2.8,
+     "seconds": 3.5,
      "claim": {
       "bar": -5.621978151296924,
       "power": 1.0,
@@ -173638,7 +173639,7 @@
      "planted_min": -4.802523430685202,
      "best_decoy_max": -5.9691651894400515,
      "runnable_pairing": false,
-     "seconds": 2.8,
+     "seconds": 3.4,
      "claim": {
       "bar": -5.621978151296924,
       "power": 1.0,
@@ -173737,7 +173738,7 @@
      "planted_min": -4.736228186388811,
      "best_decoy_max": -6.037513024359941,
      "runnable_pairing": true,
-     "seconds": 3.0,
+     "seconds": 3.5,
      "claim": {
       "bar": -5.621978151296924,
       "power": 1.0,
@@ -174034,7 +174035,7 @@
      "planted_min": -6.182417663931846,
      "best_decoy_max": -5.48498272895813,
      "runnable_pairing": true,
-     "seconds": 0.1,
+     "seconds": 0.2,
      "claim": {
       "bar": -5.038373719466178,
       "power": 0.28,
@@ -174133,7 +174134,7 @@
      "planted_min": -4.145469047874212,
      "best_decoy_max": -5.407568829754989,
      "runnable_pairing": true,
-     "seconds": 1.6,
+     "seconds": 2.2,
      "claim": {
       "bar": -4.868782265001374,
       "power": 1.0,
@@ -174232,7 +174233,7 @@
      "planted_min": -6.128699271877607,
      "best_decoy_max": -5.393271492918332,
      "runnable_pairing": false,
-     "seconds": 1.7,
+     "seconds": 1.8,
      "claim": {
       "bar": -4.868782265001374,
       "power": 0.18,
@@ -174331,7 +174332,7 @@
      "planted_min": -6.217527456084887,
      "best_decoy_max": -5.406129495799542,
      "runnable_pairing": true,
-     "seconds": 1.5,
+     "seconds": 1.7,
      "claim": {
       "bar": -4.868782265001374,
       "power": 0.46,
@@ -174430,7 +174431,7 @@
      "planted_min": -6.18890559176604,
      "best_decoy_max": -5.349252968033155,
      "runnable_pairing": false,
-     "seconds": 2.7,
+     "seconds": 3.3,
      "claim": {
       "bar": -5.0544313182488345,
       "power": 0.5,
@@ -174529,7 +174530,7 @@
      "planted_min": -4.336379168679317,
      "best_decoy_max": -5.328716178735097,
      "runnable_pairing": true,
-     "seconds": 2.6,
+     "seconds": 3.1,
      "claim": {
       "bar": -5.0544313182488345,
       "power": 1.0,
@@ -174628,7 +174629,7 @@
      "planted_min": -5.9253539403279625,
      "best_decoy_max": -5.334308077022433,
      "runnable_pairing": true,
-     "seconds": 2.8,
+     "seconds": 3.0,
      "claim": {
       "bar": -5.0544313182488345,
       "power": 0.88,
@@ -174727,7 +174728,7 @@
      "planted_min": -4.145469047874212,
      "best_decoy_max": -5.271321283777555,
      "runnable_pairing": false,
-     "seconds": 3.1,
+     "seconds": 3.6,
      "claim": {
       "bar": -4.930232790747194,
       "power": 1.0,
@@ -174826,7 +174827,7 @@
      "planted_min": -4.233080362528563,
      "best_decoy_max": -5.280125097433726,
      "runnable_pairing": false,
-     "seconds": 3.0,
+     "seconds": 3.4,
      "claim": {
       "bar": -4.930232790747194,
       "power": 1.0,
@@ -174925,7 +174926,7 @@
      "planted_min": -4.194593122353156,
      "best_decoy_max": -5.265373356143633,
      "runnable_pairing": true,
-     "seconds": 3.2,
+     "seconds": 3.5,
      "claim": {
       "bar": -4.930232790747194,
       "power": 1.0,
@@ -175321,7 +175322,7 @@
      "planted_min": -3.1585684485733507,
      "best_decoy_max": -6.001299901679158,
      "runnable_pairing": true,
-     "seconds": 1.6,
+     "seconds": 1.8,
      "claim": {
       "bar": -5.573277530655121,
       "power": 1.0,
@@ -175420,7 +175421,7 @@
      "planted_min": -6.7367291986942295,
      "best_decoy_max": -6.03296107451121,
      "runnable_pairing": false,
-     "seconds": 1.5,
+     "seconds": 1.9,
      "claim": {
       "bar": -5.573277530655121,
       "power": 0.34,
@@ -175519,7 +175520,7 @@
      "planted_min": -6.622361355523268,
      "best_decoy_max": -5.937520323569576,
      "runnable_pairing": true,
-     "seconds": 1.5,
+     "seconds": 1.8,
      "claim": {
       "bar": -5.573277530655121,
       "power": 0.6,
@@ -175618,7 +175619,7 @@
      "planted_min": -6.640479118128618,
      "best_decoy_max": -5.946733881727171,
      "runnable_pairing": false,
-     "seconds": 2.9,
+     "seconds": 3.1,
      "claim": {
       "bar": -5.330312676815121,
       "power": 0.54,
@@ -175717,7 +175718,7 @@
      "planted_min": -3.3113443510917326,
      "best_decoy_max": -5.9604069675008455,
      "runnable_pairing": true,
-     "seconds": 2.8,
+     "seconds": 2.9,
      "claim": {
       "bar": -5.330312676815121,
       "power": 1.0,
@@ -175816,7 +175817,7 @@
      "planted_min": -6.203279672563076,
      "best_decoy_max": -5.926667279501756,
      "runnable_pairing": true,
-     "seconds": 2.5,
+     "seconds": 3.1,
      "claim": {
       "bar": -5.330312676815121,
       "power": 0.9,
@@ -175915,7 +175916,7 @@
      "planted_min": -3.1585684485733507,
      "best_decoy_max": -5.877462360759576,
      "runnable_pairing": false,
-     "seconds": 2.9,
+     "seconds": 3.4,
      "claim": {
       "bar": -5.38541790558763,
       "power": 1.0,
@@ -176014,7 +176015,7 @@
      "planted_min": -3.3247080909709137,
      "best_decoy_max": -5.88017757628113,
      "runnable_pairing": false,
-     "seconds": 2.8,
+     "seconds": 3.4,
      "claim": {
       "bar": -5.38541790558763,
       "power": 1.0,
@@ -176113,7 +176114,7 @@
      "planted_min": -3.2688057569166022,
      "best_decoy_max": -5.948283568024635,
      "runnable_pairing": true,
-     "seconds": 3.0,
+     "seconds": 3.4,
      "claim": {
       "bar": -5.38541790558763,
       "power": 1.0,
@@ -176608,7 +176609,7 @@
      "planted_min": -7.148924162238837,
      "best_decoy_max": -6.427902635683616,
      "runnable_pairing": false,
-     "seconds": 2.9,
+     "seconds": 3.3,
      "claim": {
       "bar": -6.056914223241673,
       "power": 0.18,
@@ -176707,7 +176708,7 @@
      "planted_min": -6.898181545486053,
      "best_decoy_max": -6.419745147135108,
      "runnable_pairing": true,
-     "seconds": 2.8,
+     "seconds": 3.3,
      "claim": {
       "bar": -6.056914223241673,
       "power": 0.44,
@@ -176806,7 +176807,7 @@
      "planted_min": -6.9314942382276055,
      "best_decoy_max": -6.37121113948524,
      "runnable_pairing": false,
-     "seconds": 5.2,
+     "seconds": 5.8,
      "claim": {
       "bar": -6.076824116872943,
       "power": 0.42,
@@ -176905,7 +176906,7 @@
      "planted_min": -4.336702564669152,
      "best_decoy_max": -6.355072379112244,
      "runnable_pairing": true,
-     "seconds": 5.1,
+     "seconds": 5.9,
      "claim": {
       "bar": -6.076824116872943,
       "power": 1.0,
@@ -177004,7 +177005,7 @@
      "planted_min": -6.089704683981836,
      "best_decoy_max": -6.4255192919323845,
      "runnable_pairing": true,
-     "seconds": 5.2,
+     "seconds": 6.1,
      "claim": {
       "bar": -6.076824116872943,
       "power": 0.98,
@@ -177103,7 +177104,7 @@
      "planted_min": -4.274392573349178,
      "best_decoy_max": -6.312138494228323,
      "runnable_pairing": false,
-     "seconds": 6.1,
+     "seconds": 6.8,
      "claim": {
       "bar": -5.725849455182447,
       "power": 1.0,
@@ -177202,7 +177203,7 @@
      "planted_min": -4.36440738470604,
      "best_decoy_max": -6.2992188084870575,
      "runnable_pairing": false,
-     "seconds": 6.1,
+     "seconds": 6.8,
      "claim": {
       "bar": -5.725849455182447,
       "power": 1.0,
@@ -177301,7 +177302,7 @@
      "planted_min": -4.288776943956813,
      "best_decoy_max": -6.172202631831169,
      "runnable_pairing": true,
-     "seconds": 6.2,
+     "seconds": 6.8,
      "claim": {
       "bar": -5.725849455182447,
       "power": 1.0,
@@ -177697,7 +177698,7 @@
      "planted_min": -3.956910571673264,
      "best_decoy_max": -5.417804688215256,
      "runnable_pairing": true,
-     "seconds": 3.1,
+     "seconds": 3.6,
      "claim": {
       "bar": -5.210394420650527,
       "power": 1.0,
@@ -177796,7 +177797,7 @@
      "planted_min": -6.026642785966397,
      "best_decoy_max": -5.452470613519351,
      "runnable_pairing": false,
-     "seconds": 3.0,
+     "seconds": 3.6,
      "claim": {
       "bar": -5.210394420650527,
       "power": 0.24,
@@ -177895,7 +177896,7 @@
      "planted_min": -6.110955427587032,
      "best_decoy_max": -5.421233051021894,
      "runnable_pairing": true,
-     "seconds": 3.0,
+     "seconds": 3.6,
      "claim": {
       "bar": -5.210394420650527,
       "power": 0.32,
@@ -177994,7 +177995,7 @@
      "planted_min": -6.105770742893219,
      "best_decoy_max": -5.521512321134408,
      "runnable_pairing": false,
-     "seconds": 5.9,
+     "seconds": 6.4,
      "claim": {
       "bar": -5.261604780433731,
       "power": 0.38,
@@ -178093,7 +178094,7 @@
      "planted_min": -4.023019701490799,
      "best_decoy_max": -5.543190835913022,
      "runnable_pairing": true,
-     "seconds": 5.9,
+     "seconds": 6.2,
      "claim": {
       "bar": -5.261604780433731,
       "power": 1.0,
@@ -178192,7 +178193,7 @@
      "planted_min": -5.774620895584424,
      "best_decoy_max": -5.543870678544044,
      "runnable_pairing": true,
-     "seconds": 5.7,
+     "seconds": 6.4,
      "claim": {
       "bar": -5.261604780433731,
       "power": 0.96,
@@ -178291,7 +178292,7 @@
      "planted_min": -3.956910571673264,
      "best_decoy_max": -5.429965183138847,
      "runnable_pairing": false,
-     "seconds": 6.4,
+     "seconds": 6.9,
      "claim": {
       "bar": -5.006000232965539,
       "power": 1.0,
@@ -178489,7 +178490,7 @@
      "planted_min": -3.9889652065932752,
      "best_decoy_max": -5.3783961991469065,
      "runnable_pairing": true,
-     "seconds": 6.9,
+     "seconds": 6.8,
      "claim": {
       "bar": -5.006000232965539,
       "power": 1.0,
@@ -178588,7 +178589,7 @@
      "planted_min": -6.909328793734312,
      "best_decoy_max": -6.2955284864331285,
      "runnable_pairing": true,
-     "seconds": 0.1,
+     "seconds": 0.2,
      "claim": {
       "bar": -6.070450514342512,
       "power": 0.58,
@@ -178885,7 +178886,7 @@
      "planted_min": -3.0307797132409178,
      "best_decoy_max": -6.131475117554268,
      "runnable_pairing": true,
-     "seconds": 3.6,
+     "seconds": 3.5,
      "claim": {
       "bar": -5.9344505861678085,
       "power": 1.0,
@@ -178984,7 +178985,7 @@
      "planted_min": -6.540867474985619,
      "best_decoy_max": -6.16878262249132,
      "runnable_pairing": false,
-     "seconds": 3.4,
+     "seconds": 3.5,
      "claim": {
       "bar": -5.9344505861678085,
       "power": 0.38,
@@ -179182,7 +179183,7 @@
      "planted_min": -6.575828947126865,
      "best_decoy_max": -6.170294296865662,
      "runnable_pairing": false,
-     "seconds": 5.9,
+     "seconds": 6.4,
      "claim": {
       "bar": -5.966124569350057,
       "power": 0.62,
@@ -179281,7 +179282,7 @@
      "planted_min": -3.184520367133276,
      "best_decoy_max": -6.1163468926524125,
      "runnable_pairing": true,
-     "seconds": 5.7,
+     "seconds": 6.4,
      "claim": {
       "bar": -5.966124569350057,
       "power": 1.0,
@@ -179380,7 +179381,7 @@
      "planted_min": -6.233299468643963,
      "best_decoy_max": -6.171971434603135,
      "runnable_pairing": true,
-     "seconds": 5.6,
+     "seconds": 6.5,
      "claim": {
       "bar": -5.966124569350057,
       "power": 0.96,
@@ -179479,7 +179480,7 @@
      "planted_min": -3.0307797132409178,
      "best_decoy_max": -6.034134082185726,
      "runnable_pairing": false,
-     "seconds": 6.7,
+     "seconds": 6.9,
      "claim": {
       "bar": -5.777239483111067,
       "power": 1.0,
@@ -179578,7 +179579,7 @@
      "planted_min": -3.1490945995474857,
      "best_decoy_max": -6.082582562696189,
      "runnable_pairing": false,
-     "seconds": 6.3,
+     "seconds": 7.3,
      "claim": {
       "bar": -5.777239483111067,
       "power": 1.0,
@@ -179677,7 +179678,7 @@
      "planted_min": -3.102561752843515,
      "best_decoy_max": -6.0651104311148325,
      "runnable_pairing": true,
-     "seconds": 6.1,
+     "seconds": 7.1,
      "claim": {
       "bar": -5.777239483111067,
       "power": 1.0,
@@ -180196,7 +180197,7 @@
     },
     "gain_separation_vs_variant": -3.119457313811381
    },
-   "seconds": 8.1
+   "seconds": 9.2
   },
   "order": {
    "presets": [
@@ -181070,25 +181071,25 @@
     {
      "scorer": "lp-ngram3-heldout",
      "model": "ngram",
-     "keys_per_s_L240": 270157.87364218454,
+     "keys_per_s_L240": 265024.26886904927,
      "rows_L240": 20000,
-     "keys_per_s_L1000": 57399.918249289665,
+     "keys_per_s_L1000": 66152.00494977954,
      "rows_L1000": 5000
     },
     {
      "scorer": "cicada-ngram3",
      "model": "ngram",
-     "keys_per_s_L240": 275706.1485821325,
+     "keys_per_s_L240": 294046.3537905648,
      "rows_L240": 20000,
-     "keys_per_s_L1000": 57565.21476862462,
+     "keys_per_s_L1000": 69469.90516472088,
      "rows_L1000": 5000
     },
     {
      "scorer": "general-ngram3",
      "model": "ngram",
-     "keys_per_s_L240": 240962.61577294458,
+     "keys_per_s_L240": 268166.92114480445,
      "rows_L240": 20000,
-     "keys_per_s_L1000": 67894.44168819694,
+     "keys_per_s_L1000": 65753.64573389664,
      "rows_L1000": 5000
     },
     {
@@ -181097,9 +181098,9 @@
      "order": 4,
      "dense_levels": 4,
      "table_bytes": 2930160,
-     "keys_per_s_L240": 66593.80416563487,
+     "keys_per_s_L240": 74502.89591074287,
      "rows_L240": 20000,
-     "keys_per_s_L1000": 19080.889285764253,
+     "keys_per_s_L1000": 17256.11347254767,
      "rows_L1000": 5000
     },
     {
@@ -181108,9 +181109,9 @@
      "order": 4,
      "dense_levels": 4,
      "table_bytes": 2930160,
-     "keys_per_s_L240": 72770.99698273037,
+     "keys_per_s_L240": 70465.86551563893,
      "rows_L240": 20000,
-     "keys_per_s_L1000": 18070.812858324523,
+     "keys_per_s_L1000": 17228.595276769865,
      "rows_L1000": 5000
     },
     {
@@ -181119,9 +181120,9 @@
      "order": 5,
      "dense_levels": 5,
      "table_bytes": 84974756,
-     "keys_per_s_L240": 60068.43554797994,
+     "keys_per_s_L240": 58324.637275643436,
      "rows_L240": 20000,
-     "keys_per_s_L1000": 15457.746076475323,
+     "keys_per_s_L1000": 13466.292720643809,
      "rows_L1000": 5000
     },
     {
@@ -181130,9 +181131,9 @@
      "order": 6,
      "dense_levels": 4,
      "table_bytes": 9847476,
-     "keys_per_s_L240": 26761.013297006702,
+     "keys_per_s_L240": 23379.551316262827,
      "rows_L240": 20000,
-     "keys_per_s_L1000": 6698.740181061443,
+     "keys_per_s_L1000": 5410.851125812307,
      "rows_L1000": 5000
     },
     {
@@ -181141,9 +181142,9 @@
      "order": 8,
      "dense_levels": 4,
      "table_bytes": 16832180,
-     "keys_per_s_L240": 17302.44138607029,
+     "keys_per_s_L240": 16586.602335514952,
      "rows_L240": 20000,
-     "keys_per_s_L1000": 4086.3964940360643,
+     "keys_per_s_L1000": 3389.1762067530844,
      "rows_L1000": 5000
     },
     {
@@ -181152,9 +181153,9 @@
      "order": 8,
      "dense_levels": 4,
      "table_bytes": 32967684,
-     "keys_per_s_L240": 15831.424020730274,
+     "keys_per_s_L240": 11744.763198450004,
      "rows_L240": 20000,
-     "keys_per_s_L1000": 3644.3772880648526,
+     "keys_per_s_L1000": 3570.6811921499443,
      "rows_L1000": 5000
     },
     {
@@ -181163,9 +181164,9 @@
      "order": 8,
      "dense_levels": 4,
      "table_bytes": 9939524,
-     "keys_per_s_L240": 20147.541696996068,
+     "keys_per_s_L240": 17239.22326310355,
      "rows_L240": 20000,
-     "keys_per_s_L1000": 4283.431660893081,
+     "keys_per_s_L1000": 4450.722431741239,
      "rows_L1000": 5000
     },
     {
@@ -181174,9 +181175,9 @@
      "order": 8,
      "dense_levels": 4,
      "table_bytes": 9587668,
-     "keys_per_s_L240": 18999.993898146073,
+     "keys_per_s_L240": 17947.169351895474,
      "rows_L240": 20000,
-     "keys_per_s_L1000": 3996.9116375360863,
+     "keys_per_s_L1000": 4161.1175840369115,
      "rows_L1000": 5000
     },
     {
@@ -181185,9 +181186,9 @@
      "order": 8,
      "dense_levels": 4,
      "table_bytes": 31177268,
-     "keys_per_s_L240": 16033.308672870651,
+     "keys_per_s_L240": 14985.165981891274,
      "rows_L240": 20000,
-     "keys_per_s_L1000": 3739.7136334315874,
+     "keys_per_s_L1000": 3602.6953374947143,
      "rows_L1000": 5000
     },
     {
@@ -181196,9 +181197,9 @@
      "order": 8,
      "dense_levels": 4,
      "table_bytes": 14891144,
-     "keys_per_s_L240": 12652.87532947761,
+     "keys_per_s_L240": 12099.367549062536,
      "rows_L240": 20000,
-     "keys_per_s_L1000": 3052.69234552165,
+     "keys_per_s_L1000": 3213.7898115967387,
      "rows_L1000": 5000
     },
     {
@@ -181207,12 +181208,12 @@
      "order": 8,
      "dense_levels": 5,
      "table_bytes": 176534616,
-     "keys_per_s_L240": 17394.409567588336,
+     "keys_per_s_L240": 17279.471592654478,
      "rows_L240": 20000,
-     "keys_per_s_L1000": 4590.157079586015,
+     "keys_per_s_L1000": 4154.937679242472,
      "rows_L1000": 5000,
      "ad_hoc": "kn8-cicada refitted with dense_levels=5; not a preset",
-     "fit_and_time_seconds": 7.5
+     "fit_and_time_seconds": 8.3
     }
    ],
    "d4_vs_d5": {
@@ -181223,9 +181224,9 @@
       "order": 8,
       "dense_levels": 4,
       "table_bytes": 16832180,
-      "keys_per_s_L240": 17302.44138607029,
+      "keys_per_s_L240": 16586.602335514952,
       "rows_L240": 20000,
-      "keys_per_s_L1000": 4086.3964940360643,
+      "keys_per_s_L1000": 3389.1762067530844,
       "rows_L1000": 5000
      },
      "D5": {
@@ -181234,15 +181235,15 @@
       "order": 8,
       "dense_levels": 5,
       "table_bytes": 176534616,
-      "keys_per_s_L240": 17394.409567588336,
+      "keys_per_s_L240": 17279.471592654478,
       "rows_L240": 20000,
-      "keys_per_s_L1000": 4590.157079586015,
+      "keys_per_s_L1000": 4154.937679242472,
       "rows_L1000": 5000,
       "ad_hoc": "kn8-cicada refitted with dense_levels=5; not a preset",
-      "fit_and_time_seconds": 7.5
+      "fit_and_time_seconds": 8.3
      },
-     "ratio_L240": 1.0053153297541055,
-     "ratio_L1000": 1.1232774612755199
+     "ratio_L240": 1.0417728262319261,
+     "ratio_L1000": 1.2259432457254873
     },
     "dense": {
      "D4": {
@@ -181251,9 +181252,9 @@
       "order": 4,
       "dense_levels": 4,
       "table_bytes": 2930160,
-      "keys_per_s_L240": 72770.99698273037,
+      "keys_per_s_L240": 70465.86551563893,
       "rows_L240": 20000,
-      "keys_per_s_L1000": 18070.812858324523,
+      "keys_per_s_L1000": 17228.595276769865,
       "rows_L1000": 5000
      },
      "D5": {
@@ -181262,13 +181263,13 @@
       "order": 5,
       "dense_levels": 5,
       "table_bytes": 84974756,
-      "keys_per_s_L240": 60068.43554797994,
+      "keys_per_s_L240": 58324.637275643436,
       "rows_L240": 20000,
-      "keys_per_s_L1000": 15457.746076475323,
+      "keys_per_s_L1000": 13466.292720643809,
       "rows_L1000": 5000
      },
-     "ratio_L240": 0.8254447243897877,
-     "ratio_L1000": 0.8553984924565547
+     "ratio_L240": 0.8277005731618962,
+     "ratio_L1000": 0.7816245320244449
     }
    },
    "host": "x86_64"
@@ -181296,7 +181297,7 @@
   },
   "reproduce": {
    "command": "python scripts/scorer_power.py --quick --workers 4",
-   "git_sha": "4b096a8e036a19c57f9b61d750fa567e5ced02df",
+   "git_sha": "ea91aaba31770f38abaaa900714d503ca31dba44",
    "canon_sha256": "023312066df471005264b9cbe7997cb77d2a9a6a2dc9b3316d22674023af1585",
    "numbering": "LP2-0-57",
    "python": "3.13.16",
@@ -181319,13 +181320,13 @@
    },
    "timings_s": {
     "reusable": 0.0,
-    "nulls": 332.9,
-    "power": 24.2,
+    "nulls": 364.7,
+    "power": 26.0,
     "confusion": 0.0,
-    "beam": 158.1,
-    "boundaries": 8.3,
-    "order": 3.8,
-    "throughput": 49.8,
+    "beam": 172.4,
+    "boundaries": 9.5,
+    "order": 4.5,
+    "throughput": 54.9,
     "not_covered": 0.0,
     "conditionals": 0.0,
     "reproduce": 0.0
@@ -181397,12 +181398,12 @@
  "not_a_solve": true,
  "numbering": "LP2-0-57",
  "canon_sha256": "023312066df471005264b9cbe7997cb77d2a9a6a2dc9b3316d22674023af1585",
- "git_sha": "4b096a8e036a19c57f9b61d750fa567e5ced02df",
+ "git_sha": "ea91aaba31770f38abaaa900714d503ca31dba44",
  "scale": "reduced",
  "N_claim": 1000000,
  "N_family": 4294967296,
  "alpha": 0.01,
- "created": "2026-10-27T22:33:55+00:00",
+ "created": "2026-10-28T02:04:55+00:00",
  "config": {
   "name": "reduced",
   "registers": [
@@ -181468,13 +181469,13 @@
  "json_path": "reports/scorer_power.json",
  "timings_s": {
   "reusable": 0.0,
-  "nulls": 332.9,
-  "power": 24.2,
+  "nulls": 364.7,
+  "power": 26.0,
   "confusion": 0.0,
-  "beam": 158.1,
-  "boundaries": 8.3,
-  "order": 3.8,
-  "throughput": 49.8,
+  "beam": 172.4,
+  "boundaries": 9.5,
+  "order": 4.5,
+  "throughput": 54.9,
   "not_covered": 0.0,
   "conditionals": 0.0,
   "reproduce": 0.0

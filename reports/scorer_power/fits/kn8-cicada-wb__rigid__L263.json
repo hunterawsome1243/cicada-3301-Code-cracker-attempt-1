@@ -54,7 +54,7 @@
  "installable": false,
  "written_by": "scripts/scorer_power.py",
  "numbering": "LP2-0-57",
- "created": "2026-10-27T22:38:20+00:00",
+ "created": "2026-10-28T02:09:44+00:00",
  "null_source": "scripts/scorer_power.py uniform_scores",
  "mask": "2000 masks sampled from the LP2 word-length histogram (boundaries.sample_starts), 50 strings each"
 }

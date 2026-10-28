@@ -84,6 +84,13 @@ def run(register):
         out["power"][name] = {"bar": bar, "k": k, "power": k / planted.size, "wilson": wilson(k, planted.size)}
         kr = int((rigid > bar).sum())
         out["rigid_exact_power"][name] = {"bar": bar, "k": kr, "power": kr / rigid.size}
+    # per-plant evidence, so a verifier can recount every k above without re-running the beam
+    out["per_plant"] = {
+        "beam_skip_score": [float(x) for x in planted],
+        "rigid_exact_score": [float(x) for x in rigid],
+        "recovery": rec,
+        "rank": rank,
+    }
     out["seconds"] = round(time.time() - t0, 1)
     return out
 

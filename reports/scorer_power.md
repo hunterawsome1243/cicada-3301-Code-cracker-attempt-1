@@ -4,7 +4,7 @@ not a solve
 
 **Not a solve.** This report measures instruments: how a wrong key scores under each scorer preset, where the bars sit at N = 10^6 and 2^32, and how often a planted correct key clears them. No key space of the unsolved pages was searched and nothing here is a decode of LP2.
 
-numbering: "LP2-0-57" · canon SHA-256 `023312066df471005264b9cbe7997cb77d2a9a6a2dc9b3316d22674023af1585` (12,956 runes, LP2 pages 0–55) · git `4b096a8e036a19c57f9b61d750fa567e5ced02df` · scale **reduced** · created 2026-10-27T22:33:55+00:00 · `python scripts/scorer_power.py --quick --workers 4` → `reports/scorer_power.json`
+numbering: "LP2-0-57" · canon SHA-256 `023312066df471005264b9cbe7997cb77d2a9a6a2dc9b3316d22674023af1585` (12,956 runes, LP2 pages 0–55) · git `ea91aaba31770f38abaaa900714d503ca31dba44` · scale **reduced** · created 2026-10-28T02:04:55+00:00 · `python scripts/scorer_power.py --quick --workers 4` → `reports/scorer_power.json`
 
 This is the **reduced-scale** report: 100,000 null draws per (scorer, L) and 200 plants per cell. The bars are reduced-scale bars until `--full` (10^6 draws, Hunter's call) writes the installable records (TOOLBOX_REQUESTS.md TR-7); the fits under `reports/scorer_power/fits/` are marked `scale` and are never installed.
 
@@ -23,11 +23,12 @@ This is the **reduced-scale** report: 100,000 null draws per (scorer, L) and 200
 | validators | `scripts/check_results.py`, `scripts/validate_ledger.py` |
 | families (plant/decoy generators) | vigenere-short-key, atbash-shift, totient-stream, sha256-ctr/vigenere/raw, sha256-ctr/vigenere/atbash, sha256-ctr/vigenere/first-difference, sha256-ctr/vigenere/chain-increment, sha256-ctr/beaufort/raw, sha256-ctr/beaufort/atbash, sha256-ctr/beaufort/first-difference, sha256-ctr/beaufort/chain-increment, numpy-pcg64/vigenere/raw, numpy-pcg64/vigenere/atbash, numpy-pcg64/vigenere/first-difference, numpy-pcg64/vigenere/chain-increment, numpy-pcg64/beaufort/raw, numpy-pcg64/beaufort/atbash, numpy-pcg64/beaufort/first-difference, numpy-pcg64/beaufort/chain-increment |
 
-*numbering LP2-0-57 · canon `023312066df4…` · git `4b096a8e036a` · scale reduced · N_claim = 10^6, N_family = 2^32, alpha = 0.01 · JSON `sections.reusable` · `python scripts/scorer_power.py --quick --section reusable`*
+*numbering LP2-0-57 · canon `023312066df4…` · git `ea91aaba3177` · scale reduced · N_claim = 10^6, N_family = 2^32, alpha = 0.01 · JSON `sections.reusable` · `python scripts/scorer_power.py --quick --section reusable`*
 
 ## 1. Not covered
 
 - scale reduced: 100,000 null draws per (scorer, L) and 200 plants per cell; the 10^6-draw fits that TOOLBOX_REQUESTS.md TR-7 installs are --full
+- reduced-scale bars vary between seeds by more than their bootstrap intervals show: red-team R1 (lanes/R1-REDTEAM-OWN-CLAIMS/out_A2.json) replicated the kn4-cicada L = 240 fit 200 times at 100,000 draws; bar@10^6 has replicate mean -6.0145, sd 0.0335, and this report's -6.0705 sits at the 3rd percentile (bar@2^32 at the 2nd), so powers in cells near a bar move with the seed (kn4-cicada vowel-dropped L = 240: 0.55 here, 0.38-0.40 at replicate-mean bars); the --full fits settle it
 - heldout-solved-sections: L > 500 not covered (1,533 held-out runes)
 - cicada-ngram3 x cicada-english: plant text is training text (no split); the cell is not a power
 - general-ngram3 x english-general: plant text is training text (no split); the cell is not a power
@@ -66,7 +67,7 @@ This is the **reduced-scale** report: 100,000 null draws per (scorer, L) and 200
 - no GPU: every number is the numpy path; the CUDA kernel is Phase 3
 - no key space of the unsolved pages is searched here: this is an instrument report, not a lane; coverage of LP2 is 0 of every space
 
-*numbering LP2-0-57 · canon `023312066df4…` · git `4b096a8e036a` · scale reduced · N_claim = 10^6, N_family = 2^32, alpha = 0.01 · JSON `sections.not_covered` · `python scripts/scorer_power.py --quick --section not_covered`*
+*numbering LP2-0-57 · canon `023312066df4…` · git `ea91aaba3177` · scale reduced · N_claim = 10^6, N_family = 2^32, alpha = 0.01 · JSON `sections.not_covered` · `python scripts/scorer_power.py --quick --section not_covered`*
 
 ## 2. Nulls and bars
 
@@ -156,7 +157,7 @@ Null (a): 100,000 uniform random strings per (scorer, L) (`calib.measure`); Gumb
 | kn8-vowel-dropped | 1000 | −6.8856 | 0.0755 | −6.6522 | 0.0229 | 100 | −6.3892 [−6.4456, −6.3415] | −6.1981 [−6.2944, −6.1168] | 0.015 | 0.391 | 0.001 |
 | kn8-cicada-wb | 1000 | −7.6390 | 0.0655 | −7.4451 | 0.0230 | 100 | −7.1809 [−7.2222, −7.1396] | −6.9888 [−7.0617, −6.9177] | n/a | 0.992 | 0.009 |
 
-*numbering LP2-0-57 · canon `023312066df4…` · git `4b096a8e036a` · scale reduced · N_claim = 10^6, N_family = 2^32, alpha = 0.01 · JSON `sections.nulls.cells[*] (null, fit, bars, ks_max_in_claim, check)` · `python scripts/scorer_power.py --quick --section nulls`*
+*numbering LP2-0-57 · canon `023312066df4…` · git `ea91aaba3177` · scale reduced · N_claim = 10^6, N_family = 2^32, alpha = 0.01 · JSON `sections.nulls.cells[*] (null, fit, bars, ks_max_in_claim, check)` · `python scripts/scorer_power.py --quick --section nulls`*
 
 Scale check: the installed / staged record against this run's refit.
 
@@ -169,7 +170,7 @@ Scale check: the installed / staged record against this run's refit.
 | cicada-ngram3 | 240 | installed `cicada-ngram3__rigid__L240.json` | 1,000,000 | −8.5054 / 0.0917 | −8.4879 / 0.0969 | 0.0773 | 0.1208 | yes | same |
 | general-ngram3 | 240 | installed `general-ngram3__rigid__L240.json` | 1,000,000 | −8.6128 / 0.0980 | −8.5847 / 0.1099 | 0.1654 | 0.2653 | yes | same |
 
-*numbering LP2-0-57 · canon `023312066df4…` · git `4b096a8e036a` · scale reduced · N_claim = 10^6, N_family = 2^32, alpha = 0.01 · JSON `sections.nulls.cells[*].scale_check` · `python scripts/scorer_power.py --quick --section nulls`*
+*numbering LP2-0-57 · canon `023312066df4…` · git `ea91aaba3177` · scale reduced · N_claim = 10^6, N_family = 2^32, alpha = 0.01 · JSON `sections.nulls.cells[*].scale_check` · `python scripts/scorer_power.py --quick --section nulls`*
 
 Wrong-key nulls per family (null b), the nb cell with the largest KS in the claim (the wb cell's KS carries the mask dependence of section 6 and is printed there):
 
@@ -195,11 +196,11 @@ Wrong-key nulls per family (null b), the nb cell with the largest KS in the clai
 | numpy-pcg64/beaufort/first-difference | 5000 | 2^32+ | −7.1732 | 0.0737 | −6.8981 | 0.017 | 0.020 | yes | 0 | n/a |
 | numpy-pcg64/beaufort/chain-increment | 5000 | 2^32+ | −7.1751 | 0.0725 | −6.8865 | 0.018 | 0.020 | yes | 0 | n/a |
 
-*numbering LP2-0-57 · canon `023312066df4…` · git `4b096a8e036a` · scale reduced · N_claim = 10^6, N_family = 2^32, alpha = 0.01 · JSON `sections.nulls.cells[scorer=lp-ngram3-heldout, L=1000].wrong_key` · `python scripts/scorer_power.py --quick --section nulls`*
+*numbering LP2-0-57 · canon `023312066df4…` · git `ea91aaba3177` · scale reduced · N_claim = 10^6, N_family = 2^32, alpha = 0.01 · JSON `sections.nulls.cells[scorer=lp-ngram3-heldout, L=1000].wrong_key` · `python scripts/scorer_power.py --quick --section nulls`*
 
 ## 3. Power table
 
-200 plants per (register, L): random held-out windows, a random key per family, encrypt, decode with the true key (asserted equal to the plaintext for every rigid additive family), scored under every scorer. Power = share of plants above the bar; Wilson 95 % intervals; power at the bootstrap bars too. The target line is the spec's (>= 0.9 English, >= 0.5 Latin / vowel-dropped), printed per cell, never as a verdict word. A cell whose plant text is training text is marked and is not a power. Plants sit at distinct offsets; where the register holds fewer disjoint windows than plants (the 1,533-rune heldout-solved-sections register at L >= 263, section 1) they overlap and the Wilson interval is nominal.
+200 plants per (register, L): random held-out windows, a random key per family, encrypt, decode with the true key (asserted equal to the plaintext for every rigid additive family), scored under every scorer. Power = share of plants above the bar; Wilson 95 % intervals; power at the bootstrap bars too. The target line is the spec's (>= 0.9 English, >= 0.5 Latin / vowel-dropped), printed per cell, never as a verdict word. A cell whose plant text is training text is marked and is not a power. Plants sit at distinct offsets; where the register holds fewer disjoint windows than plants (the 1,533-rune heldout-solved-sections register at every L, and the other registers at the lengths section 1 lists) they overlap and the Wilson interval is nominal.
 
 | register | L | scorer | held out | planted mean (sd, min) | bar@10^6 | power [Wilson] | power @ CI bars | power@2^32 | rank-1 | target |
 |---|---|---|---|---|---|---|---|---|---|---|
@@ -659,7 +660,7 @@ Wrong-key nulls per family (null b), the nb cell with the largest KS in the clai
 | heldout-solved-sections | 500 | kn8-vowel-dropped | yes | −5.5823 (0.063, −5.7027) | −6.1131 | 1.000 [0.981, 1.000] | 1.000 / 1.000 | 1.000 | 20/20 | n/a: register scorer, not a claim scorer |
 | heldout-solved-sections | 500 | kn8-cicada-wb | yes | −2.5539 (0.043, −2.6823) | −7.0063 | 1.000 [0.981, 1.000] | 1.000 / 1.000 | 1.000 | 20/20 | met (>= 0.9) |
 
-*numbering LP2-0-57 · canon `023312066df4…` · git `4b096a8e036a` · scale reduced · N_claim = 10^6, N_family = 2^32, alpha = 0.01 · JSON `sections.power.rows[*] (claim.power, claim.ci, family.power, rank1)` · `python scripts/scorer_power.py --quick --section power` · 200 plants per cell*
+*numbering LP2-0-57 · canon `023312066df4…` · git `ea91aaba3177` · scale reduced · N_claim = 10^6, N_family = 2^32, alpha = 0.01 · JSON `sections.power.rows[*] (claim.power, claim.ci, family.power, rank1)` · `python scripts/scorer_power.py --quick --section power` · 200 plants per cell*
 
 ## 4. Register confusion matrix
 
@@ -740,7 +741,7 @@ L = 1000: planted mean under each scorer (power at the bar@10^6 in brackets; `t`
 
 best held-out scorer per register: english-general → kn8-general, cicada-english → kn8-cicada-wb, latin → kn8-latin, vowel-dropped-english → kn8-vowel-dropped, old-english → kn8-old-english
 
-*numbering LP2-0-57 · canon `023312066df4…` · git `4b096a8e036a` · scale reduced · N_claim = 10^6, N_family = 2^32, alpha = 0.01 · JSON `sections.confusion.lengths[L].matrix` · `python scripts/scorer_power.py --quick --section confusion`*
+*numbering LP2-0-57 · canon `023312066df4…` · git `ea91aaba3177` · scale reduced · N_claim = 10^6, N_family = 2^32, alpha = 0.01 · JSON `sections.confusion.lengths[L].matrix` · `python scripts/scorer_power.py --quick --section confusion`*
 
 ## 5. Beam cells
 
@@ -773,7 +774,7 @@ Nulls: 25,000 draws per (scorer, decoder, L) for the beam decoders (`beam_calib`
 | kn4-cicada | beam-skip | 240 | 25,000 | n/a | −6.4850 | 0.0838 | −6.2069 | 0.0209 | −5.9661 [−6.0581, −5.8860] | −5.7911 | none |
 | kn4-cicada | beam-skip-int | 240 | 25,000 | 14 | −6.3579 | 0.0797 | −6.0946 | 0.0276 | −5.7772 [−5.8761, −5.6954] | −5.5465 | none |
 
-*numbering LP2-0-57 · canon `023312066df4…` · git `4b096a8e036a` · scale reduced · N_claim = 10^6, N_family = 2^32, alpha = 0.01 · JSON `sections.beam.nulls[*]` · `python scripts/scorer_power.py --quick --section beam`*
+*numbering LP2-0-57 · canon `023312066df4…` · git `ea91aaba3177` · scale reduced · N_claim = 10^6, N_family = 2^32, alpha = 0.01 · JSON `sections.beam.nulls[*]` · `python scripts/scorer_power.py --quick --section beam`*
 
 Plants: held-out solved-section text through `pipeline.encrypt` under the forward model, decoded with the true seed and the decoys by the preset's decoder (`pipeline.decrypt`); identified = rank 1 and recovery >= 0.90. A pairing the lane spec refuses (`decoder_problems`) is still measured and marked.
 
@@ -852,7 +853,7 @@ Plants: held-out solved-section text through `pipeline.encrypt` under the forwar
 | kn4-cicada | beam-skip-int | anti-repeat | 240 | 50/50 | 50/50 | 0.975 | −3.0097 (−3.1491) | −6.0826 | 1.000 [0.929, 1.000] | 1.000 | no |
 | kn4-cicada | beam-skip-int | anti-repeat + interrupts | 240 | 50/50 | 50/50 | 0.988 | −2.9623 (−3.1026) | −6.0651 | 1.000 [0.929, 1.000] | 1.000 | yes |
 
-*numbering LP2-0-57 · canon `023312066df4…` · git `4b096a8e036a` · scale reduced · N_claim = 10^6, N_family = 2^32, alpha = 0.01 · JSON `sections.beam.cells[*]` · `python scripts/scorer_power.py --quick --section beam` · 50 plants x 99 decoys per cell*
+*numbering LP2-0-57 · canon `023312066df4…` · git `ea91aaba3177` · scale reduced · N_claim = 10^6, N_family = 2^32, alpha = 0.01 · JSON `sections.beam.cells[*]` · `python scripts/scorer_power.py --quick --section beam` · 50 plants x 99 decoys per cell*
 
 ## 6. Boundaries
 
@@ -873,7 +874,7 @@ Mask dependence: per-mask means range [−7.8871, −7.4114], sd of the mask mea
 
 Gain of summing the boundaries over the variant: −3.12 null-sd units (english-general, L = 240, 200 plants).
 
-*numbering LP2-0-57 · canon `023312066df4…` · git `4b096a8e036a` · scale reduced · N_claim = 10^6, N_family = 2^32, alpha = 0.01 · JSON `sections.boundaries (page_start_masks, sampled_masks, dependence, gain)` · `python scripts/scorer_power.py --quick --section boundaries`*
+*numbering LP2-0-57 · canon `023312066df4…` · git `ea91aaba3177` · scale reduced · N_claim = 10^6, N_family = 2^32, alpha = 0.01 · JSON `sections.boundaries (page_start_masks, sampled_masks, dependence, gain)` · `python scripts/scorer_power.py --quick --section boundaries`*
 
 Wrong-key nulls of the wb scorer (`kn8-cicada-wb`, L = 1000): the decodes carry the cipher window's own mask while null (a) averages over sampled masks, so these KS statistics measure the mask dependence as well and are outside the 'wrong key = uniform string' claim (section 1).
 
@@ -899,7 +900,7 @@ Wrong-key nulls of the wb scorer (`kn8-cicada-wb`, L = 1000): the decodes carry 
 | numpy-pcg64/beaufort/first-difference | 5000 | 2^32+ | −7.8242 | 0.0496 | −7.6361 | 0.894 | 0.020 | no | 0 | n/a |
 | numpy-pcg64/beaufort/chain-increment | 5000 | 2^32+ | −7.7214 | 0.0490 | −7.5466 | 0.539 | 0.020 | no | 0 | n/a |
 
-*numbering LP2-0-57 · canon `023312066df4…` · git `4b096a8e036a` · scale reduced · N_claim = 10^6, N_family = 2^32, alpha = 0.01 · JSON `sections.nulls.cells[scorer=kn8-cicada-wb, L=1000].wrong_key` · `python scripts/scorer_power.py --quick --section nulls`*
+*numbering LP2-0-57 · canon `023312066df4…` · git `ea91aaba3177` · scale reduced · N_claim = 10^6, N_family = 2^32, alpha = 0.01 · JSON `sections.nulls.cells[scorer=kn8-cicada-wb, L=1000].wrong_key` · `python scripts/scorer_power.py --quick --section nulls`*
 
 ## 7. Order and discounts
 
@@ -937,38 +938,38 @@ Order comparison at L = 240, register cicada-english:
 | kn8-vowel-dropped | 8 | −6.8768 | 0.1540 | 0.0468 | −5.8419 | −5.4240 | 9.43 | 1.000 |
 | kn8-cicada-wb | 8 | −7.6436 | 0.1345 | 0.0436 | −6.7496 | −2.4450 | 38.66 | 1.000 |
 
-*numbering LP2-0-57 · canon `023312066df4…` · git `4b096a8e036a` · scale reduced · N_claim = 10^6, N_family = 2^32, alpha = 0.01 · JSON `sections.order.presets[*], sections.order.comparison[*]` · `python scripts/scorer_power.py --quick --section order`*
+*numbering LP2-0-57 · canon `023312066df4…` · git `ea91aaba3177` · scale reduced · N_claim = 10^6, N_family = 2^32, alpha = 0.01 · JSON `sections.order.presets[*], sections.order.comparison[*]` · `python scripts/scorer_power.py --quick --section order`*
 
 ## 8. Throughput
 
 | scorer | order | D | table MB | keys/s L=240 | keys/s L=1000 |
 |---|---|---|---|---|---|
-| lp-ngram3-heldout | n/a | n/a | n/a | 270,158 | 57,400 |
-| cicada-ngram3 | n/a | n/a | n/a | 275,706 | 57,565 |
-| general-ngram3 | n/a | n/a | n/a | 240,963 | 67,894 |
-| kn4-lp-heldout | 4 | 4 | 2.9 | 66,594 | 19,081 |
-| kn4-cicada | 4 | 4 | 2.9 | 72,771 | 18,071 |
-| kn5-cicada | 5 | 5 | 85.0 | 60,068 | 15,458 |
-| kn6-cicada | 6 | 4 | 9.8 | 26,761 | 6,699 |
-| kn8-cicada | 8 | 4 | 16.8 | 17,302 | 4,086 |
-| kn8-general | 8 | 4 | 33.0 | 15,831 | 3,644 |
-| kn8-latin | 8 | 4 | 9.9 | 20,148 | 4,283 |
-| kn8-old-english | 8 | 4 | 9.6 | 19,000 | 3,997 |
-| kn8-vowel-dropped | 8 | 4 | 31.2 | 16,033 | 3,740 |
-| kn8-cicada-wb | 8 | 4 | 14.9 | 12,653 | 3,053 |
-| kn8-cicada@D5 | 8 | 5 | 176.5 | 17,394 | 4,590 |
+| lp-ngram3-heldout | n/a | n/a | n/a | 265,024 | 66,152 |
+| cicada-ngram3 | n/a | n/a | n/a | 294,046 | 69,470 |
+| general-ngram3 | n/a | n/a | n/a | 268,167 | 65,754 |
+| kn4-lp-heldout | 4 | 4 | 2.9 | 74,503 | 17,256 |
+| kn4-cicada | 4 | 4 | 2.9 | 70,466 | 17,229 |
+| kn5-cicada | 5 | 5 | 85.0 | 58,325 | 13,466 |
+| kn6-cicada | 6 | 4 | 9.8 | 23,380 | 5,411 |
+| kn8-cicada | 8 | 4 | 16.8 | 16,587 | 3,389 |
+| kn8-general | 8 | 4 | 33.0 | 11,745 | 3,571 |
+| kn8-latin | 8 | 4 | 9.9 | 17,239 | 4,451 |
+| kn8-old-english | 8 | 4 | 9.6 | 17,947 | 4,161 |
+| kn8-vowel-dropped | 8 | 4 | 31.2 | 14,985 | 3,603 |
+| kn8-cicada-wb | 8 | 4 | 14.9 | 12,099 | 3,214 |
+| kn8-cicada@D5 | 8 | 5 | 176.5 | 17,279 | 4,155 |
 
-- D = 4 vs 5, sparse (kn8-cicada pinned at D = 4 vs the same fit with five dense levels (ad hoc)): D = 5 runs at 1.01x the D = 4 keys/s at L = 240 and 1.12x at L = 1000, with 176.5 MB of tables against 16.8 MB.
-- D = 4 vs 5, dense (the dense kn4-cicada vs kn5-cicada): D = 5 runs at 0.83x the D = 4 keys/s at L = 240 and 0.86x at L = 1000, with 85.0 MB of tables against 2.9 MB.
+- D = 4 vs 5, sparse (kn8-cicada pinned at D = 4 vs the same fit with five dense levels (ad hoc)): D = 5 runs at 1.04x the D = 4 keys/s at L = 240 and 1.23x at L = 1000, with 176.5 MB of tables against 16.8 MB.
+- D = 4 vs 5, dense (the dense kn4-cicada vs kn5-cicada): D = 5 runs at 0.83x the D = 4 keys/s at L = 240 and 0.78x at L = 1000, with 85.0 MB of tables against 2.9 MB.
 
-*numbering LP2-0-57 · canon `023312066df4…` · git `4b096a8e036a` · scale reduced · N_claim = 10^6, N_family = 2^32, alpha = 0.01 · JSON `sections.throughput.rows[*].keys_per_s_L240, .d4_vs_d5` · `python scripts/scorer_power.py --quick --section throughput` · score_batch, best of two timings, 20,000 / 5,000 rows, host x86_64*
+*numbering LP2-0-57 · canon `023312066df4…` · git `ea91aaba3177` · scale reduced · N_claim = 10^6, N_family = 2^32, alpha = 0.01 · JSON `sections.throughput.rows[*].keys_per_s_L240, .d4_vs_d5` · `python scripts/scorer_power.py --quick --section throughput` · score_batch, best of two timings, 20,000 / 5,000 rows, host x86_64*
 
 ## 9. The three conditionals and reopens_if
 
 - key space swept: none of LP2: the families (section 2) are the plant/decoy generators of the measurement; no seed range of any lane was searched
 - decoder transition model: rigid (one key symbol per rune) for every power row; beam, beam-skip and beam-skip-int at width 8 (presets.DECODER_PARAMS) in the beam cells, with the three dense scorers only
 - adjudicator register: the scorers listed in section 0: Cicada-English, general English, Latin, Old English and vowel-dropped English registers (kn8-*), plus the Phase 1 order-3 baselines; power is reported per register x scorer (section 4)
-- Latin power at L = 240 under the English-register claim scorer with the highest Latin power (lp-ngram3-heldout; ties go to the first listed): 1.000 [0.981, 1.000] at the bar@10^6 (`sections.conditionals.latin_power_at_240`)
+- Latin power at L = 240 under the English-register claim scorer with the highest Latin power (lp-ngram3-heldout; ties go to the first listed): 1.000 [0.981, 1.000] at the bar@10^6 (`sections.conditionals.latin_power_at_240`); the interval is nominal: the Latin register holds 50 disjoint 240-rune windows of one text (Caesar), and the all-success Wilson lower bound over 50 independent windows is 0.929
 - standing conditional: every later negative is English-register-first: a Latin or other non-English plaintext is detected only to the power this table measures for that register (SESSION_PROMPT.md section B)
 - reopens_if:
   - a scorer's fingerprint changes (a refit, a corpus rebuild that moves the split)
@@ -977,13 +978,13 @@ Order comparison at L = 240, register cicada-english:
   - a word-boundary conditioning rule is staged (the wb null is mask-dependent)
   - a beam-compatible kn6/kn8 export lands on the GPU (the dense/sparse split moves)
 
-*numbering LP2-0-57 · canon `023312066df4…` · git `4b096a8e036a` · scale reduced · N_claim = 10^6, N_family = 2^32, alpha = 0.01 · JSON `sections.conditionals` · `python scripts/scorer_power.py --quick --section conditionals`*
+*numbering LP2-0-57 · canon `023312066df4…` · git `ea91aaba3177` · scale reduced · N_claim = 10^6, N_family = 2^32, alpha = 0.01 · JSON `sections.conditionals` · `python scripts/scorer_power.py --quick --section conditionals`*
 
 ## 10. Reproduce
 
-- `python scripts/scorer_power.py --quick --workers 4` at git `4b096a8e036a19c57f9b61d750fa567e5ced02df`; canon SHA-256 `023312066df471005264b9cbe7997cb77d2a9a6a2dc9b3316d22674023af1585`, numbering `LP2-0-57`; Python 3.13.16, numpy 2.5.4; `runeforge/beam.py` SHA-256 `4cd3d7ba59e6…`
+- `python scripts/scorer_power.py --quick --workers 4` at git `ea91aaba31770f38abaaa900714d503ca31dba44`; canon SHA-256 `023312066df471005264b9cbe7997cb77d2a9a6a2dc9b3316d22674023af1585`, numbering `LP2-0-57`; Python 3.13.16, numpy 2.5.4; `runeforge/beam.py` SHA-256 `4cd3d7ba59e6…`
 - fit records: `reports/scorer_power/fits/` (scale-marked; never installable unless full)
 - one section: `python scripts/scorer_power.py --quick --section reusable`, `python scripts/scorer_power.py --quick --section not_covered`, `python scripts/scorer_power.py --quick --section nulls`, `python scripts/scorer_power.py --quick --section power`, `python scripts/scorer_power.py --quick --section confusion`, `python scripts/scorer_power.py --quick --section beam`, `python scripts/scorer_power.py --quick --section boundaries`, `python scripts/scorer_power.py --quick --section order`, `python scripts/scorer_power.py --quick --section throughput`, `python scripts/scorer_power.py --quick --section conditionals`, `python scripts/scorer_power.py --quick --section reproduce`
 - render only: `python scripts/scorer_power.py --render-only --out reports/scorer_power.json`
-- timings (s): reusable 0.0, nulls 332.9, power 24.2, confusion 0.0, beam 158.1, boundaries 8.3, order 3.8, throughput 49.8, not_covered 0.0, conditionals 0.0, reproduce 0.0
+- timings (s): reusable 0.0, nulls 364.7, power 26.0, confusion 0.0, beam 172.4, boundaries 9.5, order 4.5, throughput 54.9, not_covered 0.0, conditionals 0.0, reproduce 0.0
 - do-not-re-run list: none (this harness writes no ledger row; its numbers are regenerated, never cited as coverage)
