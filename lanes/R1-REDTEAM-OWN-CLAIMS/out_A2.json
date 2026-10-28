@@ -1,0 +1,787 @@
+{
+ "sub_attack": "A2",
+ "lane": "R1-REDTEAM-OWN-CLAIMS",
+ "numbering": "LP2-0-57",
+ "canon_sha256": "023312066df471005264b9cbe7997cb77d2a9a6a2dc9b3316d22674023af1585",
+ "audited_git": "fbe43e7",
+ "command": "V=/tmp/claude-0/-home-user-cicada-3301-Code-cracker-attempt-1/4950dc03-e080-591a-84c1-d8ea81cef212/scratchpad/venv; $V/bin/python lanes/R1-REDTEAM-OWN-CLAIMS/A2_kn4_independent.py",
+ "independence": "imports numpy, json, hashlib, math only; reads data/corpora/*.npz and index.json; no runeforge import; implementation source of runeforge.scoring not read",
+ "training": {
+  "corpus": "cicada-english",
+  "indices_sha256": "6786ad18d89ee6ce3116690a9b0ba6bb2e1076d7ad154e77ff607b0799ae3281",
+  "n_words": 74803,
+  "train_words": 67322,
+  "train_runes": 275694,
+  "rule": "word_ids < floor(0.9*n_words), one sequence"
+ },
+ "model": {
+  "order": 4,
+  "base": 29,
+  "levels": {
+   "1": {
+    "discounts": [
+     0.5,
+     0.5,
+     0.5
+    ],
+    "source": "fallback-0.5",
+    "counts_of_counts": [
+     0,
+     0,
+     0,
+     0
+    ],
+    "n_keys": 29
+   },
+   "2": {
+    "discounts": [
+     0.4545454545454546,
+     0.3916083916083919,
+     1.3399209486166008
+    ],
+    "source": "modified-kn",
+    "counts_of_counts": [
+     65,
+     39,
+     46,
+     42
+    ],
+    "n_keys": 666,
+    "seen_histories": 29,
+    "histories_in_U_with_zero_eff": 0
+   },
+   "3": {
+    "discounts": [
+     0.4732549772127609,
+     1.0366804425587246,
+     1.4805021402779546
+    ],
+    "source": "modified-kn",
+    "counts_of_counts": [
+     1973,
+     1098,
+     745,
+     598
+    ],
+    "n_keys": 7341,
+    "seen_histories": 666,
+    "histories_in_U_with_zero_eff": 0
+   },
+   "4": {
+    "discounts": [
+     0.5406542056074766,
+     1.048767600612278,
+     1.5213677984831657
+    ],
+    "source": "modified-kn",
+    "counts_of_counts": [
+     13884,
+     5898,
+     3459,
+     2365
+    ],
+    "n_keys": 37911,
+    "seen_histories": 7341,
+    "histories_in_U_with_zero_eff": 0
+   }
+  },
+  "row_sum_max_dev": {
+   "1": 0.0,
+   "2": 2.220446049250313e-16,
+   "3": 3.3306690738754696e-16,
+   "4": 4.440892098500626e-16
+  },
+  "arithmetic": "float64 throughout (the package stores float32 log2 tables; |diff| ~1e-7 per position)"
+ },
+ "null": {
+  "L": 240,
+  "seed": 202610282,
+  "primary": {
+   "n": 1000000,
+   "mean": -6.676396616191024,
+   "sd": 0.0935367976561039,
+   "max": -6.164590079074866,
+   "blocks": 1000,
+   "mu_b": -6.3679954792146045,
+   "beta": 0.031832823242127745,
+   "bar_1e6": -6.001666389195502,
+   "bar_2p32": -5.735378481041522
+  },
+  "report_scale_first_100000": {
+   "n": 100000,
+   "mean": -6.676751879991913,
+   "sd": 0.0936626986311925,
+   "max": -6.227389223466332,
+   "blocks": 100,
+   "mu_b": -6.368159625559625,
+   "beta": 0.034841974269585414,
+   "bar_1e6": -5.9672015128731335,
+   "bar_2p32": -5.675741456891541
+  },
+  "fit": "Gumbel method of moments on block maxima of 1,000; bar = mu_b + beta ln(N/1000) - beta ln(-ln 0.99)"
+ },
+ "bars_vs_line97": {
+  "reported": {
+   "line": 97,
+   "null_mean": -6.6765,
+   "null_sd": 0.0937,
+   "mu_b": -6.3592,
+   "beta": 0.0251,
+   "bar_1e6": -6.0705,
+   "bar_1e6_ci": [
+    -6.121,
+    -6.0138
+   ],
+   "bar_2p32": -5.8605,
+   "bar_2p32_ci": [
+    -5.9471,
+    -5.7625
+   ]
+  },
+  "primary": {
+   "delta_bar_1e6": 0.06883361080449824,
+   "delta_bar_2p32": 0.125121518958478,
+   "delta_null_mean": 0.00010338380897589872,
+   "within_0_05": false
+  },
+  "report_scale": {
+   "delta_bar_1e6": 0.10329848712686651,
+   "delta_bar_2p32": 0.18475854310845907,
+   "within_0_05": false
+  }
+ },
+ "plants": {
+  "L": 240,
+  "seed": 202610283,
+  "n": 2000,
+  "method": "distinct random rune offsets in the held-out tail",
+  "results": {
+   "latin": {
+    "tail_runes": 12089,
+    "offsets_available": 11850,
+    "indices_sha256": "2336a3cc122176b0d46dc324842995b94b0523a2105b6dfa4849c0f42500746c",
+    "planted_mean": -4.337568965019935,
+    "planted_sd": 0.15634133551283041,
+    "planted_min": -4.793247149566317,
+    "planted_mean_first200": -4.334010810773554,
+    "primary_2000_plants_primary_bar": {
+     "bar_1e6": {
+      "bar": -6.001666389195502,
+      "above": 2000,
+      "n": 2000,
+      "power": 1.0,
+      "wilson95": [
+       0.9980829527187469,
+       0.9999999999999998
+      ]
+     },
+     "bar_2p32": {
+      "bar": -5.735378481041522,
+      "above": 2000,
+      "n": 2000,
+      "power": 1.0,
+      "wilson95": [
+       0.9980829527187469,
+       0.9999999999999998
+      ]
+     }
+    },
+    "first200_plants_primary_bar": {
+     "bar_1e6": {
+      "bar": -6.001666389195502,
+      "above": 200,
+      "n": 200,
+      "power": 1.0,
+      "wilson95": [
+       0.9811546736227335,
+       1.0
+      ]
+     }
+    },
+    "primary_2000_plants_report_scale_bar": {
+     "bar_1e6": {
+      "bar": -5.9672015128731335,
+      "above": 2000,
+      "n": 2000,
+      "power": 1.0,
+      "wilson95": [
+       0.9980829527187469,
+       0.9999999999999998
+      ]
+     }
+    },
+    "primary_2000_plants_reported_bar": {
+     "bar_1e6": {
+      "bar": -6.0705,
+      "above": 2000,
+      "n": 2000,
+      "power": 1.0,
+      "wilson95": [
+       0.9980829527187469,
+       0.9999999999999998
+      ]
+     },
+     "bar_1e6_ci_low": {
+      "bar": -6.121,
+      "above": 2000,
+      "n": 2000,
+      "power": 1.0,
+      "wilson95": [
+       0.9980829527187469,
+       0.9999999999999998
+      ]
+     },
+     "bar_1e6_ci_high": {
+      "bar": -6.0138,
+      "above": 2000,
+      "n": 2000,
+      "power": 1.0,
+      "wilson95": [
+       0.9980829527187469,
+       0.9999999999999998
+      ]
+     }
+    },
+    "reported": {
+     "line": 379,
+     "power": 1.0,
+     "wilson": [
+      0.981,
+      1.0
+     ],
+     "planted_mean": -4.3551,
+     "planted_sd": 0.163,
+     "planted_min": -4.7632,
+     "power_2p32": 1.0
+    },
+    "rule": {
+     "widened_interval": [
+      0.9309999999999999,
+      1.05
+     ],
+     "primary_power": 1.0,
+     "primary_inside": true,
+     "first200_power": 1.0,
+     "first200_inside": true,
+     "delta_primary": 0.0
+    }
+   },
+   "vowel-dropped-english": {
+    "tail_runes": 56431,
+    "offsets_available": 56192,
+    "indices_sha256": "f3d872dea69e6fab0fb0faf03f0d219448594b70521fc988e99c84f8c6b48b5d",
+    "planted_mean": -6.042561174553742,
+    "planted_sd": 0.16564425678742611,
+    "planted_min": -6.444106490506609,
+    "planted_mean_first200": -6.050734026565395,
+    "primary_2000_plants_primary_bar": {
+     "bar_1e6": {
+      "bar": -6.001666389195502,
+      "above": 750,
+      "n": 2000,
+      "power": 0.375,
+      "wilson95": [
+       0.3540413909002699,
+       0.3964378709200432
+      ]
+     },
+     "bar_2p32": {
+      "bar": -5.735378481041522,
+      "above": 80,
+      "n": 2000,
+      "power": 0.04,
+      "wilson95": [
+       0.032256746939981165,
+       0.04950693655877153
+      ]
+     }
+    },
+    "first200_plants_primary_bar": {
+     "bar_1e6": {
+      "bar": -6.001666389195502,
+      "above": 67,
+      "n": 200,
+      "power": 0.335,
+      "wilson95": [
+       0.2732408697841632,
+       0.40297808792033485
+      ]
+     }
+    },
+    "primary_2000_plants_report_scale_bar": {
+     "bar_1e6": {
+      "bar": -5.9672015128731335,
+      "above": 608,
+      "n": 2000,
+      "power": 0.304,
+      "wilson95": [
+       0.28423231272438626,
+       0.3245191698098648
+      ]
+     }
+    },
+    "primary_2000_plants_reported_bar": {
+     "bar_1e6": {
+      "bar": -6.0705,
+      "above": 1109,
+      "n": 2000,
+      "power": 0.5545,
+      "wilson95": [
+       0.532633659180582,
+       0.5761573826657613
+      ]
+     },
+     "bar_1e6_ci_low": {
+      "bar": -6.121,
+      "above": 1350,
+      "n": 2000,
+      "power": 0.675,
+      "wilson95": [
+       0.6541544022367746,
+       0.695174631214787
+      ]
+     },
+     "bar_1e6_ci_high": {
+      "bar": -6.0138,
+      "above": 805,
+      "n": 2000,
+      "power": 0.4025,
+      "wilson95": [
+       0.38121430570705017,
+       0.4241595185127941
+      ]
+     }
+    },
+    "reported": {
+     "line": 457,
+     "power": 0.55,
+     "wilson": [
+      0.481,
+      0.617
+     ],
+     "planted_mean": -6.0336,
+     "planted_sd": 0.184,
+     "planted_min": -6.4721,
+     "power_2p32": 0.17
+    },
+    "rule": {
+     "widened_interval": [
+      0.431,
+      0.667
+     ],
+     "primary_power": 0.375,
+     "primary_inside": false,
+     "first200_power": 0.335,
+     "first200_inside": false,
+     "delta_primary": -0.17500000000000004
+    }
+   }
+  }
+ },
+ "wall_time_s": {
+  "fit": 0.19,
+  "null": 9.23,
+  "plants": 0.16,
+  "total": 9.58
+ },
+ "python": "3.13.16",
+ "numpy": "2.5.4",
+ "tailcheck": {
+  "sub_attack": "A2-supplement",
+  "n_draws": 20000000,
+  "L": 240,
+  "seed": 202610284,
+  "command": "V=/tmp/claude-0/-home-user-cicada-3301-Code-cracker-attempt-1/4950dc03-e080-591a-84c1-d8ea81cef212/scratchpad/venv; $V/bin/python lanes/R1-REDTEAM-OWN-CLAIMS/A2_tailcheck.py",
+  "overall": {
+   "mean": -6.676474444364076,
+   "sd": 0.0935216113609544,
+   "max": -6.091430355010343
+  },
+  "fits": {
+   "first_100_blocks": {
+    "mom": {
+     "mu_b": -6.361969029759699,
+     "beta": 0.03245387885896821,
+     "bar_1e6": -5.988492891009232,
+     "bar_2p32": -5.717009728893709
+    },
+    "mle": {
+     "mu_b": -6.362895049530449,
+     "beta": 0.03478751082001992,
+     "bar_1e6": -5.962563697020611,
+     "bar_2p32": -5.67155923864484
+    },
+    "block_max_mean": -6.343236142495486,
+    "block_max_sd": 0.041623716818663385,
+    "block_max_skew": 0.5067130553871549
+   },
+   "first_1000_blocks": {
+    "mom": {
+     "mu_b": -6.364478183080497,
+     "beta": 0.030485494678473092,
+     "bar_1e6": -6.013654021509813,
+     "bar_2p32": -5.758636785205539
+    },
+    "mle": {
+     "mu_b": -6.364756424696511,
+     "beta": 0.03175079550576933,
+     "bar_1e6": -5.999371302034244,
+     "bar_2p32": -5.733769572236464
+    },
+    "block_max_mean": -6.346881477999809,
+    "block_max_sd": 0.03909916602227608,
+    "block_max_skew": 1.0039268541727933
+   },
+   "all_20000_blocks": {
+    "mom": {
+     "mu_b": -6.36567092812183,
+     "beta": 0.030567088831776112,
+     "bar_1e6": -6.013907788826707,
+     "bar_2p32": -5.758208001174869
+    },
+    "mle": {
+     "mu_b": -6.3660994922628955,
+     "beta": 0.03221368585643846,
+     "bar_1e6": -5.995387471648492,
+     "bar_2p32": -5.72591357185037
+    },
+    "block_max_mean": -6.348027125617692,
+    "block_max_sd": 0.03920381458973707,
+    "block_max_skew": 0.8943008815330185
+   }
+  },
+  "observed_block_maxima": {
+   "10000": {
+    "n_blocks": 2000,
+    "mean": -6.278937957666722,
+    "sd": 0.03575068333681362,
+    "max": -6.091430355010343,
+    "q50": -6.284503903887522
+   },
+   "100000": {
+    "n_blocks": 200,
+    "mean": -6.213598453927841,
+    "sd": 0.034062245384494885,
+    "max": -6.091430355010343,
+    "q50": -6.219463865063963
+   },
+   "1000000": {
+    "n_blocks": 20,
+    "mean": -6.15239418710769,
+    "sd": 0.025084099457017204,
+    "max": -6.091430355010343,
+    "q50": -6.154226957467977
+   }
+  },
+  "predicted": {
+   "first_100_blocks/mom": {
+    "10000": {
+     "mean": -6.268508324824991,
+     "sd": 0.041623716818663385,
+     "q99": -6.13794852635022,
+     "observed_share_above_q99": 0.003
+    },
+    "100000": {
+     "mean": -6.1937805071544965,
+     "sd": 0.041623716818663385,
+     "q99": -6.063220708679726,
+     "observed_share_above_q99": 0.0
+    },
+    "1000000": {
+     "mean": -6.119052689484001,
+     "sd": 0.041623716818663385,
+     "q99": -5.988492891009232,
+     "observed_share_above_q99": 0.0
+    }
+   },
+   "first_100_blocks/mle": {
+    "10000": {
+     "mean": -6.262713949505655,
+     "sd": 0.04461671609397056,
+     "q99": -6.122766104693706,
+     "observed_share_above_q99": 0.001
+    },
+    "100000": {
+     "mean": -6.1826127456691085,
+     "sd": 0.04461671609397056,
+     "q99": -6.042664900857159,
+     "observed_share_above_q99": 0.0
+    },
+    "1000000": {
+     "mean": -6.102511541832561,
+     "sd": 0.04461671609397056,
+     "q99": -5.962563697020611,
+     "observed_share_above_q99": 0.0
+    }
+   },
+   "first_1000_blocks/mom": {
+    "10000": {
+     "mean": -6.276686032400608,
+     "sd": 0.03909916602227608,
+     "q99": -6.154044912708216,
+     "observed_share_above_q99": 0.006
+    },
+    "100000": {
+     "mean": -6.206490586801406,
+     "sd": 0.03909916602227608,
+     "q99": -6.083849467109014,
+     "observed_share_above_q99": 0.0
+    },
+    "1000000": {
+     "mean": -6.136295141202205,
+     "sd": 0.03909916602227608,
+     "q99": -6.013654021509813,
+     "observed_share_above_q99": 0.0
+    }
+   },
+   "first_1000_blocks/mle": {
+    "10000": {
+     "mean": -6.273320459735208,
+     "sd": 0.04072197738342853,
+     "q99": -6.145589118878817,
+     "observed_share_above_q99": 0.0035
+    },
+    "100000": {
+     "mean": -6.200211551312922,
+     "sd": 0.04072197738342853,
+     "q99": -6.072480210456531,
+     "observed_share_above_q99": 0.0
+    },
+    "1000000": {
+     "mean": -6.127102642890635,
+     "sd": 0.04072197738342853,
+     "q99": -5.999371302034244,
+     "observed_share_above_q99": 0.0
+    }
+   },
+   "all_20000_blocks/mom": {
+    "10000": {
+     "mean": -6.27764380253742,
+     "sd": 0.03920381458973707,
+     "q99": -6.1546744349872515,
+     "observed_share_above_q99": 0.006
+    },
+    "100000": {
+     "mean": -6.2072604794571475,
+     "sd": 0.03920381458973707,
+     "q99": -6.084291111906979,
+     "observed_share_above_q99": 0.0
+    },
+    "1000000": {
+     "mean": -6.136877156376875,
+     "sd": 0.03920381458973707,
+     "q99": -6.013907788826707,
+     "observed_share_above_q99": 0.0
+    }
+   },
+   "all_20000_blocks/mle": {
+    "10000": {
+     "mean": -6.2733304953189135,
+     "sd": 0.04131565732406279,
+     "q99": -6.143736977335347,
+     "observed_share_above_q99": 0.0035
+    },
+    "100000": {
+     "mean": -6.199155742475486,
+     "sd": 0.04131565732406279,
+     "q99": -6.06956222449192,
+     "observed_share_above_q99": 0.0
+    },
+    "1000000": {
+     "mean": -6.124980989632057,
+     "sd": 0.04131565732406279,
+     "q99": -5.995387471648492,
+     "observed_share_above_q99": 0.0
+    }
+   }
+  },
+  "draws_above_bar_in_2e7": {
+   "report_bar_1e6_-6.0705": 0,
+   "mom_1000blocks_bar_1e6": 0,
+   "mle_1000blocks_bar_1e6": 0
+  },
+  "expected_draws_above_a_true_1e6_bar_in_2e7": 0.2,
+  "wall_time_s": {
+   "draws": 176.2,
+   "total": 177.0
+  }
+ },
+ "seedprobe": {
+  "sub_attack": "A2-supplement-2",
+  "record": {
+   "mean": -6.676455961955175,
+   "sd": 0.09373836281765496,
+   "mu_b": -6.359236906270471,
+   "beta": 0.02509461142847051,
+   "bar_1e6": -6.070450514342512,
+   "bar_2p32": -5.860529090396022
+  },
+  "seed3301_layouts": {
+   "one_call_(100000,240)": {
+    "mean": -6.67645595790577,
+    "sd": 0.0937388312816312,
+    "mu_b": -6.359236900478683,
+    "beta": 0.02509461074364449,
+    "bar_1e6": -6.070450516431635,
+    "bar_2p32": -5.860529098213852,
+    "delta_mean_vs_record": 4.0494052555573035e-09,
+    "matches_record_1e-6": true
+   },
+   "ten_calls_(10000,240)": {
+    "mean": -6.67645595790577,
+    "sd": 0.0937388312816312,
+    "mu_b": -6.359236900478683,
+    "beta": 0.02509461074364449,
+    "bar_1e6": -6.070450516431635,
+    "bar_2p32": -5.860529098213852,
+    "delta_mean_vs_record": 4.0494052555573035e-09,
+    "matches_record_1e-6": true
+   }
+  },
+  "replicates": {
+   "n_replicates": 200,
+   "draws_each": 100000,
+   "seed": 202610285,
+   "beta": {
+    "mean": 0.030563745274914404,
+    "sd": 0.0028771526705629875,
+    "min": 0.02440817519359571,
+    "q025": 0.02586709068836172,
+    "share_le_record": 0.015
+   },
+   "bar_1e6": {
+    "mean": -6.014529106256328,
+    "sd": 0.033511783051183984,
+    "min": -6.085927531396167,
+    "q025": -6.070742596270032,
+    "share_le_record": 0.03
+   },
+   "bar_2p32": {
+    "mean": -5.7588572881237425,
+    "sd": 0.057512500061246065,
+    "min": -5.881748283306201,
+    "q025": -5.853695201877708,
+    "share_le_record": 0.02
+   }
+  },
+  "command": "V=/tmp/claude-0/-home-user-cicada-3301-Code-cracker-attempt-1/4950dc03-e080-591a-84c1-d8ea81cef212/scratchpad/venv; $V/bin/python lanes/R1-REDTEAM-OWN-CLAIMS/A2_seedprobe.py",
+  "wall_time_s": 180.4
+ },
+ "crosscheck": {
+  "sub_attack": "A2-crosscheck",
+  "distribution": {
+   "n_histories": 1000,
+   "by_kind_count": {
+    "prefix-0": 1,
+    "prefix-1": 29,
+    "prefix-2": 270,
+    "seen-3": 400,
+    "unseen-3": 300
+   },
+   "max_abs_diff": 1.1102230246251565e-16,
+   "max_abs_diff_by_kind": {
+    "prefix-0": 1.3877787807814457e-17,
+    "prefix-1": 2.7755575615628914e-17,
+    "prefix-2": 5.551115123125783e-17,
+    "seen-3": 1.1102230246251565e-16,
+    "unseen-3": 5.551115123125783e-17
+   },
+   "within_1e_9": true,
+   "n_over_1e_9": 0
+  },
+  "scores": {
+   "latin": {
+    "n": 2000,
+    "max_abs_diff": 2.4139000132095134e-08,
+    "own_mean": -4.337568965019935,
+    "package_mean": -4.337568963058635
+   },
+   "vowel-dropped-english": {
+    "n": 2000,
+    "max_abs_diff": 3.6681135462401926e-08,
+    "own_mean": -6.042561174553742,
+    "package_mean": -6.0425611767443606
+   },
+   "uniform_20000": {
+    "max_abs_diff": 4.657683483344499e-08
+   }
+  },
+  "vowel_dropped_power_at_alt_bars": {
+   "report_line97_-6.0705": {
+    "bar": -6.0705,
+    "power": 0.5545
+   },
+   "own_primary_1e6_draws_mom": {
+    "bar": -6.001666389195502,
+    "power": 0.375
+   },
+   "own_100k_replicate_mean_mom": {
+    "bar": -6.014529106256328,
+    "power": 0.404
+   },
+   "own_2e7_all_blocks_mom": {
+    "bar": -6.013907788826707,
+    "power": 0.4025
+   },
+   "from_1e5_block_maxima_x10": {
+    "bar": -6.045603914036039,
+    "power": 0.4905
+   },
+   "from_1e6_block_maxima_direct": {
+    "bar": -6.073713684251665,
+    "power": 0.5635
+   }
+  },
+  "package_preset_type": "KNScorer",
+  "command": "V=/tmp/claude-0/-home-user-cicada-3301-Code-cracker-attempt-1/4950dc03-e080-591a-84c1-d8ea81cef212/scratchpad/venv; $V/bin/python lanes/R1-REDTEAM-OWN-CLAIMS/A2_crosscheck.py",
+  "wall_time_s": 1.9
+ },
+ "summary": {
+  "reproduce_in_order": [
+   "$V/bin/python lanes/R1-REDTEAM-OWN-CLAIMS/A2_kn4_independent.py   # writes out_A2.json (fit, 10^6 null, 2x2,000 plants), ~10 s",
+   "$V/bin/python lanes/R1-REDTEAM-OWN-CLAIMS/A2_tailcheck.py         # adds 'tailcheck' (2x10^7 draws), ~3 min",
+   "$V/bin/python lanes/R1-REDTEAM-OWN-CLAIMS/A2_seedprobe.py         # adds 'seedprobe' (seed-3301 replay, 200 replicates), ~3 min",
+   "$V/bin/python lanes/R1-REDTEAM-OWN-CLAIMS/A2_crosscheck.py        # adds 'crosscheck' (package loaded only here), ~2 s"
+  ],
+  "venv": "V=/tmp/claude-0/-home-user-cicada-3301-Code-cracker-attempt-1/4950dc03-e080-591a-84c1-d8ea81cef212/scratchpad/venv",
+  "wall_time_s_total": 368.9,
+  "targets": [
+   {
+    "target": "kn4 distributions vs presets.get('kn4-cicada').distribution, 1,000 histories",
+    "rule": "<= 1e-9",
+    "rederived": 1.1102230246251565e-16,
+    "reproduced": true
+   },
+   {
+    "target": "reports/scorer_power.md:379 latin L240 kn4-cicada power",
+    "reported": "1.000 [0.981, 1.000]",
+    "rederived": 1.0,
+    "rule": "inside [0.931, 1.05]",
+    "reproduced": true
+   },
+   {
+    "target": "reports/scorer_power.md:457 vowel-dropped L240 kn4-cicada power",
+    "reported": "0.550 [0.481, 0.617]",
+    "rederived": 0.375,
+    "rule": "inside [0.431, 0.667]",
+    "reproduced": false,
+    "note": "0.5545 at the report's own bar -6.0705; the difference is the bar, not the scorer or plants"
+   },
+   {
+    "target": "reports/scorer_power.md:97 kn4-cicada L240 bar@10^6",
+    "reported": -6.0705,
+    "rederived": -6.001666389195502,
+    "rule": "within 0.05 (A1 rule)",
+    "reproduced": false
+   },
+   {
+    "target": "reports/scorer_power.md:97 kn4-cicada L240 bar@2^32",
+    "reported": -5.8605,
+    "rederived": -5.735378481041522,
+    "rule": "within 0.05 (A1 rule)",
+    "reproduced": false
+   }
+  ],
+  "finding": "The KN4 model reproduces exactly (distributions 1e-16; scores 5e-8; replaying the record's seed 3301 with the independent model gives mu_b/beta/bar to 2e-9). The bar row is the record's own 100-block MoM fit at seed 3301, whose beta 0.02509 sits at the 1.5th percentile of 200 replicates (mean 0.0306, sd 0.0029); its bar@10^6 is at the 3rd percentile (replicate mean -6.0145, sd 0.0335) and bar@2^32 at the 2nd (mean -5.7589). The report's bootstrap CI [-6.1210, -6.0138] spans the replicate mean only at its edge. The vowel-dropped power 0.550 depends on that draw: 0.375-0.404 at fit-consistent MoM bars, 0.49-0.56 at bars anchored on observed 10^5/10^6-block maxima (the 1,000-block Gumbel over-extrapolates the tail: observed 10^6-block maxima mean -6.1524 sd 0.0251 vs MoM prediction -6.1369 sd 0.039)."
+ }
+}

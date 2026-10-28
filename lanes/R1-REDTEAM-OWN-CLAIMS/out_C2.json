@@ -1,0 +1,939 @@
+{
+ "settling_register_beam_power": {
+  "lane": "R1-REDTEAM-OWN-CLAIMS",
+  "sub_attack": "C2 (claim audit part 2) settling test",
+  "numbering": "LP2-0-57",
+  "audited_git": "fbe43e7",
+  "independence": "package-path measurement (loads runeforge.runner.pipeline and scripts/scorer_power.py); run after out_B2.json; not a re-derivation",
+  "target": "P3 PREREG \u00a70 Q4 lines 57-59 and \u00a78 lines 168-170: register powers quoted for the lane",
+  "cells": [
+   {
+    "register": "vowel-dropped-english",
+    "L": 240,
+    "n_plants": 200,
+    "decoys": 19,
+    "n_disjoint": 235,
+    "rigid_exact_mean": -5.652193156232437,
+    "rigid_exact_sd": 0.16011949067523074,
+    "beam_skip_mean": -5.677536683800319,
+    "beam_skip_sd": 0.15409392824261797,
+    "beam_skip_min": -6.082924197862545,
+    "mean_penalty_beam_minus_rigid": -0.025343527567883353,
+    "median_recovery": 0.9625,
+    "identified_rank1_rec090": 189,
+    "power": {
+     "lane_bar_2^32_beam-skip_staged": {
+      "bar": -5.7284,
+      "k": 119,
+      "power": 0.595,
+      "wilson": [
+       0.5257971002635867,
+       0.6606222876693103
+      ]
+     },
+     "rigid_bar_2^32": {
+      "bar": -5.778756354597847,
+      "k": 151,
+      "power": 0.755,
+      "wilson": [
+       0.6909575639021187,
+       0.8094313194967101
+      ]
+     },
+     "rigid_bar_10^6": {
+      "bar": -6.162531106082723,
+      "k": 200,
+      "power": 1.0,
+      "wilson": [
+       0.9811546733310369,
+       0.9999999999999999
+      ]
+     },
+     "lane_claim_bar_10^6": {
+      "bar": -6.0434,
+      "k": 199,
+      "power": 0.995,
+      "wilson": [
+       0.972226295303572,
+       0.9991168312941546
+      ]
+     }
+    },
+    "rigid_exact_power": {
+     "lane_bar_2^32_beam-skip_staged": {
+      "bar": -5.7284,
+      "k": 134,
+      "power": 0.67
+     },
+     "rigid_bar_2^32": {
+      "bar": -5.778756354597847,
+      "k": 158,
+      "power": 0.79
+     },
+     "rigid_bar_10^6": {
+      "bar": -6.162531106082723,
+      "k": 200,
+      "power": 1.0
+     },
+     "lane_claim_bar_10^6": {
+      "bar": -6.0434,
+      "k": 200,
+      "power": 1.0
+     }
+    },
+    "seconds": 13.0
+   },
+   {
+    "register": "latin",
+    "L": 240,
+    "n_plants": 200,
+    "decoys": 19,
+    "n_disjoint": 50,
+    "rigid_exact_mean": -4.833170598019535,
+    "rigid_exact_sd": 0.1428539576923616,
+    "beam_skip_mean": -4.895781210840214,
+    "beam_skip_sd": 0.14622677490454583,
+    "beam_skip_min": -5.4182107598831255,
+    "mean_penalty_beam_minus_rigid": -0.06261061282067873,
+    "median_recovery": 0.9708333333333333,
+    "identified_rank1_rec090": 200,
+    "power": {
+     "lane_bar_2^32_beam-skip_staged": {
+      "bar": -5.7284,
+      "k": 200,
+      "power": 1.0,
+      "wilson": [
+       0.9811546733310369,
+       0.9999999999999999
+      ]
+     },
+     "rigid_bar_2^32": {
+      "bar": -5.778756354597847,
+      "k": 200,
+      "power": 1.0,
+      "wilson": [
+       0.9811546733310369,
+       0.9999999999999999
+      ]
+     },
+     "rigid_bar_10^6": {
+      "bar": -6.162531106082723,
+      "k": 200,
+      "power": 1.0,
+      "wilson": [
+       0.9811546733310369,
+       0.9999999999999999
+      ]
+     },
+     "lane_claim_bar_10^6": {
+      "bar": -6.0434,
+      "k": 200,
+      "power": 1.0,
+      "wilson": [
+       0.9811546733310369,
+       0.9999999999999999
+      ]
+     }
+    },
+    "rigid_exact_power": {
+     "lane_bar_2^32_beam-skip_staged": {
+      "bar": -5.7284,
+      "k": 200,
+      "power": 1.0
+     },
+     "rigid_bar_2^32": {
+      "bar": -5.778756354597847,
+      "k": 200,
+      "power": 1.0
+     },
+     "rigid_bar_10^6": {
+      "bar": -6.162531106082723,
+      "k": 200,
+      "power": 1.0
+     },
+     "lane_claim_bar_10^6": {
+      "bar": -6.0434,
+      "k": 200,
+      "power": 1.0
+     }
+    },
+    "seconds": 13.2
+   },
+   {
+    "register": "heldout-solved-sections",
+    "L": 240,
+    "n_plants": 200,
+    "decoys": 19,
+    "n_disjoint": 6,
+    "rigid_exact_mean": -3.872323808579705,
+    "rigid_exact_sd": 0.27288583349204765,
+    "beam_skip_mean": -3.963039224043023,
+    "beam_skip_sd": 0.26241438695710984,
+    "beam_skip_min": -4.418371896259487,
+    "mean_penalty_beam_minus_rigid": -0.0907154154633172,
+    "median_recovery": 0.975,
+    "identified_rank1_rec090": 200,
+    "power": {
+     "lane_bar_2^32_beam-skip_staged": {
+      "bar": -5.7284,
+      "k": 200,
+      "power": 1.0,
+      "wilson": [
+       0.9811546733310369,
+       0.9999999999999999
+      ]
+     },
+     "rigid_bar_2^32": {
+      "bar": -5.778756354597847,
+      "k": 200,
+      "power": 1.0,
+      "wilson": [
+       0.9811546733310369,
+       0.9999999999999999
+      ]
+     },
+     "rigid_bar_10^6": {
+      "bar": -6.162531106082723,
+      "k": 200,
+      "power": 1.0,
+      "wilson": [
+       0.9811546733310369,
+       0.9999999999999999
+      ]
+     },
+     "lane_claim_bar_10^6": {
+      "bar": -6.0434,
+      "k": 200,
+      "power": 1.0,
+      "wilson": [
+       0.9811546733310369,
+       0.9999999999999999
+      ]
+     }
+    },
+    "rigid_exact_power": {
+     "lane_bar_2^32_beam-skip_staged": {
+      "bar": -5.7284,
+      "k": 200,
+      "power": 1.0
+     },
+     "rigid_bar_2^32": {
+      "bar": -5.778756354597847,
+      "k": 200,
+      "power": 1.0
+     },
+     "rigid_bar_10^6": {
+      "bar": -6.162531106082723,
+      "k": 200,
+      "power": 1.0
+     },
+     "lane_claim_bar_10^6": {
+      "bar": -6.0434,
+      "k": 200,
+      "power": 1.0
+     }
+    },
+    "seconds": 13.1
+   }
+  ],
+  "command": "V=/tmp/claude-0/-home-user-cicada-3301-Code-cracker-attempt-1/4950dc03-e080-591a-84c1-d8ea81cef212/scratchpad/venv; $V/bin/python lanes/R1-REDTEAM-OWN-CLAIMS/C2_register_beam_power.py",
+  "wall_seconds": 39.4
+ },
+ "handchecks": {
+  "max_skip_tail_(0.81/29)^7": 1.3262003764644505e-11,
+  "p_keep_86/447": 0.19239373601789708,
+  "interrupt_prior_rule_of_succession_15/16": 0.9375,
+  "lp2_runes": 12956,
+  "lp2_F": 458,
+  "lp2_doublets": 86,
+  "uniform_F": 446.7586206896552,
+  "page_start_windows_L240": {
+   "n": 54,
+   "max_F_window": [
+    14,
+    11
+   ]
+  },
+  "page_start_windows_L120": {
+   "n": 54,
+   "max_F_window": [
+    10,
+    43
+   ]
+  },
+  "P3_pages_0_5_runes": 1470,
+  "P3_window_F_doublets": [
+   12,
+   2
+  ],
+  "heldout_section_lengths": {
+   "a-koan-1": 778,
+   "the-loss-of-divinity": 755
+  },
+  "a_koan_1_first515_plain_F": [
+   8,
+   53
+  ],
+  "solved_plain_F": [
+   48,
+   2977,
+   0.016123614376889486
+  ],
+  "keyed_interrupters_vs_plain_F": {
+   "welcome": [
+    11,
+    11
+   ],
+   "a-koan-2": [
+    2,
+    2
+   ],
+   "an-end": [
+    1,
+    1
+   ]
+  },
+  "heldout_disjoint_windows": {
+   "100": 14,
+   "240": 6,
+   "250": 6,
+   "263": 4,
+   "500": 2,
+   "1000": 0
+  },
+  "heldout_offsets": {
+   "100": 1335,
+   "240": 1055,
+   "250": 1035,
+   "263": 1009,
+   "500": 535
+  },
+  "expected_F_every_plaintext_F_solved_sections": 648.4528048370844,
+  "expected_F_every_plaintext_F_cicada_english": 784.0006840715118,
+  "fit_checks": {
+   "beam@120": {
+    "25k_minus_pred": -0.014866196971458301,
+    "1e6max_minus_pred": -0.06621030693557373,
+    "in_gumbel_sd": -1.0102650542065754,
+    "in_beta": -1.2957152736911097
+   },
+   "beam@240": {
+    "25k_minus_pred": -0.004720557943418413,
+    "1e6max_minus_pred": 0.01602011593899011,
+    "in_gumbel_sd": 0.3359281755715726,
+    "in_beta": 0.43084462452590533
+   },
+   "beam-skip@120": {
+    "25k_minus_pred": -0.007476377613234497,
+    "1e6max_minus_pred": 0.011078427539357172,
+    "in_gumbel_sd": 0.1534021550729051,
+    "in_beta": 0.19674590793521837
+   },
+   "beam-skip@240": {
+    "25k_minus_pred": 0.00026220520746633724,
+    "1e6max_minus_pred": -0.02718008612903322,
+    "in_gumbel_sd": -0.5627631302648712,
+    "in_beta": -0.7217717571425696
+   },
+   "beam-skip-int@120": {
+    "25k_minus_pred": -0.010734918525236559,
+    "1e6max_minus_pred": -0.039356098127727,
+    "in_gumbel_sd": -0.611011963167017,
+    "in_beta": -0.7836532895867248
+   },
+   "beam-skip-int@240": {
+    "25k_minus_pred": 0.003138348589577511,
+    "1e6max_minus_pred": 0.051882186763995364,
+    "in_gumbel_sd": 1.1069670005770091,
+    "in_beta": 1.419740338584831
+   }
+  },
+  "windows_expected_above_z2_of_54": 1.228507125201678,
+  "mean_z_uncertainty": {
+   "from_fit_mean": 0.30151134457776363,
+   "from_windows": 0.1297498240269205,
+   "total": 0.3282439759448873,
+   "in_score": 0.0009741844692148946,
+   "in_beta": 0.025869632376740604
+  },
+  "L120_beam_page43_shift": {
+   "score": 0.035242944419302265,
+   "beta": 0.6896935460270738
+  },
+  "L120_beam-skip-int_page43_shift": {
+   "score": 0.03192177240201443,
+   "beta": 0.6356220037639717
+  },
+  "template_gap_staged_beta": 1.1142700946276127,
+  "template_gap_plant_beta": 1.1604920437111708,
+  "P3_control": {
+   "ceiling_2^32": -5.980569989191188,
+   "gap_nats": 1.1604920437111705,
+   "floor_minus_bar": 1.422066127262016,
+   "recovery_min_max": [
+    0.9416666666666667,
+    0.9875
+   ],
+   "median_planted": -3.8206663399003444,
+   "wrong_key_max_field": -6.338131353879969,
+   "max_best_decoy": -6.338131353879969,
+   "max_wrong_key_score": -6.638786833360792,
+   "distinct_offsets": 20,
+   "identical_to_beam_decoder_template_control": true
+  },
+  "cpu_days_2^32_at_1240": 40.088927120669055,
+  "kill_rate_2^32_in_2h": 596523.2355555556,
+  "upstream_S2_fraction": 0.44138377625495195,
+  "scorer_power_latin_240_lp3": {
+   "claim": 1.0,
+   "family": 1.0,
+   "family_bar": -5.778756354597847,
+   "family_ci_high_bar": 1.0,
+   "n_disjoint": 50,
+   "normal_approx_at_lane_bar": 0.9999999998333837
+  },
+  "scorer_power_vowel-dropped-english_240_lp3": {
+   "claim": 1.0,
+   "family": 0.79,
+   "family_bar": -5.778756354597847,
+   "family_ci_high_bar": 0.365,
+   "n_disjoint": 235,
+   "normal_approx_at_lane_bar": 0.6833658141908491
+  },
+  "wilson_all_success_n50": 0.9286523998213859
+ },
+ "handchecks_command": "V=/tmp/claude-0/-home-user-cicada-3301-Code-cracker-attempt-1/4950dc03-e080-591a-84c1-d8ea81cef212/scratchpad/venv; $V/bin/python lanes/R1-REDTEAM-OWN-CLAIMS/C2_handchecks.py",
+ "handchecks_wall_seconds": 0.07,
+ "lane": "R1-REDTEAM-OWN-CLAIMS",
+ "sub_attack": "C part 2 (claim audit: reports/beam_decoder.md \u00a70-\u00a77, reports/scorer_power.md \u00a71, \u00a79 and Latin/vowel-dropped statements, lanes/P3-MT19937-PY27-EXACT/PREREG.md \u00a70, \u00a78, addenda) plus B2 rows",
+ "numbering": "LP2-0-57",
+ "audited_git": "fbe43e7",
+ "order_of_work": "B2_handcheck.py (no package import) -> out_B2.json written; then C2_handchecks.py (canon loader only), then C2_register_beam_power.py (package path, a settling test, not a re-derivation)",
+ "audit_rows": [
+  {
+   "claim_file_line": "lanes/P3-MT19937-PY27-EXACT/PREREG.md:169",
+   "claim_quote": "Latin power 1.000 and vowel-dropped 0.790 at the 2^32 bar on rigid-exact plants, `reports/scorer_power.md` \u00a73",
+   "actual_evidence": "scorer_power.json power row (vowel-dropped-english, 240, lp-ngram3-heldout): family bar -5.7788 (the RIGID 2^32 bar), 158/200 = 0.790; the lane's bar is -5.7284 (beam-skip staged fit) and its decoder is beam-skip. Settling test run here (out_C2.json settling_register_beam_power; package path, same 200 windows via plant_windows(reg,240,200,0), rigid mean reproduces -5.6522 exactly): rigid-exact plants above -5.7284 = 134/200 = 0.670; beam-skip decodes of anti-repeat plants with the true key, mean -5.6775 (penalty -0.025 vs rigid), above -5.7284 = 119/200 = 0.595 Wilson [0.526, 0.661]; identified 189/200. Latin under the same path: 200/200 = 1.000 (mean -4.896).",
+   "overreach": "The vowel-dropped conditional is quoted at a different bar (rigid -5.7788, not the lane's -5.7284) and a different decoder (rigid, not beam-skip). At the lane's own bar and decoder the measured vowel-dropped power is 0.595, not 0.790 (delta -0.195, outside the 0.790 row's Wilson [0.728, 0.841]). 'the 2^32 bar' reads as this lane's bar. Latin 1.000 survives.",
+   "severity": "decision",
+   "live_lane_it_hides": "A P3 NULL would carry a vowel-dropped-English conditional of 0.79 when its instrument has ~0.60 (still >= the spec's 0.5 target, so no run decision flips, but the trust placed in the negative for vowel-dropped plaintext is overstated); the uncovered share is ~40 % of vowel-dropped keys, not 21 %.",
+   "cheapest_settling_test": "Already run: lanes/R1-REDTEAM-OWN-CLAIMS/C2_register_beam_power.py (40 s, CPU). Fix: dated addendum to the P3 PREREG quoting 0.595 [0.526, 0.661] at -5.7284 under beam-skip, and a beam-cell row per non-English register in scorer_power (plant_text other than heldout-solved-sections)."
+  },
+  {
+   "claim_file_line": "lanes/P3-MT19937-PY27-EXACT/PREREG.md:57-59",
+   "claim_quote": "Latin and vowel-dropped English are detected only to the power `reports/scorer_power.md` \u00a73 measures for that scorer (rigid-exact plants at L = 240: Latin 1.000 at both bars; vowel-dropped English 1.000 at N = 10^6, 0.790 at 2^32).",
+   "actual_evidence": "Same evidence as row P3:169. 'both bars' are the rigid bars -6.1625/-5.7788 (scorer_power.md:93); the lane screens at -6.0434 and decides at -5.7284 under beam-skip. Measured here under the lane's decoder: vowel-dropped 0.995 at -6.0434, 0.595 at -5.7284; Latin 1.000 at both.",
+   "overreach": "The sentence does say 'rigid-exact plants', but presents the rigid-bar numbers as this lane's register conditional (Q4 is the lane's conditional). The 0.790 does not describe this lane (0.595 at its bar and decoder).",
+   "severity": "decision",
+   "live_lane_it_hides": "Same as P3:169: the vowel-dropped share of the P3 negative.",
+   "cheapest_settling_test": "Same test (done); addendum to P3 PREREG with the lane-specific power."
+  },
+  {
+   "claim_file_line": "lanes/P3-MT19937-PY27-EXACT/PREREG.md:41-43",
+   "claim_quote": "`lp-ngram3-heldout` / `beam-skip` / anti-repeat at L = 240: 50/50 plants identified at rank 1 over 99 decoys, planted mean \u22123.95 against a wrong-key null mean \u22126.87; the rigid decoder identifies 0/50 of the same plants",
+   "actual_evidence": "scorer_power.json sections.beam: cell (lp-ngram3-heldout, beam-skip, anti-repeat, 240): n_plants 50, decoys 99, identified 50, rank1 50, planted_mean -3.951; null (beam-skip, 240) mean -6.8699; rigid cell identified 0 (rank1 21/50). All match.",
+   "overreach": "Numbers exact. Scope unstated: the 50 plants are drawn from the 1,533-rune heldout-solved-sections register (6 disjoint windows at L = 240, out_C2 handchecks heldout_disjoint_windows), with numpy-pcg64 keys, not mt19937-py27; the lane's own control (A KOAN (1), 778 runes, 3 disjoint windows) is the same text family.",
+   "severity": "minor",
+   "live_lane_it_hides": "none (B1 reproduced 20/20 independently; the planted margin over the bar is ~1.4)",
+   "cheapest_settling_test": "Plants from a second Cicada-register text (cicada-english held-out tail) through the same beam cell: 50 plants, ~10 s."
+  },
+  {
+   "claim_file_line": "lanes/P3-MT19937-PY27-EXACT/PREREG.md:44-47",
+   "claim_quote": "of the forward models in this repo only the anti-repeat key-skip filter reproduces that deficit and passes the fingerprint gate \u2014 `GATE PASS` on 12/12 keys at `interrupt_prob: 0.0`",
+   "actual_evidence": "beam_decoder.json gate_template_family: interrupt_prob 0.0 GATE PASS (fails {}), 0.1 and 0.44 GATE PASS (marginal C3), 1.0 GATE FAIL C1 12/12; lanes/P3/gate.json GATE PASS 12/12. No committed gate result for filter_model: off is cited.",
+   "overreach": "'only the anti-repeat filter ... passes' is not shown by the cited evidence (no filter-off gate row); it is plausible (filter off gives ~447 doublets), but uncited. The 12/12 PASS is exact.",
+   "severity": "minor",
+   "live_lane_it_hides": "none",
+   "cheapest_settling_test": "Run `runeforge gate` on a filter_model: off copy of the template lane (12 keys, seconds) and cite it."
+  },
+  {
+   "claim_file_line": "lanes/P3-MT19937-PY27-EXACT/PREREG.md:49-50",
+   "claim_quote": "upstream found the family runnable but left it 55.86 % unswept under a narrower decoder (`data/raw/dukotah/liber-primus/handoff/PARKED-SWEEPS.md` \u00a71)",
+   "actual_evidence": "PARKED-SWEEPS.md:24-31: S2 1,895,728,884 of 2^32 scored (0.441383776), 6 workers, claim bar 7.6342, n_claim_bar_hits 0; :37-46 a HIT-CANDIDATE.json flag on S2 (seed 35563892, pmax 7.6707 above the S2 bar) that 'this project has not resolved'. LEDGER.json R27-CPORT-MT32-FULLSWEEP not_covered: S2's null 'DOES NOT COUNT until its own planted control ... pass'. 1,895,728,884/2^32 = 0.44138 (55.86 % unswept) checks.",
+   "overreach": "'runnable' and the coverage fraction match, but the upstream S2 slice has no passed control (its null does not count upstream) and carries an unresolved flag; the sentence frames it as clean coverage.",
+   "severity": "minor",
+   "live_lane_it_hides": "none for seed selection (P3 sweeps all 2^32 seeds); the upstream S2 flag at seed 35563892 stays unadjudicated under any relation",
+   "cheapest_settling_test": "Quote LEDGER R27 not_covered and PARKED-SWEEPS \u00a71 lines 37-46 in a P3 addendum; when the lane runs, record seed 35563892's score in RESULTS.md."
+  },
+  {
+   "claim_file_line": "lanes/P3-MT19937-PY27-EXACT/PREREG.md:162-166",
+   "claim_quote": "Overlap, declared: 44.14 % of this slice (seeds in six upstream worker bands, 1,895,728,884 seeds) was scored by upstream R27-S2 under the keyskip1 beam (max_skip 3, L = 120, their 9-register panel-max bar 7.6342) with 0 claim-bar hits; ... and the remaining 55.86 % has no scored decode anywhere.",
+   "actual_evidence": "Fraction, seed count, bar 7.6342 match PARKED-SWEEPS.md:24-33. But (a) PARKED-SWEEPS.md:37-46 records an unresolved S2 HIT-CANDIDATE (seed 35563892 above the S2 bar) contradicting 'n_claim_bar_hits 0'; (b) upstream R27-S1 scored ALL 2^32 seeds (pair relation, S1-CLOSEOUT.md:14-15, 73), R20-SG3 scored 2,458,000 random29 seeds under keyskip1, R25 [3.0M, 3.5M) under keyskip2, jens-wedin seeds 0-20k rigid (LEDGER.json coverage fields).",
+   "overreach": "'0 claim-bar hits' omits the unresolved upstream flag; 'no scored decode anywhere' is false as written (every seed was scored by S1 under the pair relation, which the same section lists); the intended scope is 'no scored decode under a single-skip/anti-repeat relation'.",
+   "severity": "minor",
+   "live_lane_it_hides": "none (the lane sweeps the whole range); the wording would let a later reader treat the 44.14 % S2 slice as clean",
+   "cheapest_settling_test": "Edit by dated addendum: '0 claim-bar hits per STATUS.json; HIT-CANDIDATE.json flags seed 35563892, unresolved upstream'; scope 'no scored decode under an exact or anti-repeat relation'."
+  },
+  {
+   "claim_file_line": "lanes/P3-MT19937-PY27-EXACT/PREREG.md:156-158",
+   "claim_quote": "F-interrupters (`interrupt_prob` 0: the every-F rule fails the fingerprint gate on 12/12 keys, `reports/beam_decoder.md` \u00a73, so an interrupt-bearing variant of this family is excluded by the gate, not searched)",
+   "actual_evidence": "beam_decoder.json gate_template_family: interrupt_prob 1.0 GATE FAIL C1 12/12 (C2 1); 0.1 GATE PASS (marginal C3 2/12); 0.44 GATE PASS (marginal C3 3/12). beam_decoder.md:130 itself: 'This excludes the typical key of that family, not the family.' F-count check (out_C2 handchecks): every-F gives 648 expected vs 458 observed; partial rates q: 446.8 + q*201.7 -> q = 0.1 gives 467 (consistent).",
+   "overreach": "Only the every-F variant fails the gate, and only for the typical key; partial-interrupt variants (q <= ~0.2) pass the gate and are not excluded by it. The item is correctly in not_covered; its stated reason overreaches.",
+   "severity": "minor",
+   "live_lane_it_hides": "mt19937-py27 random29 under beam-skip-int with interrupt_prob in (0, ~0.2]: gate-passing, not searched, low prior (14/14 plaintext F's interrupted in the solved sections)",
+   "cheapest_settling_test": "None to run: the 0.1 gate row already exists; fix the wording ('the every-F variant fails the gate for the typical key; partial variants pass it and are not covered')."
+  },
+  {
+   "claim_file_line": "lanes/P3-MT19937-PY27-EXACT/PREREG.md:158-159",
+   "claim_quote": "skips of more than 6 key symbols at one rune (max_skip 6; probability \u2248 1e-11 per rune under a uniform key)",
+   "actual_evidence": "(0.81/29)^7 = 1.33e-11 (out_C2 handchecks); beam_decoder.md:58-59 states the same.",
+   "overreach": "none",
+   "severity": "none",
+   "live_lane_it_hides": "none",
+   "cheapest_settling_test": "-"
+  },
+  {
+   "claim_file_line": "lanes/P3-MT19937-PY27-EXACT/PREREG.md:154-156",
+   "claim_quote": "upstream R21-L3 and R26-A swept prior-dense slices of them, \u2264 0.007 % each ... (0 of 11 other view \u00d7 combine cells)",
+   "actual_evidence": "LEDGER.json R21-L3 coverage: max 288,000/2^32 = 0.006706 %; R26-A 1.74e-7 per generator. 4 views x 3 combines - 1 swept = 11.",
+   "overreach": "none",
+   "severity": "none",
+   "live_lane_it_hides": "none",
+   "cheapest_settling_test": "-"
+  },
+  {
+   "claim_file_line": "lanes/P3-MT19937-PY27-EXACT/PREREG.md:60-62",
+   "claim_quote": "at seed 429,496,730 (10 % of the slice) the sweep is killed if its rate is below 600,000 seeds/s (2^32 would then not finish inside the 2-hour wall clock)",
+   "actual_evidence": "2^32/7200 s = 596,523 seeds/s; 10 % of 2^32 = 429,496,729.6.",
+   "overreach": "none (600,000 rounds up the 596,523 break-even, the safe direction)",
+   "severity": "none",
+   "live_lane_it_hides": "none",
+   "cheapest_settling_test": "-"
+  },
+  {
+   "claim_file_line": "lanes/P3-MT19937-PY27-EXACT/PREREG.md:195-199",
+   "claim_quote": "**control PASSED**: recovered 20/20 at rank 1 (recovery 0.942\u20130.992), floor \u22124.3063 vs ceiling \u22125.9806 extrapolated to N = 2^32 (observed \u22126.3762 over 20,000 null keys; gap 1.160 nats); wrong-key max \u22126.3381; bar \u22125.7284 (floor above the bar by 1.42).",
+   "actual_evidence": "control-4c65a7978362.json: identified 20, ranks all 1, recovery 0.9417-0.9875, floor -4.306334, ceiling_observed -6.376215 over ceiling_trials 20,000, beta 0.032226 (per-plant), ceiling -6.37621 + 0.032226 ln(2^32/20000) = -5.98057, gap (1.67424) ln2 = 1.16049 nats, floor - bar = 1.4221. 'wrong_key_max' -6.3381 equals the max best decoy; the per-plant deliberately-wrong-key max is -6.6388. The record is identical to beam_decoder.json template_control (same spec, rng seed 3301).",
+   "overreach": "Recovery max 0.992 vs 0.9875 (already corrected by the 2026-10-28 addendum, PREREG:213-214). 'wrong-key max' labels the best-decoy maximum, not the deliberately-wrong key's maximum (-6.6388); both are below the ceiling, so no pass condition changes.",
+   "severity": "minor",
+   "live_lane_it_hides": "none",
+   "cheapest_settling_test": "None (arithmetic reproduced); optionally rename in a later addendum."
+  },
+  {
+   "claim_file_line": "lanes/P3-MT19937-PY27-EXACT/PREREG.md:191-194",
+   "claim_quote": "C1 IoC 1.000, C2 doublet rate 0.00664, C2b 1.026, C3 15, C6 23 all inside the LP2 bands on 12/12 keys; C5 (soft, reported not deciding) outside its band on 10/12",
+   "actual_evidence": "gate.json: verdict GATE PASS, fails_per_constraint {}; C1/C2/C2b/C2c/C3/C6 PASS 12/12, C5 FAIL(soft) 10/12, C4 INFO. The quoted values 1.000, 0.00664, 1.026, 15, 23 are LP2's own target values (column 2 of each row), not the keys' values (e.g. seed 1: C1 1.0004, C2 0.00625, C3 6).",
+   "overreach": "Wording: the numbers read as the keys' measurements; they are LP2's. The pass counts are exact.",
+   "severity": "minor",
+   "live_lane_it_hides": "none",
+   "cheapest_settling_test": "None; reword in an addendum ('LP2: C1 1.000 ...; every key inside the band')."
+  },
+  {
+   "claim_file_line": "lanes/P3-MT19937-PY27-EXACT/PREREG.md:203-206",
+   "claim_quote": "the staged record predicts a mean 1,000-key maximum of \u03bc_b + \u03b2\u03b3 = \u22126.4767 + 0.0377 \u00d7 0.5772 = \u22126.455; the lane's own shuffle replicates average \u22126.4565 (0.0015 above, within 0.04 \u03b2), so the staged fit describes this window's null as measured on the real runes.",
+   "actual_evidence": "B2 (out_B2.json): predicted -6.455013, null1 mean -6.456534, difference -0.001521 (observed BELOW the prediction), 0.0404 beta, 0.47 se of the replicate mean (se 0.0032). Null2 mean -6.4580 (-0.0030). Null1 sd 0.0457 vs Gumbel sd 0.0483.",
+   "overreach": "Sign: the replicate mean is 0.0015 BELOW the prediction (conservative side), not above. Scope: null 1 is shuffles of the real runes (doublets at ~1/29, the real window has 2 in 240), and only the location of a 1,000-key block maximum is compared, not the 2^32 tail the bar extrapolates to; 'as measured on the real runes' claims more than a location check on shuffles.",
+   "severity": "minor",
+   "live_lane_it_hides": "none",
+   "cheapest_settling_test": "None to run; addendum fixing 'above' -> 'below' and stating it is a block-max location check on shuffled runes."
+  },
+  {
+   "claim_file_line": "lanes/P3-MT19937-PY27-EXACT/PREREG.md:109-113",
+   "claim_quote": "threshold_for(N=4,294,967,296, preset=lp-ngram3-heldout:beam-skip, L=240, alpha=0.01) = -5.7284 [gumbel; expected null max -5.8799; expected false positives 0.0101] ... \u03bc_N = \u03bc_b + \u03b2 ln(N/1000) = \u22126.4767 + 0.037657 \u00d7 ln(4,294,967.296) = \u22125.9016; bar = \u03bc_N \u2212 \u03b2 ln(\u2212ln 0.99) = \u22125.7284",
+   "actual_evidence": "B2 hand formula from the staged record's fit (mu_block -6.476749792302121, beta 0.037657453149229296, block 1000): mu_N -5.901609, bar -5.728379 (delta +2.1e-5), expected null max -5.879873. Staged file SHA-256 46a95f85... matches the PREREG.",
+   "overreach": "none (reproduced to 1e-4)",
+   "severity": "none",
+   "live_lane_it_hides": "none",
+   "cheapest_settling_test": "-"
+  },
+  {
+   "claim_file_line": "lanes/P3-MT19937-PY27-EXACT/PREREG.md:116-118",
+   "claim_quote": "Screening bar `claim_bar` = the same arithmetic at N = 10^6: \u22126.0434 (survivors above it are logged with their stats, \u2248 43 expected over the slice",
+   "actual_evidence": "B2: bar at 10^6 = -6.043391 (delta +8.6e-6); survivors expected over 2^32 = 4294.97 x 0.010050 = 43.17.",
+   "overreach": "none (reproduced)",
+   "severity": "none",
+   "live_lane_it_hides": "none",
+   "cheapest_settling_test": "-"
+  },
+  {
+   "claim_file_line": "lanes/P3-MT19937-PY27-EXACT/PREREG.md:119",
+   "claim_quote": "Expected false positives over the slice, N \u00b7 P(clear) = 0.0101 (must be < 1).",
+   "actual_evidence": "B2: N * P(one trial > bar) = exp(-(bar - mu_N)/beta) = -ln(0.99) = 0.010050; rounds to 0.0101 at 3 s.f. (delta -5.0e-5 against 0.0101). It is a property of alpha alone under the Gumbel model, not of the fit.",
+   "overreach": "none (reproduced); note that the < 1 condition is satisfied by construction for any fit at alpha 0.01, so it is not evidence about the fit",
+   "severity": "none",
+   "live_lane_it_hides": "none",
+   "cheapest_settling_test": "-"
+  },
+  {
+   "claim_file_line": "lanes/P3-MT19937-PY27-EXACT/PREREG.md:204-205",
+   "claim_quote": "the lane's own shuffle replicates average \u22126.4565 (0.0015 above, within 0.04 \u03b2)",
+   "actual_evidence": "B2: null.json null1_shuffle mean -6.456534 (delta to -6.4565: -3.4e-5); predicted block-max mean -6.455013 (delta to -6.455: -1.3e-5); |difference| 0.001521 = 0.0404 beta.",
+   "overreach": "Numbers reproduced to 1e-3; the direction word is wrong (below, not above). See row P3:203-206.",
+   "severity": "minor",
+   "live_lane_it_hides": "none",
+   "cheapest_settling_test": "Addendum wording fix."
+  },
+  {
+   "claim_file_line": "reports/beam_decoder.md:8-12",
+   "claim_quote": "decoder `runeforge/beam.py` SHA-256 `4cd3d7ba59\u2026` (the numbers below were computed at `a855814af3\u2026`; the two differ in comments and docstrings only) \u00b7 numbers from `python scripts/beam_power.py` at git `6faf29d` \u2192 beam_decoder.json (780 s ...)",
+   "actual_evidence": "sha256(beam.py @fbe43e7) = 4cd3d7ba59e6...; beam.py @6faf29d = a855814af303...; git diff 956cd28..e61e494 -- runeforge/beam.py touches only docstring/comment lines; beam_decoder.json seconds 779.8.",
+   "overreach": "none",
+   "severity": "none",
+   "live_lane_it_hides": "none",
+   "cheapest_settling_test": "-"
+  },
+  {
+   "claim_file_line": "reports/beam_decoder.md:23",
+   "claim_quote": "tests | `tests/test_beam.py` (87; one marked slow, six cases need `data/raw`)",
+   "actual_evidence": "pytest --collect-only: 87 collected; -m slow 1/87; -m raw 6/87 (the parametrized solved-section test, 2 scorers x 3 sections).",
+   "overreach": "none",
+   "severity": "none",
+   "live_lane_it_hides": "none",
+   "cheapest_settling_test": "-"
+  },
+  {
+   "claim_file_line": "reports/beam_decoder.md:30-31",
+   "claim_quote": "Rigid controls identify 0/20 at L = 240, and 7/20 at L = 120 under interrupters (`controls`).",
+   "actual_evidence": "beam_decoder.json controls: interrupts/240/rigid identified 0; interrupts/120/rigid identified 7.",
+   "overreach": "none",
+   "severity": "none",
+   "live_lane_it_hides": "none",
+   "cheapest_settling_test": "-"
+  },
+  {
+   "claim_file_line": "reports/beam_decoder.md:55-59",
+   "claim_quote": "interrupt prior 15/16: the rule of succession on 14 of 14 ... p_keep 0.19: LP2's 86 doublets against 447 expected ... more than 6 drops at one rune has probability (0.81/29)\u2077 \u2248 1.3\u00b710\u207b\u00b9\u00b9 per rune",
+   "actual_evidence": "(14+1)/(14+2) = 0.9375; canon recount 14/14 plaintext F's interrupted (welcome 11/11, a-koan-2 2/2, an-end 1/1); 86/447 = 0.192; LP2 doublets recounted 86, expected 12955/29 = 446.7; (0.81/29)^7 = 1.33e-11.",
+   "overreach": "none",
+   "severity": "none",
+   "live_lane_it_hides": "none",
+   "cheapest_settling_test": "-"
+  },
+  {
+   "claim_file_line": "reports/beam_decoder.md:77-83",
+   "claim_quote": "WELCOME 25/11/11 ... \u22128.521 \u2192 \u22123.378 | A KOAN 2 ... \u22128.089 \u2192 \u22123.137 | AN END ... \u22126.183 \u2192 \u22123.621 ... The interrupt set is the same and the plaintext exact under all three scorers.",
+   "actual_evidence": "beam_decoder.json solved_sections: 9 rows (3 scorers x 3 sections), all same_set and plaintext_exact true; general-ngram3 scores match to 3 decimals; cipher F 25/5/5 and published interrupters 11/2/1 match canon.",
+   "overreach": "none",
+   "severity": "none",
+   "live_lane_it_hides": "none",
+   "cheapest_settling_test": "-"
+  },
+  {
+   "claim_file_line": "reports/beam_decoder.md:87-94",
+   "claim_quote": "The plaintext is A KOAN (1), the first 515 runes ... 8 of them, the first at rune 53. | rigid | \u22126.644 | 18.3 % | beam | \u22123.506 | 100 % | exact",
+   "actual_evidence": "beam_decoder.json planted_divinity: interrupters 8, first 53, rigid -6.6438 / 0.1825, beam -3.5057 / 1.0 / exact; canon recount: first 515 plaintext runes of a-koan-1 hold 8 F's, first at index 53.",
+   "overreach": "none",
+   "severity": "none",
+   "live_lane_it_hides": "none",
+   "cheapest_settling_test": "-"
+  },
+  {
+   "claim_file_line": "reports/beam_decoder.md:96-98",
+   "claim_quote": "Dukotah measured an analogous contrast under the anti-repeat filter (key skips, not interrupters; a skip-aware beam, 98.9 % of runes; `data/raw/dukotah/PAPER.md` \u00a73): \u22126.835 rigid vs \u22124.170 beam",
+   "actual_evidence": "data/raw/dukotah/PAPER.md:116-118 (inside \u00a73 'The first failure: the decoder', lines 106-130): -6.835, -4.170, 98.9 %.",
+   "overreach": "none",
+   "severity": "none",
+   "live_lane_it_hides": "none",
+   "cheapest_settling_test": "-"
+  },
+  {
+   "claim_file_line": "reports/beam_decoder.md:103-108",
+   "claim_quote": "Every **plaintext** F in the keyed solved sections is an interrupter: 14 of 14 (11/11, 2/2, 1/1 ...). ... The default is now 1.0",
+   "actual_evidence": "canon recount as above. (Default value not re-checked in code; out of this row's number.)",
+   "overreach": "none",
+   "severity": "none",
+   "live_lane_it_hides": "none",
+   "cheapest_settling_test": "-"
+  },
+  {
+   "claim_file_line": "reports/beam_decoder.md:113-118",
+   "claim_quote": "| 0.0 | GATE PASS | 0.1 | GATE PASS (marginal: C3 on 2 of 12) | 0.44 ... (marginal: C3 on 3 of 12) | 1.0 | **GATE FAIL: C1 on 12 of 12** |",
+   "actual_evidence": "beam_decoder.json gate_template_family: matches; the 1.0 row also fails C2 on 1 of 12 (not shown).",
+   "overreach": "none (C2 1/12 omitted; immaterial)",
+   "severity": "none",
+   "live_lane_it_hides": "none",
+   "cheapest_settling_test": "-"
+  },
+  {
+   "claim_file_line": "reports/beam_decoder.md:120-128",
+   "claim_quote": "LP2 pages 0\u201355 hold 458 \u16a0, against 446.8 for uniform runes ... 1.61 % | 48 of 2,977 ... | 648 | 2.70 % | 8,268 of 306,683 ... | 784",
+   "actual_evidence": "Canon recount: 458 F in 12,956; 12,956/29 = 446.76; plaintext F in the solved sections 48/2,977; E = f N + (1-f) N/29 = 648.45 and 784.00; corpus count 8,268/306,683 from beam_decoder.json lp2_F.",
+   "overreach": "none",
+   "severity": "none",
+   "live_lane_it_hides": "none",
+   "cheapest_settling_test": "-"
+  },
+  {
+   "claim_file_line": "reports/beam_decoder.md:130-131",
+   "claim_quote": "This excludes the typical key of that family, not the family. It says nothing about a plaintext with almost no F's.",
+   "actual_evidence": "Consistent with the gate rows; 458 observed implies a plaintext F rate ~0.09 % under the every-F rule.",
+   "overreach": "none (correctly scoped; the P3 PREREG:156-158 drops this scoping)",
+   "severity": "none",
+   "live_lane_it_hides": "partial-interrupt variants (see P3:156-158)",
+   "cheapest_settling_test": "-"
+  },
+  {
+   "claim_file_line": "reports/beam_decoder.md:139-157",
+   "claim_quote": "wrong-key means rigid \u22127.167 / beam \u22126.900 / beam-skip \u22126.872 / beam-skip-int \u22126.739 ... fit table \u03bc_b, \u03b2, wrong-key mean, 25k-block mean \u2212 predicted, 10\u2076 max \u2212 predicted",
+   "actual_evidence": "beam_decoder.json noise and staged_calibrations, and reports/calib-staging/*.json (1,000,000 draws, 1,000 blocks each, seed 3301, beam sha 4cd3d7ba): every cell matches to the printed precision (e.g. beam-skip 240: -6.4767, 0.0377, -6.8693, +0.0003, -0.027). The fit-table 'wrong-key mean' (e.g. beam 240 -6.7819) differs from the noise table (-6.900) because fits use 14 canonical F's and doublet-free ciphers.",
+   "overreach": "none (the two 'wrong-key mean' columns measure different ciphers; not labelled, immaterial)",
+   "severity": "none",
+   "live_lane_it_hides": "none",
+   "cheapest_settling_test": "-"
+  },
+  {
+   "claim_file_line": "reports/beam_decoder.md:163-172",
+   "claim_quote": "beam-skip-int, L = 240 | +0.052 (1.1 Gumbel sd, 1.4 \u03b2) | beam, L = 240 | +0.016 (0.34 sd) | beam-skip, L = 120 | +0.011 (0.15 sd) ... The largest errors in either direction are 1.3\u20131.4 \u03b2, so treat the extrapolated bars as accurate to about 1.5 \u03b2",
+   "actual_evidence": "out_C2 handchecks fit_checks: +0.0519 = 1.107 sd = 1.420 beta; +0.0160 = 0.336 sd; +0.0111 = 0.153 sd; most negative beam@120 -0.0662 = -1.296 beta.",
+   "overreach": "none",
+   "severity": "none",
+   "live_lane_it_hides": "none",
+   "cheapest_settling_test": "-"
+  },
+  {
+   "claim_file_line": "reports/beam_decoder.md:179-186",
+   "claim_quote": "On doublet-free ciphers at L = 240 (`fcount`, 50 blocks each, se \u2248 0.007), the block-max mean is: 4 | \u22126.573 | \u22126.459 | 14 | \u22126.398 | \u22126.451 | 20 | \u22126.319 | \u22126.458",
+   "actual_evidence": "beam_decoder.json fcount: all six means match; block_max_se 0.0065-0.0080. '50 blocks' not stored in the JSON, but se ~ 1.28 beta / sqrt(50) = 0.0068 is consistent.",
+   "overreach": "none",
+   "severity": "none",
+   "live_lane_it_hides": "none",
+   "cheapest_settling_test": "-"
+  },
+  {
+   "claim_file_line": "reports/beam_decoder.md:187-189",
+   "claim_quote": "The interrupt decoders are therefore fitted at the most F's of any lane window that starts at an unsolved page and runs on in canonical order: 14 at L = 240 (page 11) and 10 at L = 120 (page 43)",
+   "actual_evidence": "Canon recount over the 54 page-start windows (page 50 is runeless): max 14 F at page 11 (L=240), 10 at page 43 (L=120). Staged fits canonical_F 14 / 10.",
+   "overreach": "none",
+   "severity": "none",
+   "live_lane_it_hides": "none",
+   "cheapest_settling_test": "-"
+  },
+  {
+   "claim_file_line": "reports/beam_decoder.md:191-195",
+   "claim_quote": "LP2 has almost none (86 in 12,956). Under `beam-skip` at L = 120 (`doublets`, 8,000 keys per window), every fourth page-start window sits 0.0043 above uniform ciphers on average, with spread 0.0023 over 14 windows. Doublet-free ciphers sit 0.0047 above",
+   "actual_evidence": "beam_decoder.json doublets: 14 windows, mean 0.004284, spread 0.002291, doublet-free 0.004664.",
+   "overreach": "none",
+   "severity": "none",
+   "live_lane_it_hides": "none",
+   "cheapest_settling_test": "-"
+  },
+  {
+   "claim_file_line": "reports/beam_decoder.md:201-210",
+   "claim_quote": "| beam | 240 | +0.18 (page 11, 14 F's) | 0 | \u221241.6 | ... | beam-skip | 240 | +2.44 | 2 | +0.42 | ... The interrupt decoders sit at or below their fits in every window.",
+   "actual_evidence": "beam_decoder.json windows: all six rows match. scripts/beam_power.py window_scan (read after B2 was recorded): z = (mean of 2,000 wrong-key decodes - mean of 20,000 fit draws)/se, i.e. a comparison of MEANS.",
+   "overreach": "The table compares means of single decodes; 'at or below their fits' is a location statement, while the bars are upper-tail quantities (block maxima extrapolated to 2^32). A window with the same or lower mean but larger spread (F placement) could sit above the fit in the tail. Not stated.",
+   "severity": "minor",
+   "live_lane_it_hides": "none currently pre-registered (interrupt decoders at L = 120 have no lane); beam-skip at L = 240 (P3) is covered by the lane's own block-max null",
+   "cheapest_settling_test": "For the worst window per decoder (page 54 beam-skip 240; page 11 beam 240), 200 blocks of 1,000 wrong keys and compare the block-max mean with mu_b + gamma beta (as P3's null does): ~200k beam decodes, ~3 min per window on 4 cores."
+  },
+  {
+   "claim_file_line": "reports/beam_decoder.md:213-217",
+   "claim_quote": "even the most F-rich window (page 43, 10 F's, the count the fit uses) sits well below it (z \u22129.5 and \u22128.6, about 0.03 in score, ~0.65 \u03b2) ... For the 54 page-start windows at L = 120 these bars are conservative by at least that much: less power, not more false positives.",
+   "actual_evidence": "Arithmetic: 9.51 x 0.158 x sqrt(1/2000+1/20000) = 0.0352 = 0.69 beta; 8.57 -> 0.0319 = 0.64 beta (out_C2 handchecks). Only means were compared (window_scan).",
+   "overreach": "'conservative by at least that much' transfers a mean shift to the tail (bars are block-max quantities); it holds under a pure location shift, which was not checked.",
+   "severity": "minor",
+   "live_lane_it_hides": "beam / beam-skip-int lanes at L = 120 (none pre-registered)",
+   "cheapest_settling_test": "Same block-max comparison as the row above for page 43 at L = 120."
+  },
+  {
+   "claim_file_line": "reports/beam_decoder.md:219-222",
+   "claim_quote": "Under `beam-skip`, about 1.2 windows above z = 2 would be expected by chance. The +0.42 mean z is about 1.3 times its own uncertainty ... \u00b10.33 z: \u00b10.30 from the one fit mean all 54 windows share, \u00b10.13 from the windows' own 2,000-key samples. Its size is about 0.001 in score, 0.03 \u03b2.",
+   "actual_evidence": "54 x P(Z>2) = 1.23; sqrt(5e-5/5.5e-4) = 0.302; sqrt(5e-4/5.5e-4)/sqrt(54) = 0.130; total 0.328; 0.42/0.33 = 1.27; 0.328 x 0.1266 x 0.02345 = 0.00097 = 0.026 beta.",
+   "overreach": "none",
+   "severity": "none",
+   "live_lane_it_hides": "none",
+   "cheapest_settling_test": "-"
+  },
+  {
+   "claim_file_line": "reports/beam_decoder.md:226-229",
+   "claim_quote": "Review round 3 compared 2,563 of the 2,875 distinct L = 240 lane windows ... The 312 four-page windows were not compared",
+   "actual_evidence": "2,875 - 2,563 = 312; no committed regenerator (stated at :224).",
+   "overreach": "none (declared scratch; unverifiable from committed evidence, and the report says so)",
+   "severity": "none",
+   "live_lane_it_hides": "none",
+   "cheapest_settling_test": "-"
+  },
+  {
+   "claim_file_line": "reports/beam_decoder.md:243-246",
+   "claim_quote": "plants: 20, each on a random window of held-out A KOAN (1); generator: numpy-pcg64 over 2\u00b3\u00b2; decoys: 199 per plant; ceiling: 4,000 domain-separated SHA-256 keys",
+   "actual_evidence": "beam_decoder.json controls: n_plants 20, ceiling_trials 4000 per row. A KOAN (1) is 778 runes (canon): at L = 240 at most 3 disjoint windows, at L = 120 6.",
+   "overreach": "The 'power envelope' of \u00a75 rests on 20 overlapping windows of one 778-rune text; the overlap is not stated (scorer_power.md \u00a71 states the analogous caveat for its own cells).",
+   "severity": "minor",
+   "live_lane_it_hides": "none (planted margins over every bar are >= 1.4; B1 reproduced independently)",
+   "cheapest_settling_test": "State the overlap; optional: 20 plants from the cicada-english held-out tail through the same control (~1 min)."
+  },
+  {
+   "claim_file_line": "reports/beam_decoder.md:264-279",
+   "claim_quote": "power-envelope table: interrupters 240 beam 20, 1.000, \u22124.206, 1.089, 0.848 ... both 120 beam-skip-int 19, 0.979, \u22124.257, 0.716, 0.350",
+   "actual_evidence": "beam_decoder.json controls: all 13 rows match identified, median recovery, floor, staged and control gaps, runnable_pairing; gap arithmetic reproduced, e.g. (\u22124.2057 + 5.7772) ln 2 = 1.0893.",
+   "overreach": "none",
+   "severity": "none",
+   "live_lane_it_hides": "none",
+   "cheapest_settling_test": "-"
+  },
+  {
+   "claim_file_line": "reports/beam_decoder.md:289-291",
+   "claim_quote": "Every forward model passes under the decoder that matches it, at both windows, with the staged fits' \u03b2. The rigid decoder passes none.",
+   "actual_evidence": "Matched rows: id 20/20/20/19/20/19, staged gaps 1.089/0.747/1.113/0.645/1.100/0.716 >= 0.25; the two other pass conditions rest on the audit-4 scratch re-run (stated at :259-262). Rigid rows: 0, 7, 0, 0, 0, 0 identified.",
+   "overreach": "none (scoped by :259)",
+   "severity": "none",
+   "live_lane_it_hides": "none",
+   "cheapest_settling_test": "-"
+  },
+  {
+   "claim_file_line": "reports/beam_decoder.md:300-304",
+   "claim_quote": "template lane's own control ... 20/20 identified, median recovery 0.975, floor \u22124.306, observed ceiling \u22126.376 over 20,000 null keys. Gap with the per-plant \u03b2 (0.0322): 1.160 nats. Gap with the staged \u03b2 (0.0377): ... = 1.114 nats.",
+   "actual_evidence": "beam_decoder.json template_control matches; recomputed gaps 1.16049 and 1.11427 (out_C2 handchecks). '20,000 null keys' = 20 plants x 999 decoys + 20 (control-4c65a7978362.json ceiling_trials 20000).",
+   "overreach": "none",
+   "severity": "none",
+   "live_lane_it_hides": "none",
+   "cheapest_settling_test": "-"
+  },
+  {
+   "claim_file_line": "reports/beam_decoder.md:312-317",
+   "claim_quote": "fill ... beam-skip 2.77 %, beam-skip-int 1.22 % | recovery 0.971, 0.983 | width 4/8/16 20/20 each; floor \u22124.334 and observed ceiling \u22126.462 ... | throughput rigid \u2265 10\u2075; beam ~2,500, beam-skip ~1,240, beam-skip-int ~1,000 keys/s",
+   "actual_evidence": "beam_decoder.json fill, width, noise: 0.02773/0.01223, 0.9713/0.9834, width rows identical floor/ceiling, keys_per_s 104,671 / 2,533 / 1,241 / 998.",
+   "overreach": "none",
+   "severity": "none",
+   "live_lane_it_hides": "none",
+   "cheapest_settling_test": "-"
+  },
+  {
+   "claim_file_line": "reports/beam_decoder.md:323",
+   "claim_quote": "A 2\u00b3\u00b2 `beam-skip` sweep at ~1,240 keys/s is about 40 core-days on the CPU",
+   "actual_evidence": "2^32/1240/86400 = 40.09 days.",
+   "overreach": "none",
+   "severity": "none",
+   "live_lane_it_hides": "none",
+   "cheapest_settling_test": "-"
+  },
+  {
+   "claim_file_line": "reports/beam_decoder.md:379-394",
+   "claim_quote": "not_covered: ... Scorers: the six fits cover `lp-ngram3-heldout` only ... Register: English (Cicada register) only, via the scorer.",
+   "actual_evidence": "Consistent with calib-staging (six lp-ngram3-heldout files). The register line matches the controls (all plants are held-out solved-section text).",
+   "overreach": "none",
+   "severity": "none",
+   "live_lane_it_hides": "none",
+   "cheapest_settling_test": "-"
+  },
+  {
+   "claim_file_line": "reports/scorer_power.md:30",
+   "claim_quote": "scale reduced: 100,000 null draws per (scorer, L) and 200 plants per cell",
+   "actual_evidence": "scorer_power.json config: draws 100000, plants 200, beam_plants 50, beam_draws 25000.",
+   "overreach": "none (beam cells use 50 plants and 25,000 draws, stated in \u00a75)",
+   "severity": "none",
+   "live_lane_it_hides": "none",
+   "cheapest_settling_test": "-"
+  },
+  {
+   "claim_file_line": "reports/scorer_power.md:31",
+   "claim_quote": "heldout-solved-sections: L > 500 not covered (1,533 held-out runes)",
+   "actual_evidence": "Canon: a-koan-1 778 + the-loss-of-divinity 755 = 1,533; no section reaches 1,000.",
+   "overreach": "none",
+   "severity": "none",
+   "live_lane_it_hides": "none",
+   "cheapest_settling_test": "-"
+  },
+  {
+   "claim_file_line": "reports/scorer_power.md:35-60",
+   "claim_quote": "<register> at L = <L>: 200 plants at distinct offsets out of <n> the register holds, but only <k> windows can be disjoint ... (26 lines)",
+   "actual_evidence": "All 26 (offsets, disjoint) pairs recomputed: registers of 84,669 / 30,989 / 12,089 / 56,431 / 8,456 runes (offsets + L - 1 constant per register) and floor(len/L); heldout: offsets 1535 - 2L and 778//L + 755//L = 14/6/6/4/2 (out_C2 handchecks).",
+   "overreach": "none",
+   "severity": "none",
+   "live_lane_it_hides": "none",
+   "cheapest_settling_test": "-"
+  },
+  {
+   "claim_file_line": "reports/scorer_power.md:63",
+   "claim_quote": "the power rows measure the scorer on rigid-exact decodes ...; interrupters and anti-repeat skips are measured in the beam cells only, at L [120, 240] with lp-ngram3-heldout, kn4-lp-heldout, kn4-cicada; no kn6/kn8 preset pairs with a beam decoder",
+   "actual_evidence": "scorer_power.json beam cells: 72 cells, scorers exactly those three, all plant_text heldout-solved-sections.",
+   "overreach": "Omission: not_covered never says that every beam cell plants English (heldout-solved-sections) only, so no Latin / vowel-dropped / Old English power exists under any beam decoder or beam bar. This is the gap through which the P3 PREREG imported rigid-bar register powers (rows P3:57-59, P3:169).",
+   "severity": "minor",
+   "live_lane_it_hides": "the non-English share of every beam lane's negative (P3 first)",
+   "cheapest_settling_test": "Add the not_covered line; settle with beam cells per register (C2_register_beam_power.py does the lp-ngram3-heldout:beam-skip L = 240 cell in 40 s)."
+  },
+  {
+   "claim_file_line": "reports/scorer_power.md:64",
+   "claim_quote": "mt19937-py27 streams (the template lane's generator) share the combine/view code path of the two stream generators measured and are not drawn here",
+   "actual_evidence": "No mt19937-py27 family in scorer_power.json nulls; the P3 lane's null2 / control use it directly.",
+   "overreach": "none (declared)",
+   "severity": "none",
+   "live_lane_it_hides": "none",
+   "cheapest_settling_test": "-"
+  },
+  {
+   "claim_file_line": "reports/scorer_power.md:202",
+   "claim_quote": "The target line is the spec's (>= 0.9 English, >= 0.5 Latin / vowel-dropped) ... where the register holds fewer disjoint windows than plants (the 1,533-rune heldout-solved-sections register at L >= 263, section 1) they overlap and the Wilson interval is nominal.",
+   "actual_evidence": "Spec docs/liber-primus-solver-spec.md:202 target matches. \u00a71 lines 56-58 list heldout-solved-sections overlap at L = 100 (14 disjoint), 240 and 250 (6) as well; the plant_windows docstring repeats 'L >= 263'.",
+   "overreach": "'at L >= 263' understates the overlap: the heldout register overlaps at every L (200 plants vs 14 or fewer disjoint windows), including the L = 240 cell A1 audits.",
+   "severity": "minor",
+   "live_lane_it_hides": "none",
+   "cheapest_settling_test": "Wording fix ('at every L'); no run."
+  },
+  {
+   "claim_file_line": "reports/scorer_power.md:969",
+   "claim_quote": "decoder transition model: rigid (one key symbol per rune) for every power row; beam, beam-skip and beam-skip-int at width 8 (presets.DECODER_PARAMS) in the beam cells, with the three dense scorers only",
+   "actual_evidence": "DECODER_PARAMS width 8 for all three; beam cells use the three dense scorers.",
+   "overreach": "none",
+   "severity": "none",
+   "live_lane_it_hides": "none",
+   "cheapest_settling_test": "-"
+  },
+  {
+   "claim_file_line": "reports/scorer_power.md:970",
+   "claim_quote": "adjudicator register: the scorers listed in section 0: Cicada-English, general English, Latin, Old English and vowel-dropped English registers (kn8-*)",
+   "actual_evidence": "data/corpora/index.json: latin = Caesar, De Bello Gallico I-IV only (120,291 runes; held-out tail 12,089 runes, 50 disjoint windows at L = 240); old-english = Beowulf + Finnsburh only; vowel-dropped = Moby-Dick with vowels dropped; english-general = Moby-Dick only. No sentence in scorer_power.md names the single sources (grep Caesar/Gallico: none).",
+   "overreach": "Each non-English 'register' is one text by one author (Latin: one classical prose work), so 'Latin power' is Caesar power; ecclesiastical/medieval Latin, other OE texts or other vowel-dropping rules are unmeasured.",
+   "severity": "minor",
+   "live_lane_it_hides": "Latin-plaintext hypotheses in a non-classical register (e.g. liturgical Latin) under every English-scorer negative",
+   "cheapest_settling_test": "Name the source per register in \u00a71/\u00a79; plant 200 windows of a second Latin text (any non-Caesar Latin in data/raw) through the power cell (~1 min)."
+  },
+  {
+   "claim_file_line": "reports/scorer_power.md:971",
+   "claim_quote": "Latin power at L = 240 under the English-register claim scorer with the highest Latin power (lp-ngram3-heldout; ties go to the first listed): 1.000 [0.981, 1.000] at the bar@10^6",
+   "actual_evidence": "scorer_power.json conditionals.latin_power_at_240 and power row: 200/200, Wilson [0.981, 1.000] with n = 200; n_disjoint 50 (\u00a71 line 43 calls the interval nominal). All-success Wilson lower bound over 50 independent windows: 0.929. Rigid bar -6.1625 (plants min -5.294). Under the beam-skip decoder at the P3 bar -5.7284: 200/200 (C2 settling test).",
+   "overreach": "\u00a79 quotes the nominal interval without \u00a71's caveat (effective n <= 50 windows of one Caesar book, so a defensible lower bound is ~0.93, not 0.981). The point estimate stands, also under beam-skip.",
+   "severity": "minor",
+   "live_lane_it_hides": "none (the point estimate survives both decoders)",
+   "cheapest_settling_test": "None to run; append the caveat."
+  },
+  {
+   "claim_file_line": "reports/scorer_power.md:972",
+   "claim_quote": "standing conditional: every later negative is English-register-first: a Latin or other non-English plaintext is detected only to the power this table measures for that register",
+   "actual_evidence": "The table measures non-English registers on rigid-exact plants at rigid bars only (\u00a71 line 63; beam cells are English only). The P3 PREREG used this sentence to import rigid numbers into a beam-skip lane; measured vowel-dropped power there is 0.595, not 0.790.",
+   "overreach": "The sentence gives no rule for lanes whose decoder or bar is not in the table; its own reopens_if (:976 'a lane needs a length, register or decoder pairing not in this table') was not applied by P3.",
+   "severity": "minor",
+   "live_lane_it_hides": "the non-English share of beam-lane negatives",
+   "cheapest_settling_test": "Add 'for the decoder and bar the lane runs; a beam lane needs its own beam-cell row per register' to the conditional."
+  },
+  {
+   "claim_file_line": "reports/scorer_power.md:976",
+   "claim_quote": "a lane needs a length, register or decoder pairing not in this table",
+   "actual_evidence": "P3 needs (vowel-dropped-english / latin, lp-ngram3-heldout:beam-skip, L 240, bar -5.7284): not in the table. The P3 PREREG did not trigger this reopens_if.",
+   "overreach": "none in the sentence; the omission is in P3",
+   "severity": "minor",
+   "live_lane_it_hides": "see P3:169",
+   "cheapest_settling_test": "See P3:169 (done here)."
+  },
+  {
+   "claim_file_line": "lanes/P3-MT19937-PY27-EXACT/PREREG.md:80",
+   "claim_quote": "ciphertext view | raw; combine vigenere (`c = p + k`); LP2 pages 0, 1, 2, 3, 4, 5 (1,469 runes), scored window the first 240",
+   "actual_evidence": "Canon: pages 0-5 hold 262+266+201+217+261+263 = 1,470 runes (out_C2 handchecks P3_pages_0_5_runes). [Outside the assigned sections \u00a70/\u00a78; reported because it is a number in the audited file.]",
+   "overreach": "Off by one (1,469 vs 1,470); the scored window is the first 240, so nothing downstream uses it.",
+   "severity": "minor",
+   "live_lane_it_hides": "none",
+   "cheapest_settling_test": "Addendum correcting the count."
+  },
+  {
+   "claim_file_line": "ledger/ledger.jsonl:1",
+   "claim_quote": "\"hypothesis\":\"The LP2 0-55 keystream is Python 2.7 random.Random(seed) output reduced mod 29 for a 32-bit seed, combined under the \\\"exact\\\" key-skip relation.\"",
+   "actual_evidence": "P3 PREREG:69-72 and :163-166: the lane's relation is the anti-repeat multi-skip filter (p_keep 0.19, max_skip 6), explicitly NOT upstream's 'exact' keyskip1 relation. Ledger rows 1-2 also carry external_ids [] while PREREG:178-181 lists seven upstream ids (CLAUDE.md: 'Record external_ids on every row'). [Outside the assigned documents; found while checking the addendum's ledger sentence.]",
+   "overreach": "The ledger (the project's memory) names the upstream relation this lane does not test; a reader querying the ledger for 'exact' coverage would count P3 as covering upstream S2's relation.",
+   "severity": "minor",
+   "live_lane_it_hides": "upstream R27-S2's own relation (keyskip1 'exact') over the 55.86 % it left unswept would read as covered once P3 runs",
+   "cheapest_settling_test": "`runeforge ledger update` (superseding row) with the PREREG's hypothesis sentence and external_ids."
+  }
+ ],
+ "summary": {
+  "rows": 57,
+  "decision": 2,
+  "minor": 20,
+  "none": 35
+ },
+ "commands": [
+  "$V/bin/python lanes/R1-REDTEAM-OWN-CLAIMS/B2_handcheck.py",
+  "$V/bin/python lanes/R1-REDTEAM-OWN-CLAIMS/C2_handchecks.py",
+  "$V/bin/python lanes/R1-REDTEAM-OWN-CLAIMS/C2_register_beam_power.py"
+ ],
+ "venv": "V=/tmp/claude-0/-home-user-cicada-3301-Code-cracker-attempt-1/4950dc03-e080-591a-84c1-d8ea81cef212/scratchpad/venv"
+}

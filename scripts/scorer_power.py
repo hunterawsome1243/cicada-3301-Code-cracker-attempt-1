@@ -451,7 +451,8 @@ def plant_windows(register: str, length: int, n: int, tag: int) -> dict:
     word-start masks. ``n_offsets`` is the number of distinct offsets the register holds at
     this length and ``n_disjoint`` the number of non-overlapping windows: when ``n`` exceeds
     ``n_offsets`` the draw is capped there, and a small ``n_disjoint`` means the windows
-    overlap (the 1,533-rune heldout-solved-sections register at L >= 263), so a Wilson interval is
+    overlap (the 1,533-rune heldout-solved-sections register at every L: at most 14 disjoint
+    windows at L = 100 and 6 at L = 240), so a Wilson interval is
     nominal, not an interval over independent plants."""
     runes, starts, segs = register_text(register)
     rng = rng_for(1, REGISTERS.index(register), length, tag)
@@ -1470,6 +1471,15 @@ def section_not_covered(cfg: Scale, data: dict) -> list[str]:
             f"scale {cfg.name}: {cfg.draws:,} null draws per (scorer, L) and {cfg.plants} plants "
             "per cell; the 10^6-draw fits that TOOLBOX_REQUESTS.md TR-7 installs are --full"
         )
+    if cfg.name == "reduced":
+        out.append(
+            "reduced-scale bars vary between seeds by more than their bootstrap intervals show: "
+            "red-team R1 (lanes/R1-REDTEAM-OWN-CLAIMS/out_A2.json) replicated the kn4-cicada "
+            "L = 240 fit 200 times at 100,000 draws; bar@10^6 has replicate mean -6.0145, sd "
+            "0.0335, and this report's -6.0705 sits at the 3rd percentile (bar@2^32 at the 2nd), "
+            "so powers in cells near a bar move with the seed (kn4-cicada vowel-dropped L = 240: "
+            "0.55 here, 0.38-0.40 at replicate-mean bars); the --full fits settle it"
+        )
     if cfg.name == "smoke":
         out.append("smoke: one register, one length, three scorers; nothing here is a measurement")
     missing_s = [s for s in SCORERS if s not in cfg.scorers]
@@ -1953,8 +1963,8 @@ def render(data: dict) -> str:
             "vowel-dropped), printed per cell, never as a verdict word. A cell whose plant "
             "text is training text is marked and is not a power. Plants sit at distinct "
             "offsets; where the register holds fewer disjoint windows than plants (the "
-            "1,533-rune heldout-solved-sections register at L >= 263, section 1) they overlap and "
-            "the Wilson interval is nominal."
+            "1,533-rune heldout-solved-sections register at every L, and the other registers at "
+            "the lengths section 1 lists) they overlap and the Wilson interval is nominal."
         )
         rows = [r for r in power["rows"] if "claim" in r]
         L += ["", table(H_POWER, [_row_power(r) for r in rows]), ""]
@@ -2132,7 +2142,10 @@ def render(data: dict) -> str:
             L.append(
                 f"- Latin power at L = 240 under the English-register claim scorer with the "
                 f"highest Latin power ({lp['scorer']}; ties go to the first listed): {pw(lp)} "
-                "at the bar@10^6 (`sections.conditionals.latin_power_at_240`)"
+                "at the bar@10^6 (`sections.conditionals.latin_power_at_240`); the interval is "
+                "nominal: the Latin register holds 50 disjoint 240-rune windows of one text "
+                "(Caesar), and the all-success Wilson lower bound over 50 independent windows "
+                "is 0.929"
             )
         L.append(f"- standing conditional: {c['standing_conditional']}")
         L.append("- reopens_if:")

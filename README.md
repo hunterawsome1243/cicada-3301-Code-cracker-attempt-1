@@ -30,7 +30,8 @@ float32 table) and pair with every decoder, the beam ones included; `kn6-cicada`
 `kn8-cicada`, `kn8-general`, `kn8-latin`, `kn8-old-english` and `kn8-vowel-dropped` (four
 dense levels, sparse tables above) take the rigid decoder only; `kn8-cicada-wb` (word-boundary
 symbol) is for adjudication and reports and is refused with every decoder. Corpus presets
-train on the first 90 % of words and plant on the held-out tail. `python scripts/export_kn.py
+train on the first 90 % of words; the power harness plants on the held-out tail (lane controls
+cannot until TR-9). `python scripts/export_kn.py
 --preset <name>` writes the `knx-1` table (`reports/kn-export/<name>.npz`, regenerated) and
 its committed manifest and proves the file bit for bit against the scorer; the layout a
 CUDA scorer would read is in `runeforge/gpu/kernels/README.md`. The scorer's measured power
@@ -192,10 +193,11 @@ and the three scripts above. Changing any of them is Hunter's call.
 max z < 3.5", which is Leo-Y-Zhang's published max z of 3.3. That number does not
 reproduce with the exact null SD, √56/(n−1), which Leo's own repository now uses. The raw
 maximum is z = 6.0. That is what about 80,000 null shifts produce, given the statistic's
-χ² tail: shuffled surrogates give maxima of 5.5–6.5. Read family-wise, the conclusion is
+χ² tail: a re-run of 12 shuffled surrogates gave maxima of 5.1–6.9 (no surrogate record is
+committed). Read family-wise, the conclusion is
 the same: no shared keystream (p = 0.44). The test asserts the family-wise criterion. A
-planted shared key with 1,100 aligned runes is found at p ≈ 10⁻³, so the scan's power
-falls off below about 1,000 aligned runes.
+planted shared key with 1,100 aligned runes is found at p ≈ 10⁻³ (one plant; no power curve
+over overlap length has been measured, so where the scan's power falls off is not known).
 
 ## Layout
 

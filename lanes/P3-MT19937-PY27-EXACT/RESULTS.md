@@ -33,8 +33,10 @@ instrument work; this is the first bounded lane). Q2 fact: LP2 0–55 holds 86 d
 expected, and only the anti-repeat key-skip forward model reproduces that deficit and passes the
 fingerprint gate (`reports/beam_decoder.md` §3; `lanes/P3-MT19937-PY27-EXACT/gate.json`). A Python 2.7
 script is the 2012 author's most ordinary tool. Upstream (Dukotah R27-S2) scored 44.14 % of this seed
-space under a narrower decoder (keyskip1, max_skip 3, L = 120) and parked with 0 claim-bar hits; the
-remaining 55.86 % has no scored decode anywhere, and this lane is a second instrument (multi-skip
+space under a different decoder (keyskip1, max_skip 3, L = 120, beam width 64, 9-register panel) and
+parked with `n_claim_bar_hits 0` but an unresolved above-bar flag at seed 35563892 (re-screened here:
+−6.4894, below both of this lane's bars; PREREG addendum 2026-10-28 (2)); the remaining 55.86 % has no
+scored decode under a single-skip or anti-repeat relation, and this lane is a second instrument (multi-skip
 beam, max_skip 6, our scorer and bar) over the whole space, not a re-run of theirs.
 
 ## 2. Instrument audited before the sweep
@@ -106,8 +108,8 @@ Crossers above the bar: <n_crossers> (logs in `runs/P3-MT19937-PY27-EXACT/crosse
   beaufort (0 of 11 other view × combine cells); F-interrupters (excluded by the gate at the every-F
   rule, not searched); skips of more than 6 key symbols at one rune; the pair / skip-by-two relation
   (upstream R27-S1, all 2^32 seeds, NULL under their decoder); non-English plaintext beyond the measured
-  power (Latin 1.000, vowel-dropped English 0.790 at the 2^32 bar on rigid-exact plants,
-  `reports/scorer_power.md` §3); <any seeds left unscored if the sweep stopped early, as a count>.
+  power at this lane's decoder and bars (Latin 1.000 at both; vowel-dropped English 0.995 at −6.0434
+  and 0.595 [0.526, 0.661] at −5.7284; `lanes/R1-REDTEAM-OWN-CLAIMS/out_C2.json`); <any seeds left unscored if the sweep stopped early, as a count>.
 - Conditionals: key space `mt19937-py27` random29, 32-bit int seeds, offset 0, raw view, `c = p + k` ·
   decoder `beam-skip` (width 8, max_skip 6, p_keep 0.19, no interrupters) · register English only
   (`lp-ngram3-heldout`, Cicada spelling). This is an English-register, one-decoder negative if the

@@ -2,7 +2,8 @@
 # seeded 32-bit, random29, under the anti-repeat key-skip relation. Pre-registered in
 # lanes/P3-MT19937-PY27-EXACT/PREREG.md (frozen before any measurement of this lane).
 # Dukotah/cicada3301 parked their S2 ("exact" = one-draw rejection, keyskip1 max_skip 3)
-# at 44.14 % (1,895,728,884 of 2^32 seeds, 2026-09-15, 0 claim-bar hits); their run/ state is
+# at 44.14 % (1,895,728,884 of 2^32 seeds, 2026-09-15; n_claim_bar_hits 0 but an unresolved flag at
+# seed 35563892, which scores -6.4894 here, below both bars); their run/ state is
 # not in a clone, so this lane restarts from seed 0 under its own decoder and bar.
 #
 # The bars below are frozen from the STAGED calibration reports/calib-staging/

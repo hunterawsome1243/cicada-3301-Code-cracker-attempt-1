@@ -1,0 +1,86 @@
+{
+ "lane": "R1-REDTEAM-OWN-CLAIMS",
+ "sub_attack": "B2",
+ "numbering": "LP2-0-57",
+ "audited_git": "fbe43e7",
+ "inputs": {
+  "staged_fit": "reports/calib-staging/lp-ngram3-heldout__beam-skip__L240.json",
+  "staged_fit_sha256_expected": "46a95f857fbf10ed9bdd164b56f39108cc362970d9b80460f4416e62989162ea",
+  "null": "lanes/P3-MT19937-PY27-EXACT/null.json",
+  "mu_block": -6.476749792302121,
+  "beta": 0.037657453149229296,
+  "block": 1000
+ },
+ "claims": {
+  "bar_2^32": {
+   "claimed": -5.7284,
+   "ours": -5.72837931982132,
+   "delta": 2.068017867973282e-05
+  },
+  "mu_N_2^32": {
+   "claimed": -5.9016,
+   "ours": -5.901609223808123,
+   "delta": -9.22380812262702e-06
+  },
+  "expected_null_max_2^32": {
+   "claimed": -5.8799,
+   "ours": -5.879872751950092,
+   "delta": 2.724804990794638e-05
+  },
+  "claim_bar_10^6": {
+   "claimed": -6.0434,
+   "ours": -6.043391417530707,
+   "delta": 8.582469293472172e-06
+  },
+  "expected_false_positives": {
+   "claimed": 0.0101,
+   "ours": 0.010050335853501336,
+   "delta": -4.9664146498663506e-05
+  },
+  "survivors_above_claim_bar_over_slice": {
+   "claimed": 43,
+   "ours": 43.165863804604484,
+   "delta": 0.16586380460448424
+  },
+  "predicted_block_max_mean": {
+   "claimed": -6.455,
+   "ours": -6.45501332044409,
+   "delta": -1.3320444089970351e-05
+  },
+  "null1_replicate_mean": {
+   "claimed": -6.4565,
+   "ours": -6.456534162874179,
+   "delta": -3.416287417845609e-05
+  },
+  "null1_minus_predicted": {
+   "claimed": "+0.0015 ('0.0015 above')",
+   "ours": -0.0015208424300885426
+  },
+  "null1_minus_predicted_in_beta": {
+   "claimed": "within 0.04 beta",
+   "ours": 0.0403862264413298
+  }
+ },
+ "extra": {
+  "gumbel_sd_of_block_max": 0.04829756014087239,
+  "null1_sd": 0.04573468301679948,
+  "null2_sd": 0.05146456712309175,
+  "null2_mean": -6.457979578459636,
+  "null2_minus_predicted": -0.0029662580155456197,
+  "se_of_null1_mean": 0.0032339304496596137,
+  "null1_minus_predicted_in_se": -0.4702767897338727,
+  "predicted_mean_of_max_over_200x1000": -6.255492182443559,
+  "null1_max": -6.2983443036675455,
+  "null2_max": -6.229239600896835,
+  "note_expected_fp": "N*P(clear) at the alpha=0.01 Gumbel bar is -ln(0.99)=0.010050 for any fit: the 0.0101 is a property of alpha, not of mu_b/beta"
+ },
+ "comparison": {
+  "rule": "all three numbers (bar 2^32, bar 10^6, expected fp) to 1e-4 (as rounded in the PREREG); the replicate mean and the fit's predicted block-max mean to 1e-3",
+  "three_numbers_to_1e-4": true,
+  "means_to_1e-3": true,
+  "reproduced": true,
+  "wording": "the PREREG says the replicate mean is '0.0015 above' the prediction; it is 0.0015 BELOW it (-6.4565 < -6.4550), i.e. on the conservative side"
+ },
+ "command": "V=/tmp/claude-0/-home-user-cicada-3301-Code-cracker-attempt-1/4950dc03-e080-591a-84c1-d8ea81cef212/scratchpad/venv; $V/bin/python lanes/R1-REDTEAM-OWN-CLAIMS/B2_handcheck.py",
+ "wall_seconds": 0.0
+}

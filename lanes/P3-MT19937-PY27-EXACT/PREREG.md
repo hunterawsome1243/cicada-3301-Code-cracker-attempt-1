@@ -212,3 +212,45 @@ naming its slice and fraction before it starts.
 
 - The control's rune-index recovery range reads "0.942–0.992"; the maximum in
   `control-4c65a7978362.json` is 0.9875 (0.942–0.988). Transcription slip; no number used by a verdict.
+
+### Addendum 2026-10-28 (2) — corrections from red-team lane R1-REDTEAM-OWN-CLAIMS (nothing above edited; the bar is unchanged)
+
+Source: `lanes/R1-REDTEAM-OWN-CLAIMS/RESULTS.md` (FOUND-ERROR); every item below was upheld by at least
+two of three independent refuters.
+
+1. **Register power of THIS lane (supersedes the numbers quoted in §0 Q4 and §8 Conditionals).** §0 and
+   §8 quote `reports/scorer_power.md` §3: "vowel-dropped English 1.000 at N = 10^6, 0.790 at 2^32". Those
+   are rigid-exact plants against the RIGID bars (−6.1625 / −5.7788), not this lane's decoder and bars.
+   Measured at this lane's decoder (`beam-skip`, anti-repeat plants, true key) and bars, 200 held-out
+   windows per register, L = 240 (`lanes/R1-REDTEAM-OWN-CLAIMS/C2_register_beam_power.py` →
+   `out_C2.json` `settling_register_beam_power`): vowel-dropped English **0.995** at the screening bar
+   −6.0434 and **0.595 [0.526, 0.661]** at the decision bar −5.7284 (119/200); Latin **1.000** at both
+   (200/200). A NULL from this lane therefore covers vowel-dropped-English keys only to about 0.60, not
+   0.79. No run decision changes (the spec target is 0.5).
+2. **Upstream overlap (corrects §0 Q2 and §8 "0 claim-bar hits").** Upstream R27-S2's `STATUS.json` reads
+   `n_claim_bar_hits 0`, but the same file's `best_pmax` 7.6707 at seed 35563892 is above its S2 bar
+   7.6342, and `run/HIT-CANDIDATE.json` flags that seed; upstream marks the contradiction unresolved
+   (`handoff/PARKED-SWEEPS.md` §1). Re-screened here under this lane's pipeline on 2026-10-28
+   (`runeforge score lanes/P3-MT19937-PY27-EXACT.yaml 35563892`): score **−6.4894**, below the screening
+   bar −6.0434 and the decision bar −5.7284 (above claim bar: 0; above family-wise bar: 0). This does not
+   resolve upstream's flag under their relation (keyskip1, max_skip 3, L = 120, beam width 64, panel max);
+   it says the seed is not a crosser of this lane. Also: "narrower decoder" is half true (max_skip 3 vs 6,
+   L 120 vs 240) and half not (their beam width 64 vs our 8; their 9-register panel vs our English).
+3. **"no scored decode anywhere" (§8) is false as written.** Upstream R27-S1 scored all 2^32 seeds under the
+   pair (skip-by-two) relation; R20-SG3 scored 2,458,000 seeds under keyskip1; R25 scored [3.0 M, 3.5 M) under
+   keyskip2; jens-wedin seeds 0–20 k rigid. Intended and correct scope: the remaining 55.86 % has no scored
+   decode under a single-skip ("exact") or anti-repeat relation.
+4. **Interrupters (§8 not_covered).** Only the every-F variant fails the gate, and only for the typical key;
+   partial-interrupt variants (interrupt_prob 0.1, 0.44) pass it (`reports/beam_decoder.md` §3). They are
+   not covered by this lane, not excluded by the gate.
+5. **Gate numbers (2026-10-27 addendum).** "C1 IoC 1.000, C2 0.00664, C2b 1.026, C3 15, C6 23" are LP2's own
+   values (the band targets), not the keys'; every key fell inside each band (pass counts unchanged).
+6. **Sign (2026-10-27 addendum).** The shuffle replicates' mean −6.4565 is 0.0015 **below** the staged fit's
+   predicted 1,000-key block-max mean −6.455 (the conservative side), not above. It is a location check of a
+   1,000-key maximum on shuffled runes (whose doublet rate is about 1/29, against 2 in this 240-rune
+   window), not a check of the 2^32 tail.
+7. **Page count (§2).** Pages 0–5 hold 1,470 runes (262 + 266 + 201 + 217 + 261 + 263), not 1,469. Unused
+   downstream (the scored window is the first 240).
+8. **Ledger wording.** The ledger row's hypothesis (from the template) says "the \"exact\" key-skip relation";
+   this lane tests the anti-repeat multi-skip relation (§1), not upstream's keyskip1 "exact" relation, and the
+   row lacked `external_ids`. Corrected by a ledger update row on 2026-10-28.

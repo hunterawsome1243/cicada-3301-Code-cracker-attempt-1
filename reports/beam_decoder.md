@@ -212,8 +212,9 @@ The interrupt decoders sit at or below their fits in every window.
 - **L = 240:** the most F-rich window (page 11, 14 F's) sits at the fit, as built.
 - **L = 120:** even the most F-rich window (page 43, 10 F's, the count the fit uses) sits well
   below it (z −9.5 and −8.6, about 0.03 in score, ~0.65 β). Where the F's fall matters as well as
-  how many there are. For the 54 page-start windows at L = 120 these bars are conservative by at
-  least that much: less power, not more false positives. The other 160 of the 214 L = 120 lane
+  how many there are. For the 54 page-start windows at L = 120 the window means sit below the fit by
+  at least that much; whether the upper tail (the block maxima the bars extrapolate) shifts by the same
+  amount was not checked, so "conservative" is shown for the mean only (red-team R1). The other 160 of the 214 L = 120 lane
   windows were not compared (§7).
 
 Under `beam-skip`, about 1.2 windows above z = 2 would be expected by chance. The +0.42 mean z

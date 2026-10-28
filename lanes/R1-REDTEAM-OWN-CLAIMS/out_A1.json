@@ -1,0 +1,480 @@
+{
+ "lane": "R1-REDTEAM-OWN-CLAIMS",
+ "sub_attack": "A1",
+ "numbering": "LP2-0-57",
+ "canon_sha256": "023312066df471005264b9cbe7997cb77d2a9a6a2dc9b3316d22674023af1585",
+ "audited_git": "fbe43e7",
+ "command": "$V/bin/python lanes/R1-REDTEAM-OWN-CLAIMS/A1_rederive.py --draws 100000 --extra-draws 1000000 --seed 330120261028 --plants 200",
+ "independence": "no import of runeforge.scoring/beam/runner/gpu/generators or scripts/scorer_power.py; implementation source not read before these numbers were written",
+ "model": {
+  "type": "order-3 interpolated Witten-Bell, P_0 = 1/29, c(h) = sum_x c(h x)",
+  "train_ids": [
+   "a-warning",
+   "welcome",
+   "some-wisdom",
+   "a-koan-2",
+   "an-instruction",
+   "an-end",
+   "parable"
+  ],
+  "n_train_runes": 1444,
+  "heldout_ids": [
+   "a-koan-1",
+   "the-loss-of-divinity"
+  ],
+  "heldout_runes": 1533,
+  "N1plus_unigram": 27,
+  "seen_bigram_histories": 27,
+  "seen_trigram_histories": 321
+ },
+ "L": 240,
+ "alpha": 0.01,
+ "seed": 330120261028,
+ "null": {
+  "main": {
+   "blocks": 100,
+   "block": 1000,
+   "mu_b": -6.689878671179532,
+   "beta": 0.0460392074039211,
+   "blockmax_mean": -6.663304119466408,
+   "blockmax_sd": 0.05904757763668584,
+   "bar_1e6": -6.160063868854388,
+   "bar_2p32": -5.7749367269918075,
+   "null_mean": -7.168262908319971,
+   "null_sd": 0.15028911756733046,
+   "null_max": -6.489615641168793,
+   "draws": 100000,
+   "pred_mean_max_of_all": -6.451285734143349
+  },
+  "replicate_seeds_100k": [
+   {
+    "bar_1e6": -6.0819978416321,
+    "bar_2p32": -5.635484581236923,
+    "mu_b": -6.696260792946599,
+    "beta": 0.0533774807574318,
+    "null_mean": -7.168330131636262,
+    "null_sd": 0.15086682013340388,
+    "null_max": -6.423029158164814
+   },
+   {
+    "bar_1e6": -6.237627745886431,
+    "bar_2p32": -5.909903208526893,
+    "mu_b": -6.688474471823493,
+    "beta": 0.039177134786915556,
+    "null_mean": -7.167988361144086,
+    "null_sd": 0.15111255480234487,
+    "null_max": -6.49282899520025
+   },
+   {
+    "bar_1e6": -6.203194842680355,
+    "bar_2p32": -5.848195445855341,
+    "mu_b": -6.691563266533227,
+    "beta": 0.04243765001773226,
+    "null_mean": -7.1684462421048645,
+    "null_sd": 0.1504351777519159,
+    "null_max": -6.45209422778767
+   },
+   {
+    "bar_1e6": -6.252205242996646,
+    "bar_2p32": -5.933974915746252,
+    "mu_b": -6.6899908976524625,
+    "beta": 0.038042169574551345,
+    "null_mean": -7.168782512567039,
+    "null_sd": 0.1509249556781768,
+    "null_max": -6.471672631700562
+   },
+   {
+    "bar_1e6": -6.134073537507387,
+    "bar_2p32": -5.731316250884474,
+    "mu_b": -6.6881419190946545,
+    "beta": 0.04814676566963203,
+    "null_mean": -7.168132147934085,
+    "null_sd": 0.15105848669600333,
+    "null_max": -6.412175417821385
+   }
+  ],
+  "spread_6x100k": {
+   "bar_1e6_mean": -6.178193846592884,
+   "bar_1e6_sd": 0.06506011700765568,
+   "bar_2p32_mean": -5.805635188206948,
+   "bar_2p32_sd": 0.11364084677208991
+  },
+  "big": {
+   "blocks": 1000,
+   "block": 1000,
+   "mu_b": -6.69601486412463,
+   "beta": 0.040990246765899886,
+   "blockmax_mean": -6.672354651583237,
+   "blockmax_sd": 0.0525720340278978,
+   "bar_1e6": -6.22430301867517,
+   "bar_2p32": -5.881411438403343,
+   "null_mean": -7.168322379747405,
+   "null_sd": 0.1507246754401286,
+   "null_max": -6.4635685576798085,
+   "draws": 1000000,
+   "pred_mean_max_of_all": -6.3892040580993115
+  }
+ },
+ "plant_registers": {
+  "latin": {
+   "n_words": 20516,
+   "cut_word": 18464,
+   "n_runes": 120291,
+   "tail_runes": 12089
+  },
+  "vowel-dropped-english": {
+   "n_words": 214679,
+   "cut_word": 193211,
+   "n_runes": 583729,
+   "tail_runes": 56431
+  },
+  "english-general": {
+   "n_words": 214679,
+   "cut_word": 193211,
+   "n_runes": 877047,
+   "tail_runes": 84669
+  },
+  "heldout-solved-sections": {
+   "tail_runes": 1533,
+   "rule": "concatenation a-koan-1 + the-loss-of-divinity"
+  }
+ },
+ "plants": {
+  "latin": {
+   "n": 200,
+   "mean": -4.814828298685573,
+   "sd": 0.143888574055199,
+   "min": -5.24538117893078,
+   "max": -4.498316112530074,
+   "power_1e6@ours_main": 1.0,
+   "power_2p32@ours_main": 1.0,
+   "wilson_1e6@ours_main": [
+    0.9811546736227335,
+    1.0
+   ],
+   "wilson_2p32@ours_main": [
+    0.9811546736227335,
+    1.0
+   ],
+   "power_1e6@report": 1.0,
+   "power_2p32@report": 1.0,
+   "wilson_1e6@report": [
+    0.9811546736227335,
+    1.0
+   ],
+   "wilson_2p32@report": [
+    0.9811546736227335,
+    1.0
+   ],
+   "power_1e6@ours_1e6draws": 1.0,
+   "power_2p32@ours_1e6draws": 1.0,
+   "wilson_1e6@ours_1e6draws": [
+    0.9811546736227335,
+    1.0
+   ],
+   "wilson_2p32@ours_1e6draws": [
+    0.9811546736227335,
+    1.0
+   ]
+  },
+  "vowel-dropped-english": {
+   "n": 200,
+   "mean": -5.651329207249439,
+   "sd": 0.1450640728653074,
+   "min": -6.037590460947763,
+   "max": -4.972488512853281,
+   "power_1e6@ours_main": 1.0,
+   "power_2p32@ours_main": 0.8,
+   "wilson_1e6@ours_main": [
+    0.9811546736227335,
+    1.0
+   ],
+   "wilson_2p32@ours_main": [
+    0.7391448134346212,
+    0.8495479907390189
+   ],
+   "power_1e6@report": 1.0,
+   "power_2p32@report": 0.81,
+   "wilson_1e6@report": [
+    0.9811546736227335,
+    1.0
+   ],
+   "wilson_2p32@report": [
+    0.7499876129240015,
+    0.8583282847220932
+   ],
+   "power_1e6@ours_1e6draws": 1.0,
+   "power_2p32@ours_1e6draws": 0.96,
+   "wilson_1e6@ours_1e6draws": [
+    0.9811546736227335,
+    1.0
+   ],
+   "wilson_2p32@ours_1e6draws": [
+    0.923067931799067,
+    0.9795943679338476
+   ]
+  },
+  "english-general": {
+   "n": 200,
+   "mean": -4.349112588632142,
+   "sd": 0.17613577890554485,
+   "min": -4.9003689713067,
+   "max": -3.9277178991406276,
+   "power_1e6@ours_main": 1.0,
+   "power_2p32@ours_main": 1.0,
+   "wilson_1e6@ours_main": [
+    0.9811546736227335,
+    1.0
+   ],
+   "wilson_2p32@ours_main": [
+    0.9811546736227335,
+    1.0
+   ],
+   "power_1e6@report": 1.0,
+   "power_2p32@report": 1.0,
+   "wilson_1e6@report": [
+    0.9811546736227335,
+    1.0
+   ],
+   "wilson_2p32@report": [
+    0.9811546736227335,
+    1.0
+   ],
+   "power_1e6@ours_1e6draws": 1.0,
+   "power_2p32@ours_1e6draws": 1.0,
+   "wilson_1e6@ours_1e6draws": [
+    0.9811546736227335,
+    1.0
+   ],
+   "wilson_2p32@ours_1e6draws": [
+    0.9811546736227335,
+    1.0
+   ]
+  },
+  "heldout-solved-sections": {
+   "n": 200,
+   "mean": -3.896465511739415,
+   "sd": 0.26198189537058153,
+   "min": -4.236739073300629,
+   "max": -3.28800721414548,
+   "power_1e6@ours_main": 1.0,
+   "power_2p32@ours_main": 1.0,
+   "wilson_1e6@ours_main": [
+    0.9811546736227335,
+    1.0
+   ],
+   "wilson_2p32@ours_main": [
+    0.9811546736227335,
+    1.0
+   ],
+   "power_1e6@report": 1.0,
+   "power_2p32@report": 1.0,
+   "wilson_1e6@report": [
+    0.9811546736227335,
+    1.0
+   ],
+   "wilson_2p32@report": [
+    0.9811546736227335,
+    1.0
+   ],
+   "power_1e6@ours_1e6draws": 1.0,
+   "power_2p32@ours_1e6draws": 1.0,
+   "wilson_1e6@ours_1e6draws": [
+    0.9811546736227335,
+    1.0
+   ],
+   "wilson_2p32@ours_1e6draws": [
+    0.9811546736227335,
+    1.0
+   ]
+  },
+  "heldout-solved-sections (within-section windows, variant)": {
+   "n": 200,
+   "mean": -3.839338622874255,
+   "sd": 0.2751062735748832,
+   "min": -4.274392564774834,
+   "max": -3.289797941484158,
+   "power_1e6@ours_main": 1.0,
+   "power_2p32@ours_main": 1.0,
+   "wilson_1e6@ours_main": [
+    0.9811546736227335,
+    1.0
+   ],
+   "wilson_2p32@ours_main": [
+    0.9811546736227335,
+    1.0
+   ],
+   "power_1e6@report": 1.0,
+   "power_2p32@report": 1.0,
+   "wilson_1e6@report": [
+    0.9811546736227335,
+    1.0
+   ],
+   "wilson_2p32@report": [
+    0.9811546736227335,
+    1.0
+   ],
+   "power_1e6@ours_1e6draws": 1.0,
+   "power_2p32@ours_1e6draws": 1.0,
+   "wilson_1e6@ours_1e6draws": [
+    0.9811546736227335,
+    1.0
+   ],
+   "wilson_2p32@ours_1e6draws": [
+    0.9811546736227335,
+    1.0
+   ]
+  }
+ },
+ "report_values": {
+  "bar_1e6": -6.1625,
+  "bar_2p32": -5.7788,
+  "null_mean": -7.1687,
+  "null_sd": 0.1506,
+  "mu_b": -6.6905,
+  "beta": 0.0459,
+  "registers": {
+   "latin": {
+    "line": 375,
+    "power_1e6": 1.0,
+    "power_2p32": 1.0,
+    "mean": -4.8332,
+    "sd": 0.142,
+    "min": -5.294
+   },
+   "vowel-dropped-english": {
+    "line": 453,
+    "power_1e6": 1.0,
+    "power_2p32": 0.79,
+    "mean": -5.6522,
+    "sd": 0.16,
+    "min": -6.0281
+   },
+   "english-general": {
+    "line": 219,
+    "power_1e6": 1.0,
+    "power_2p32": 1.0,
+    "mean": -4.32,
+    "sd": 0.177,
+    "min": -4.747
+   },
+   "heldout-solved-sections": {
+    "line": 609,
+    "power_1e6": 1.0,
+    "power_2p32": 1.0,
+    "mean": -3.8723,
+    "sd": 0.272,
+    "min": -4.2799
+   }
+  },
+  "n_plants": 200
+ },
+ "comparison": {
+  "targets": [
+   {
+    "target": "lp-ngram3-heldout L240 bar@10^6",
+    "reported": -6.1625,
+    "ours": -6.160063868854388,
+    "delta": 0.0024361311456120305,
+    "rule": "|delta| <= 0.05",
+    "pass": true
+   },
+   {
+    "target": "lp-ngram3-heldout L240 bar@2^32",
+    "reported": -5.7788,
+    "ours": -5.7749367269918075,
+    "delta": 0.003863273008192891,
+    "rule": "|delta| <= 0.05",
+    "pass": true
+   },
+   {
+    "target": "latin L240 power_1e6 (scorer_power.md:375)",
+    "reported": 1.0,
+    "ours": 1.0,
+    "delta": 0.0,
+    "rule": "inside Wilson95(reported, n=200) widened by 0.05 = [0.931, 1.000]",
+    "pass": true
+   },
+   {
+    "target": "latin L240 power_2p32 (scorer_power.md:375)",
+    "reported": 1.0,
+    "ours": 1.0,
+    "delta": 0.0,
+    "rule": "inside Wilson95(reported, n=200) widened by 0.05 = [0.931, 1.000]",
+    "pass": true
+   },
+   {
+    "target": "vowel-dropped-english L240 power_1e6 (scorer_power.md:453)",
+    "reported": 1.0,
+    "ours": 1.0,
+    "delta": 0.0,
+    "rule": "inside Wilson95(reported, n=200) widened by 0.05 = [0.931, 1.000]",
+    "pass": true
+   },
+   {
+    "target": "vowel-dropped-english L240 power_2p32 (scorer_power.md:453)",
+    "reported": 0.79,
+    "ours": 0.8,
+    "delta": 0.010000000000000009,
+    "rule": "inside Wilson95(reported, n=200) widened by 0.05 = [0.678, 0.891]",
+    "pass": true
+   },
+   {
+    "target": "english-general L240 power_1e6 (scorer_power.md:219)",
+    "reported": 1.0,
+    "ours": 1.0,
+    "delta": 0.0,
+    "rule": "inside Wilson95(reported, n=200) widened by 0.05 = [0.931, 1.000]",
+    "pass": true
+   },
+   {
+    "target": "english-general L240 power_2p32 (scorer_power.md:219)",
+    "reported": 1.0,
+    "ours": 1.0,
+    "delta": 0.0,
+    "rule": "inside Wilson95(reported, n=200) widened by 0.05 = [0.931, 1.000]",
+    "pass": true
+   },
+   {
+    "target": "heldout-solved-sections L240 power_1e6 (scorer_power.md:609)",
+    "reported": 1.0,
+    "ours": 1.0,
+    "delta": 0.0,
+    "rule": "inside Wilson95(reported, n=200) widened by 0.05 = [0.931, 1.000]",
+    "pass": true
+   },
+   {
+    "target": "heldout-solved-sections L240 power_2p32 (scorer_power.md:609)",
+    "reported": 1.0,
+    "ours": 1.0,
+    "delta": 0.0,
+    "rule": "inside Wilson95(reported, n=200) widened by 0.05 = [0.931, 1.000]",
+    "pass": true
+   }
+  ],
+  "all_pass_excluding_crosscheck": true,
+  "crosscheck_pass": true,
+  "all_pass": true
+ },
+ "wall_time_s": 8.2,
+ "crosscheck": {
+  "command": "$V/bin/python lanes/R1-REDTEAM-OWN-CLAIMS/A1_crosscheck.py",
+  "seed": 330120261029,
+  "windows": "500 uniform + 125 from each of latin, vowel-dropped-english, english-general tails and the held-out sections (L = 240)",
+  "n_windows": 1000,
+  "n_positions": 240000,
+  "max_abs_diff_per_position_log2": 9.308148527509275e-07,
+  "mean_abs_diff_per_position_log2": 1.2770728378534485e-07,
+  "max_abs_diff_window_score": 4.40299210424655e-08,
+  "max_abs_diff_tables_order1_2_3": [
+   2.404891450424884e-07,
+   4.7657470858553097e-07,
+   9.308148527509275e-07
+  ],
+  "reference_fingerprint": "a144706ac65a67119a825883df063b5cac38c021818a298dc8becf07dcb58870",
+  "rule": "per-position log2-probabilities agree to 1e-5",
+  "pass": true,
+  "note": "the reference stores float32 log2 tables; float32 rounding of values near -5 is ~2e-7",
+  "wall_time_s": 0.2
+ }
+}
