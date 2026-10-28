@@ -1,0 +1,68 @@
+# Lane P3-MT19937-PY27-ANTIREPEAT: queue item 1 of spec section 4.2, Python 2.7 random (MT19937)
+# seeded 32-bit, random29, under the anti-repeat key-skip relation. Pre-registered in
+# lanes/P3-MT19937-PY27-ANTIREPEAT/PREREG.md (frozen before any LP2 decode of this lane).
+#
+# Supersedes P3-MT19937-PY27-EXACT (never run): that lane froze its family-wise bar as -5.7284,
+# the exact threshold_for value -5.72837932 rounded DOWN by 2.07e-5, and the sweep refuses a bar
+# below threshold_for by more than 1e-6; the ledger rightly refuses to change a frozen threshold,
+# so the lane is re-registered with the bars rounded up (the same staged fit, more conservative by
+# 2e-5). Its name also implied upstream's keyskip1 "exact" relation, which it does not test.
+#
+# Upstream overlap: Dukotah R27-S2 (keyskip1, max_skip 3, L = 120) parked at 44.14 % of these seeds
+# (2026-09-15) with n_claim_bar_hits 0 but an unresolved above-bar flag at seed 35563892, which scores
+# -6.4894 under this lane's pipeline, below both bars. Their run/ state is not in a clone; this lane
+# sweeps the whole space under its own decoder and bar.
+#
+# The bars below come from reports/calib-staging/lp-ngram3-heldout__beam-skip__L240.json
+# (SHA-256 46a95f857fbf...); `runeforge sweep` refuses this lane until TOOLBOX_REQUESTS.md TR-1
+# installs it unchanged; then `python scripts/threshold_for.py --n 4294967296 --preset
+# lp-ngram3-heldout:beam-skip --L 240 --json` prints bar -5.72837931982132. The GPU sweep also needs
+# a real-device parity record (scripts/gpu_lane_setup.sh does every step) and Hunter's approval.
+#
+lane_id: P3-MT19937-PY27-ANTIREPEAT
+hypothesis: >-
+  The LP2 0-55 keystream is Python 2.7 random.Random(seed) output reduced mod 29 for a
+  32-bit seed, combined under the "exact" key-skip relation.
+family: prng
+category: bounded          # instrument | bounded | redteam | closeout (budget split 30/40/20/10)
+prereg: lanes/P3-MT19937-PY27-ANTIREPEAT/PREREG.md
+generator: mt19937-py27    # runeforge.generators.names()
+generator_params:
+  mode: random29
+seed_range: [0, 4294967296]
+chunk_size: 16777216
+ciphertext_view: raw       # raw | atbash | chain-increment | first-difference
+combine: vigenere          # vigenere (c = p + k) | variant-beaufort (c = p - k) | beaufort (c = k - p)
+key_offset: 0
+filter_model: anti-repeat  # "off" (quoted: bare off is YAML false) | anti-repeat
+p_keep: 0.19               # anti-repeat: a repeat survives with this probability (LP2: 86/447)
+interrupt_prob: 0.0        # P(plaintext F -> unencrypted interrupter); 1.0 in the solved sections (14/14), gate-excluded here
+scorer_register: english
+preset: lp-ngram3-heldout:beam-skip  # <scorer>:<decoder>; decoders rigid | beam | beam-skip | beam-skip-int
+window: 240                # runes of the selected stream that are scored
+pages: [0, 1, 2, 3, 4, 5]
+claim_bar: -6.043391   # screening bar: the alpha 0.01 Gumbel bar at N = 10^6 from the staged fit
+                       # (-6.04339142, rounded up)
+                       # (survivors above it are logged with their stats; ~43 expected over 2^32)
+family_wise_bar: -5.728379  # alpha 0.01 at N = 2^32 (-5.72837932 rounded up) from the same staged fit (mu_b -6.4767, beta 0.0377,
+                       # block 1000): expected null max -5.8799, expected false positives 0.0101
+control:
+  planted_seed: 3301
+  synthetic_page: solved:a-koan-1   # must be held out of the preset's training text (checked)
+  must_recover: true
+  n_plants: 20
+  decoys: 999
+  min_recovery: 0.90
+  min_identified: 0.90
+budget:
+  wall_clock_hours: 2.0     # 2^32 beam-skip decodes: ~7 min at 10^7 seeds/s, ~72 min at 10^6
+  gpu_hours_cap: 2.0        # at the CLAUDE.md line; more needs Hunter's approval in queue.json
+  max_seeds: null
+kill_condition:            # Q5 of the Aiming Test, checked once at at_fraction of the slice
+  at_fraction: 0.10         # = seed 429,496,730
+  min_seeds_per_s: 600000   # below this 2^32 cannot finish inside wall_clock_hours
+  max_crossers: 10          # more crossers at 10 % than the whole slice expects x 1000: the bar is wrong
+resume_cursor: null
+params:
+  reduction: mod29
+  upstream_ledger_ref: R27-S2 (Dukotah/cicada3301 handoff/PARKED-SWEEPS.md section 1)
