@@ -9,7 +9,9 @@
 # not a terminal or when it runs inside a Claude session): typing "install" is your approval of
 # TOOLBOX_REQUESTS.md TR-1, typing "go" is your queue approval and the launch. Each answer is printed
 # with the time and named in the commit that records it. In order, stopping at the first failure:
-#   1. Refuses at once if it will ask a question and you are not at a terminal. .venv with the GPU
+#   1. Refuses at once if it will ask a question (a launch, or TR-1 not yet installed) and you are not at
+#      a terminal; refuses a launch while the lane spec, its PREREG.md or queue.json has uncommitted
+#      changes (commit your own amendment first; the script never commits those files). .venv with the GPU
 #      extra (scripts/setup.sh with RUNEFORGE_GPU=1 until setup has completed once); nvidia-smi lists the
 #      GPU; numba is not the simulator, sees the device and can compile for it (libNVVM from
 #      cuda-toolkit-12-x); no sweep is alive; the lane has a queue.json entry and has never been
@@ -32,13 +34,13 @@
 #      of the lane's and queue.json's GPU-hour cap and the lane's wall clock; the rate must also be at
 #      least 1.2 x the PREREG Q5 kill rate. Over the cap or wall clock -> raising it is your edit of
 #      budget.gpu_hours_cap / budget.wall_clock_hours in lanes/<id>.yaml and gpu_hours_cap in
-#      queue.json, plus a dated PREREG addendum (those fields are outside lane_pipeline_sha256, so the
-#      control and gate stay valid). Too close to the Q5 rate -> a larger cap does not help. Then the
+#      queue.json, plus a dated PREREG addendum, committed by you (those fields are outside
+#      lane_pipeline_sha256, so the control and gate stay valid). Too close to the Q5 rate -> a larger cap
+#      does not help. Then the
 #      GPU sweep's own preflight must be clean.
 #   7. Commits only the evidence paths (calibrations, TOOLBOX_REQUESTS.md, ledger, control, threshold
-#      record, parity and bench copies under lanes/<id>/) plus your own amendments, if any, to the lane
-#      spec, its PREREG.md and queue.json (a budget raise is committed before any launch); anything else
-#      you changed stays uncommitted and is listed. Every exit from here on pushes the branch.
+#      record, parity and bench copies under lanes/<id>/); anything else you changed stays uncommitted
+#      and is listed. Every exit from here on pushes the branch.
 #   8. After you type "go": launches `runeforge sweep <lane> --detach --backend gpu`, and only once it
 #      runs sets "approved": true in queue.json and the ledger row to `running`, commits both and pushes
 #      the branch. A refused launch approves nothing. The sweep runs only on a committed lane spec and
@@ -115,10 +117,28 @@ push_branch() {  # once per run; armed as the EXIT trap after the step-7 commit
 
 # ---------------------------------------------------------------- 1. environment
 say "1/8 environment"
-if [[ "$LAUNCH" == "1" ]]; then require_terminal; fi
+TR1_PENDING=0
+for f in reports/calib-staging/*.json; do
+  cmp -s "$f" "runeforge/scoring/calib/presets/$(basename "$f")" || TR1_PENDING=1
+done
+if [[ "$LAUNCH" == "1" || "$TR1_PENDING" == "1" ]]; then require_terminal; fi
+amend_paths=("$LANE" "$(dirname "$LANE")/$(basename "$LANE" .yaml)/PREREG.md" queue.json)
+if [[ "$LAUNCH" == "1" ]] && ! git diff --quiet HEAD -- "${amend_paths[@]}"; then
+  git --no-pager diff --stat HEAD -- "${amend_paths[@]}"
+  die "the lane spec, its PREREG.md or queue.json has uncommitted changes (above). The sweep runs only on
+committed files, and the script never commits them for you. If they are your amendment (e.g. a budget raise
+with its dated PREREG addendum), commit them yourself:
+  git add ${amend_paths[*]} && git commit -m 'lane: amendment (<what and why>)'
+and re-run; \"approved\" in queue.json is set by step 8 after you type go, not by hand"
+fi
 if [[ ! -x .venv/bin/python || ! -f .venv/.runeforge-setup-ok ]]; then
-  echo "setup has not completed: running scripts/setup.sh with the GPU extra (vendored sources, corpora, trust anchor)"
-  RUNEFORGE_GPU=1 bash scripts/setup.sh
+  echo "setup is not recorded as complete on this .venv (no .venv/.runeforge-setup-ok): running scripts/setup.sh"
+  echo "with the GPU extra (idempotent: vendored sources, corpora, trust anchor)"
+  base=""
+  if [[ -x .venv/bin/python ]]; then  # reuse an existing 3.11+ venv's interpreter instead of rebuilding it
+    base="$(.venv/bin/python -c 'import sys; print(sys._base_executable) if sys.version_info >= (3, 11) else sys.exit(1)' 2>/dev/null || true)"
+  fi
+  PYTHON="${PYTHON:-${base:-python3}}" RUNEFORGE_GPU=1 bash scripts/setup.sh || die "scripts/setup.sh failed (see above)"
 fi
 # shellcheck disable=SC1091
 source .venv/bin/activate
@@ -135,9 +155,18 @@ from numba.core import config
 if config.ENABLE_CUDASIM:
     sys.exit(4)
 from numba import cuda
-if not cuda.is_available():
-    cuda.detect()
+from numba.cuda.cudadrv import driver, nvvm
+from numba.cuda.cudadrv.error import CudaSupportError
+try:  # cuda.is_available() is driver AND libNVVM, so test the two halves apart
+    drv_ok = driver.driver.is_available
+except CudaSupportError:
+    drv_ok = False
+if not drv_ok:
+    print("driver:", driver.driver.initialization_error)
     sys.exit(5)
+cuda.detect()
+if not nvvm.is_available():
+    sys.exit(6)
 def probe(a):
     a[0] = 1
 try:
@@ -328,7 +357,7 @@ EOF
 # ---------------------------------------------------------------- 5. GPU parity and bench
 say "5/8 GPU tests, parity record and benchmark"
 check_no_live_sweep
-out="$(PYTEST_ADDOPTS='' pytest -q -rA tests/test_gpu_beam.py tests/test_gpu_mt.py 2>&1)" || { echo "$out" | tail -30; die "GPU tests failed"; }
+out="$(PYTEST_ADDOPTS='' pytest -q -rA --color=no tests/test_gpu_beam.py tests/test_gpu_mt.py 2>&1)" || { echo "$out" | tail -30; die "GPU tests failed"; }
 echo "$out" | tail -1
 if grep -q "no CUDA device" <<< "$out"; then
   die "the device tests were skipped ('no CUDA device'): the parity record would not be real"
@@ -382,7 +411,8 @@ import heapq, time
 import numpy as np
 from runeforge.runner.sweep import BATCH, TOP_K
 # the sweep's own host work per batch (sweep.py loop: seeds list, tolist, top-K heap, argmax,
-# flatnonzero), which the bench's device-chain rate leaves out
+# flatnonzero), which the bench's device-chain rate leaves out; the CPU re-decodes of each chunk's
+# best and of survivors (a handful per 16.7M-seed chunk) are left out as negligible
 scores = np.random.default_rng(0).normal(-6.46, 0.05, BATCH)
 top, reps = [], 300
 t0 = time.perf_counter()
@@ -426,8 +456,8 @@ EOF
 case "$rc" in
   0) ;;
   10) die "over budget (see above). Raising it is your edit of budget.gpu_hours_cap and budget.wall_clock_hours
-in $LANE and of gpu_hours_cap in queue.json, plus a dated PREREG addendum; those fields are outside
-lane_pipeline_sha256, so the control, gate and parity record stay valid" ;;
+in $LANE and of gpu_hours_cap in queue.json, plus a dated PREREG addendum, committed by you before you re-run
+(those fields are outside lane_pipeline_sha256, so the control, gate and parity record stay valid)" ;;
   11) die "the effective rate is too close to the PREREG Q5 kill rate (see above); a larger cap does not help.
 A faster device or setting, or a dated PREREG addendum changing the kill condition before any result" ;;
   12) die "the parity/bench record is not usable for the budget (see above)" ;;
@@ -451,8 +481,7 @@ cp "$RD/parity.json" "lanes/$ID/parity.json"
 cp "$RD/bench.json" "lanes/$ID/bench.json"
 EV=(runeforge/scoring/calib/presets TOOLBOX_REQUESTS.md ledger/ledger.jsonl
     "lanes/$ID/control.json" lanes/"$ID"/control-*.json "lanes/$ID/threshold_after_TR1.json"
-    "lanes/$ID/parity.json" "lanes/$ID/bench.json"
-    "$LANE" "lanes/$ID/PREREG.md" queue.json)
+    "lanes/$ID/parity.json" "lanes/$ID/bench.json")
 git add -- "${EV[@]}"
 changed="$(git diff --cached --name-only -- "${EV[@]}")"
 if [[ -z "$changed" ]]; then
@@ -463,11 +492,17 @@ else
   if grep -q "^lanes/$ID/control" <<< "$changed"; then what+=("control with the installed beta"); fi
   if grep -q "^lanes/$ID/threshold_after_TR1.json" <<< "$changed"; then what+=("threshold reproduced"); fi
   if grep -qE "^lanes/$ID/(parity|bench)\.json" <<< "$changed"; then what+=("real-device parity and bench"); fi
-  if grep -qxF -e "$LANE" -e "lanes/$ID/PREREG.md" -e queue.json <<< "$changed"; then
-    what+=("amendment by $WHO (lane spec / PREREG / queue)")
-  fi
   if [[ -z "$TR1_NOTE" ]] && grep -q '^runeforge/scoring/calib/presets/' <<< "$changed"; then
-    TR1_NOTE="$(grep -o "TR-1 approved by .*" TOOLBOX_REQUESTS.md | head -1 || true)"
+    staged_set=1  # recover the approval only for exactly the staged TR-1 files
+    while read -r c; do
+      [[ "$c" == runeforge/scoring/calib/presets/* ]] || continue
+      cmp -s "$c" "reports/calib-staging/$(basename "$c")" || staged_set=0
+    done <<< "$changed"
+    if (( staged_set )); then
+      TR1_NOTE="$(grep -o "TR-1 approved by .*" TOOLBOX_REQUESTS.md | head -1 || true)"
+    else
+      TR1_NOTE="calibration files changed that are not the staged TR-1 set: no approval recorded for them"
+    fi
   fi
   (( ${#what[@]} )) || what=("setup evidence")
   printf -v summary '%s, ' "${what[@]}"
@@ -493,7 +528,7 @@ if [[ "$LAUNCH" == "0" ]]; then
   exit 0
 fi
 git diff --quiet HEAD -- "$LANE" "lanes/$ID/PREREG.md" queue.json \
-  || die "the lane spec, its PREREG or queue.json differs from the commit: the sweep runs only on committed files"
+  || die "the lane spec, its PREREG or queue.json differs from the commit: the sweep runs only on committed files (commit your amendment yourself and re-run)"
 ask "Start the GPU sweep of $ID now and record your queue approval?" "go" || { echo "not approved; nothing launched"; exit 0; }
 GO_NOTE="Approved by $WHO typing 'go' at a terminal on $(hostname), $(date -Is)."
 check_no_live_sweep
