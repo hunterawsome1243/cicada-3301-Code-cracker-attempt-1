@@ -254,3 +254,18 @@ two of three independent refuters.
 8. **Ledger wording.** The ledger row's hypothesis (from the template) says "the \"exact\" key-skip relation";
    this lane tests the anti-repeat multi-skip relation (§1), not upstream's keyskip1 "exact" relation, and the
    row lacked `external_ids`. Corrected by a ledger update row on 2026-10-28.
+
+### Addendum 2026-10-28 (3) — superseded by `P3-MT19937-PY27-ANTIREPEAT` (nothing above edited)
+
+A rehearsal of the TR-1 install in a disposable clone showed that this lane cannot run once the staged
+calibrations are installed. Its frozen bar −5.7284 is 2.07e-5 below `threshold_for` −5.72837932 for the
+same N, preset and window, and `runeforge lane` refuses a `family_wise_bar` below `threshold_for` (−1e-6
+tolerance). The ledger refuses changing a frozen threshold, and this PREREG is not edited. The lane is
+therefore re-registered, not amended, as `P3-MT19937-PY27-ANTIREPEAT`
+(`lanes/P3-MT19937-PY27-ANTIREPEAT/PREREG.md`, frozen in `604aebb`). The new lane has the same key space,
+decoder, window, control, budget and kill condition, with the bars rounded up: −5.728379 (decision) and
+−6.043391 (screen). Ledger: this row is `superseded` with `superseded_by` [ANTIREPEAT]; the new row
+carries `supersedes` [EXACT]. This lane's gate, control and null files stay in this folder as history.
+The new lane re-ran its own gate, control and nulls and does not cite these. No sweep of this lane ran.
+The RESULTS skeleton moved to the new lane. Its power counts are unchanged at the new bars (119/200 and
+199/200 vowel-dropped English, per-plant scores in `lanes/R1-REDTEAM-OWN-CLAIMS/out_C2.json`).

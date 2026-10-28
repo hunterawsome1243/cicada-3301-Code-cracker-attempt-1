@@ -1,0 +1,34 @@
+{
+ "lane_id": "P3-MT19937-PY27-ANTIREPEAT",
+ "numbering": "LP2-0-57",
+ "window": 240,
+ "preset": "lp-ngram3-heldout:beam-skip",
+ "trials_per_replicate": 1000,
+ "lane_n_trials": 4294967296,
+ "same_trial_count": false,
+ "seed": 3301,
+ "null1_shuffle": {
+  "n": 200,
+  "mean": -6.456534162874179,
+  "sd": 0.04573468301679948,
+  "max": -6.2983443036675455
+ },
+ "null2_sha256": {
+  "n": 200,
+  "mean": -6.454522213199175,
+  "sd": 0.050767677614415696,
+  "max": -6.249507700031002,
+  "domain": "runeforge/null2/P3-MT19937-PY27-ANTIREPEAT"
+ },
+ "lane_pipeline_sha256": "c296c437df68826a146cda195596dae043fa4011f5865c77364dce92132f09ab",
+ "scorer_fingerprint": "a144706ac65a67119a825883df063b5cac38c021818a298dc8becf07dcb58870",
+ "decoder": {
+  "params": {
+   "width": 8,
+   "interrupt_prob": 0.0,
+   "p_keep": 0.19,
+   "max_skip": 6
+  },
+  "beam_sha256": "4cd3d7ba59e6bbce7f8bcd07c8eb21ec81a26d7c47897ab79d7169d19561626e"
+ }
+}

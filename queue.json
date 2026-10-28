@@ -1,10 +1,10 @@
 [
  {
-  "id": "P3-MT19937-PY27-EXACT",
+  "id": "P3-MT19937-PY27-ANTIREPEAT",
   "category": "bounded",
   "approved": false,
   "gpu_hours_cap": 2.0,
   "prereg_ready": true,
-  "note": "pre-registered 2026-10-27 (lanes/P3-MT19937-PY27-EXACT/PREREG.md, frozen in fabac07); gate PASS 12/12, control PASSED 20/20, nulls recorded; runs only after TR-1 installs the staged beam-skip calibration unchanged, a real-device parity record exists (python -m runeforge.gpu.parity lanes/P3-MT19937-PY27-EXACT.yaml --bench 1048576) and Hunter sets approved: true"
+  "note": "pre-registered 2026-10-28 (lanes/P3-MT19937-PY27-ANTIREPEAT/PREREG.md, frozen in 604aebb; supersedes P3-MT19937-PY27-EXACT); gate PASS 12/12, control PASSED 20/20, nulls recorded. Hunter: run `bash scripts/gpu_lane_setup.sh` on the RTX; it installs TR-1, re-runs the control, makes the parity record, checks the budget and asks before approving here and launching."
  }
 ]

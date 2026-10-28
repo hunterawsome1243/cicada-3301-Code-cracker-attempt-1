@@ -21,8 +21,10 @@
 #
 lane_id: P3-MT19937-PY27-ANTIREPEAT
 hypothesis: >-
-  The LP2 0-55 keystream is Python 2.7 random.Random(seed) output reduced mod 29 for a
-  32-bit seed, combined under the "exact" key-skip relation.
+  The LP2 0-55 keystream is CPython 2.7 random.seed(w) + int(random()*29) for one 32-bit
+  integer w, read from offset 0 and combined as c = p + k (mod 29) under the anti-repeat
+  key-skip relation (p_keep 0.19), and the first 240 runes of pages 0-5 decode under it to
+  Cicada-register English (PREREG section 1).
 family: prng
 category: bounded          # instrument | bounded | redteam | closeout (budget split 30/40/20/10)
 prereg: lanes/P3-MT19937-PY27-ANTIREPEAT/PREREG.md
