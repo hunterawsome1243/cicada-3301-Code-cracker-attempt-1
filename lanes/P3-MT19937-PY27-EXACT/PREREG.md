@@ -207,3 +207,8 @@ naming its slice and fraction before it starts.
 - State: `never-run`. The sweep is refused until TR-1 installs the staged calibration unchanged, a
   real-device parity record for both kernels exists, and Hunter approves the lane in `queue.json`
   (entry added with `approved: false`, `gpu_hours_cap: 2.0`).
+
+### Addendum 2026-10-28 — correction to the 2026-10-27 addendum
+
+- The control's rune-index recovery range reads "0.942–0.992"; the maximum in
+  `control-4c65a7978362.json` is 0.9875 (0.942–0.988). Transcription slip; no number used by a verdict.
