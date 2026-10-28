@@ -9,10 +9,11 @@
 # not a terminal or when it runs inside a Claude session): typing "install" is your approval of
 # TOOLBOX_REQUESTS.md TR-1, typing "go" is your queue approval and the launch. Each answer is printed
 # with the time and named in the commit that records it. In order, stopping at the first failure:
-#   1. .venv with the GPU extra (scripts/setup.sh with RUNEFORGE_GPU=1 when there is no .venv);
-#      nvidia-smi lists the GPU; numba sees a CUDA device; no sweep is alive; the lane has a
-#      queue.json entry and has never been launched (ledger row never-run, no checkpoint): this
-#      script is for a lane's first launch only.
+#   1. Refuses at once if it will ask a question and you are not at a terminal. .venv with the GPU
+#      extra (scripts/setup.sh with RUNEFORGE_GPU=1 until setup has completed once); nvidia-smi lists the
+#      GPU; numba is not the simulator, sees the device and can compile for it (libNVVM from
+#      cuda-toolkit-12-x); no sweep is alive; the lane has a queue.json entry and has never been
+#      launched (ledger row never-run, no checkpoint): this script is for a lane's first launch only.
 #   2. Trust anchor: pytest -q -m "not slow", runeforge canon --verify, the oracle self-test.
 #   3. TR-1: after you type "install", copies the staged beam calibrations from reports/calib-staging/
 #      into the frozen runeforge/scoring/calib/presets/ unchanged and marks TR-1 installed in
@@ -22,10 +23,12 @@
 #      `runeforge lane` and tests/test_calib.py must pass.
 #   4. Re-runs the lane's positive control unless the sweep's own control checks already pass (the
 #      ceiling must use the installed calibration's beta); the CPU preflight must then be clean.
-#   5. The GPU tests (tests/test_gpu_beam.py, tests/test_gpu_mt.py) with their real-device cases, then
+#   5. The GPU tests (tests/test_gpu_beam.py, tests/test_gpu_mt.py); the real-device cases must have
+#      run and passed in both files. Then
 #      `python -m runeforge.gpu.parity <lane> --bench 1048576`: the parity record the GPU sweep requires
 #      and the throughput number.
-#   6. Budget: the lane's seeds at the measured device rate, with a 25 % margin, against the smaller
+#   6. Budget: the lane's seeds at the effective rate (the bench's device rate with the sweep's own
+#      per-batch host work, timed here, folded in), with a 25 % margin, against the smaller
 #      of the lane's and queue.json's GPU-hour cap and the lane's wall clock; the rate must also be at
 #      least 1.2 x the PREREG Q5 kill rate. Over the cap or wall clock -> raising it is your edit of
 #      budget.gpu_hours_cap / budget.wall_clock_hours in lanes/<id>.yaml and gpu_hours_cap in
@@ -33,11 +36,13 @@
 #      control and gate stay valid). Too close to the Q5 rate -> a larger cap does not help. Then the
 #      GPU sweep's own preflight must be clean.
 #   7. Commits only the evidence paths (calibrations, TOOLBOX_REQUESTS.md, ledger, control, threshold
-#      record, parity and bench copies under lanes/<id>/); anything else you changed stays uncommitted
-#      and is listed.
+#      record, parity and bench copies under lanes/<id>/) plus your own amendments, if any, to the lane
+#      spec, its PREREG.md and queue.json (a budget raise is committed before any launch); anything else
+#      you changed stays uncommitted and is listed. Every exit from here on pushes the branch.
 #   8. After you type "go": launches `runeforge sweep <lane> --detach --backend gpu`, and only once it
 #      runs sets "approved": true in queue.json and the ledger row to `running`, commits both and pushes
-#      the branch. A refused launch approves nothing. --no-launch stops before this step (and pushes).
+#      the branch. A refused launch approves nothing. The sweep runs only on a committed lane spec and
+#      PREREG. --no-launch stops before this step.
 #
 # Never run two GPU jobs at once; keep WSL and Windows awake while the sweep runs (OVERNIGHT_LOOP.md
 # Part 1). Re-running after a failure is safe: steps 3 and 4 are skipped when already done; the trust
@@ -53,7 +58,7 @@ for a in "$@"; do
   case "$a" in
     --no-launch) LAUNCH=0 ;;
     -h|--help) awk 'NR > 1 && /^set -euo/ {exit} NR > 1' "$SELF"; exit 0 ;;
-    *.yaml) LANE_ARG="$(readlink -f "$a")" ;;
+    *.yaml) LANE_ARG="$(realpath -m -- "$a")" ;;
     *) echo "unknown argument: $a (see --help)" >&2; exit 2 ;;
   esac
 done
@@ -67,9 +72,12 @@ WHO="$(git config user.name 2>/dev/null || true)"
 WHO="${WHO:-$(whoami)}"
 say() { printf '\n== %s\n' "$*"; }
 die() { printf '\nSTOPPED: %s\n' "$*" >&2; exit 1; }
+require_terminal() {
+  [[ -t 0 ]] || die "the approvals are Hunter's, typed at a terminal, and stdin is not one; nothing was answered"
+  [[ -z "${CLAUDECODE:-}" ]] || die "the approvals are Hunter's: the script is running inside a Claude session; run it in your own terminal"
+}
 ask() {  # ask "<question>" "<word>": 0 only if a person types the word at a terminal
-  [[ -t 0 ]] || die "this question is Hunter's, typed at a terminal, and stdin is not one; nothing was answered"
-  [[ -z "${CLAUDECODE:-}" ]] || die "this question is Hunter's: the script is running inside a Claude session; run it in your own terminal"
+  require_terminal
   local reply=""
   read -r -p "$1 Type '$2' to continue: " reply || true
   echo "  answer: '$reply' ($(date -Is), $WHO at $(hostname))"
@@ -94,7 +102,10 @@ print("live sweeps:", alive or "none")
 sys.exit(3 if alive else 0)
 EOF
 }
-push_branch() {
+PUSHED=0
+push_branch() {  # once per run; armed as the EXIT trap after the step-7 commit
+  (( PUSHED )) && return 0
+  PUSHED=1
   if git rev-parse --abbrev-ref --symbolic-full-name '@{u}' >/dev/null 2>&1; then
     if git push -q; then echo "pushed"; else echo "push failed: run 'git push' yourself so the evidence reaches GitHub"; fi
   else
@@ -104,24 +115,48 @@ push_branch() {
 
 # ---------------------------------------------------------------- 1. environment
 say "1/8 environment"
-if [[ ! -x .venv/bin/python ]]; then
-  echo "no .venv: running scripts/setup.sh with the GPU extra (vendored sources, corpora, trust anchor)"
+if [[ "$LAUNCH" == "1" ]]; then require_terminal; fi
+if [[ ! -x .venv/bin/python || ! -f .venv/.runeforge-setup-ok ]]; then
+  echo "setup has not completed: running scripts/setup.sh with the GPU extra (vendored sources, corpora, trust anchor)"
   RUNEFORGE_GPU=1 bash scripts/setup.sh
 fi
 # shellcheck disable=SC1091
 source .venv/bin/activate
-python -c 'import numba' 2>/dev/null || python -m pip install -q -e ".[gpu]"
+python -c 'import numba' 2>/dev/null || python -m pip install -q -e ".[dev,gpu]" sympy
 
 NVSMI=/usr/lib/wsl/lib/nvidia-smi
 [[ -x "$NVSMI" ]] || NVSMI="$(command -v nvidia-smi || true)"
 [[ -n "$NVSMI" ]] || die "nvidia-smi not found (WSL: /usr/lib/wsl/lib/nvidia-smi comes with the Windows driver)"
 "$NVSMI" -L || die "nvidia-smi does not list a GPU"
-if ! python -c 'from numba import cuda; import sys; sys.exit(0 if cuda.is_available() else 1)'; then
-  python -c 'from numba import cuda; cuda.detect()' || true
-  die "numba sees no CUDA device. Install the CUDA toolkit inside WSL (toolkit only, never a Linux
-display driver): https://developer.nvidia.com/cuda-downloads -> Linux / x86_64 / WSL-Ubuntu, package
-cuda-toolkit-12-x; then re-run this script"
-fi
+rc=0
+python - <<'EOF' || rc=$?
+import sys
+from numba.core import config
+if config.ENABLE_CUDASIM:
+    sys.exit(4)
+from numba import cuda
+if not cuda.is_available():
+    cuda.detect()
+    sys.exit(5)
+def probe(a):
+    a[0] = 1
+try:
+    cuda.compile_ptx(probe, "void(int64[:])", cc=(7, 5))
+except Exception as exc:  # NvvmSupportError and kin: the compiler, not the device
+    print(f"{type(exc).__name__}: {exc}")
+    sys.exit(6)
+print("numba: CUDA device available, kernels compile")
+EOF
+case "$rc" in
+  0) ;;
+  4) die "NUMBA_ENABLE_CUDASIM is set in this shell: unset it and re-run (a lane never runs on numba's simulator)" ;;
+  5) die "numba sees no CUDA device (see above): the Windows NVIDIA driver's libcuda (/usr/lib/wsl/lib) is not
+usable from WSL. Update the Windows driver; never install a Linux display driver inside WSL" ;;
+  6) die "numba cannot compile for the GPU (libNVVM not found, see above): install the CUDA toolkit inside
+WSL, toolkit only (never conda, never a Linux display driver): https://developer.nvidia.com/cuda-downloads ->
+Linux / x86_64 / WSL-Ubuntu, package cuda-toolkit-12-x; then re-run this script" ;;
+  *) die "the CUDA probe crashed (exit $rc, traceback above)" ;;
+esac
 read -r ID RD < <(python - "$LANE" <<'EOF'
 import sys
 from runeforge.lanes import load_lane
@@ -261,7 +296,21 @@ EOF
 case "$rc" in
   0) echo "the control already passed with the installed calibration (the sweep's own checks)" ;;
   3) runeforge control "$LANE" || die "runeforge control failed or did not pass (see above). A control that
-ran and failed makes the lane INCONCLUSIVE (power): do not lower the bar. Any other error is not a verdict" ;;
+ran and failed makes the lane INCONCLUSIVE (power): do not lower the bar. Any other error is not a verdict"
+     python - "$ID" <<'EOF' || die "the control passed, but correcting the ledger note failed (see above)"
+import sys
+from runeforge.ledger import Ledger
+stale = ("The control in this row ran with the per-plant beta (TR-1 not installed); "
+         "scripts/gpu_lane_setup.sh re-runs it with the installed beta.")
+led = Ledger()
+row = led.get(sys.argv[1], strict=False)
+if row is not None and row.notes and stale in row.notes:
+    fresh = ("The control was re-run with the installed calibration's beta by scripts/gpu_lane_setup.sh "
+             f"({(row.control_detail or {}).get('path', 'lanes/<id>/control.json')}).")
+    led.update(sys.argv[1], notes=row.notes.replace(stale, fresh))
+    print("ledger: note on the control corrected")
+EOF
+     ;;
   *) die "could not check the control (exit $rc, traceback above)" ;;
 esac
 pycheck "the CPU preflight refuses the lane (see above)" "$LANE" <<'EOF'
@@ -279,11 +328,15 @@ EOF
 # ---------------------------------------------------------------- 5. GPU parity and bench
 say "5/8 GPU tests, parity record and benchmark"
 check_no_live_sweep
-out="$(pytest -q -rs tests/test_gpu_beam.py tests/test_gpu_mt.py 2>&1)" || { echo "$out" | tail -30; die "GPU tests failed"; }
+out="$(PYTEST_ADDOPTS='' pytest -q -rA tests/test_gpu_beam.py tests/test_gpu_mt.py 2>&1)" || { echo "$out" | tail -30; die "GPU tests failed"; }
 echo "$out" | tail -1
 if grep -q "no CUDA device" <<< "$out"; then
   die "the device tests were skipped ('no CUDA device'): the parity record would not be real"
 fi
+for f in tests/test_gpu_beam.py tests/test_gpu_mt.py; do
+  grep -q "^PASSED $f::test_the_cuda_kernel_on_the_device" <<< "$out" \
+    || die "no real-device test of $f passed (none ran: check PYTEST_ADDOPTS, -m or -k): the parity record would not be backed"
+done
 T0="$(date +%s)"
 if ! python -m runeforge.gpu.parity "$LANE" --bench 1048576; then
   if python - "$RD/parity.json" "$T0" <<'EOF'
@@ -325,6 +378,27 @@ if not rate:
 if not rate:
     print("  bench.json holds no end-to-end rate")
     sys.exit(12)
+import heapq, time
+import numpy as np
+from runeforge.runner.sweep import BATCH, TOP_K
+# the sweep's own host work per batch (sweep.py loop: seeds list, tolist, top-K heap, argmax,
+# flatnonzero), which the bench's device-chain rate leaves out
+scores = np.random.default_rng(0).normal(-6.46, 0.05, BATCH)
+top, reps = [], 300
+t0 = time.perf_counter()
+for r in range(reps):
+    seeds = list(range(r * BATCH, (r + 1) * BATCH))
+    for s, v in zip(seeds, scores.tolist(), strict=True):
+        if len(top) < TOP_K:
+            heapq.heappush(top, (v, s))
+        elif v > top[0][0]:
+            heapq.heapreplace(top, (v, s))
+    int(np.argmax(scores))
+    np.flatnonzero(scores > lane.claim_bar)
+host_s = (time.perf_counter() - t0) / reps
+bench_rate = rate
+rate = BATCH / (BATCH / bench_rate + host_s)
+basis += f"; bench {bench_rate:,.0f}/s with {host_s * 1e3:.2f} ms host work per {BATCH}-seed batch"
 n = lane.n_trials
 hours = n / rate / 3600
 entry = [e for e in load_queue() if e.id == lane.lane_id]
@@ -332,7 +406,7 @@ caps = [x for x in (lane.budget.gpu_hours_cap, entry[0].gpu_hours_cap if entry e
 cap = min(caps) if caps else 0.0
 wall = lane.budget.wall_clock_hours or float("inf")
 kill = lane.kill_condition.min_seeds_per_s or 0
-print(f"device {par.get('device_name')}: {rate:,.0f} seeds/s ({basis}) -> {n:,} seeds in "
+print(f"device {par.get('device_name')}: effective {rate:,.0f} seeds/s ({basis}) -> {n:,} seeds in "
       f"{hours:.2f} h; cap {cap} GPU-h (lane {lane.budget.gpu_hours_cap}, queue "
       f"{entry[0].gpu_hours_cap if entry else None}), wall clock {wall} h, Q5 kill below {kill:,.0f}/s")
 over = []
@@ -342,18 +416,19 @@ if hours * 1.25 > wall:
     over.append(f"{hours:.2f} h x 1.25 margin exceeds the {wall} h wall clock")
 for x in over:
     print("  over budget:", x)
-if over:
-    sys.exit(10)
-if rate < 1.2 * kill:
-    print(f"  the measured rate is within 20 % of the PREREG Q5 kill rate {kill:,.0f}/s: the kill would likely fire")
-    sys.exit(11)
+q5 = bool(kill) and rate < 1.2 * kill
+if q5:
+    where = "below" if rate < kill else "within 20 % of"
+    print(f"  the effective rate is {where} the PREREG Q5 kill rate {kill:,.0f}/s: the kill would "
+          + ("fire" if rate < kill else "likely fire"))
+sys.exit(11 if q5 else 10 if over else 0)
 EOF
 case "$rc" in
   0) ;;
   10) die "over budget (see above). Raising it is your edit of budget.gpu_hours_cap and budget.wall_clock_hours
 in $LANE and of gpu_hours_cap in queue.json, plus a dated PREREG addendum; those fields are outside
 lane_pipeline_sha256, so the control, gate and parity record stay valid" ;;
-  11) die "the device rate is too close to the PREREG Q5 kill rate (see above); a larger cap does not help.
+  11) die "the effective rate is too close to the PREREG Q5 kill rate (see above); a larger cap does not help.
 A faster device or setting, or a dated PREREG addendum changing the kill condition before any result" ;;
   12) die "the parity/bench record is not usable for the budget (see above)" ;;
   *) die "the budget check crashed (exit $rc, traceback above)" ;;
@@ -376,7 +451,8 @@ cp "$RD/parity.json" "lanes/$ID/parity.json"
 cp "$RD/bench.json" "lanes/$ID/bench.json"
 EV=(runeforge/scoring/calib/presets TOOLBOX_REQUESTS.md ledger/ledger.jsonl
     "lanes/$ID/control.json" lanes/"$ID"/control-*.json "lanes/$ID/threshold_after_TR1.json"
-    "lanes/$ID/parity.json" "lanes/$ID/bench.json")
+    "lanes/$ID/parity.json" "lanes/$ID/bench.json"
+    "$LANE" "lanes/$ID/PREREG.md" queue.json)
 git add -- "${EV[@]}"
 changed="$(git diff --cached --name-only -- "${EV[@]}")"
 if [[ -z "$changed" ]]; then
@@ -387,14 +463,22 @@ else
   if grep -q "^lanes/$ID/control" <<< "$changed"; then what+=("control with the installed beta"); fi
   if grep -q "^lanes/$ID/threshold_after_TR1.json" <<< "$changed"; then what+=("threshold reproduced"); fi
   if grep -qE "^lanes/$ID/(parity|bench)\.json" <<< "$changed"; then what+=("real-device parity and bench"); fi
+  if grep -qxF -e "$LANE" -e "lanes/$ID/PREREG.md" -e queue.json <<< "$changed"; then
+    what+=("amendment by $WHO (lane spec / PREREG / queue)")
+  fi
+  if [[ -z "$TR1_NOTE" ]] && grep -q '^runeforge/scoring/calib/presets/' <<< "$changed"; then
+    TR1_NOTE="$(grep -o "TR-1 approved by .*" TOOLBOX_REQUESTS.md | head -1 || true)"
+  fi
   (( ${#what[@]} )) || what=("setup evidence")
   printf -v summary '%s, ' "${what[@]}"
   msg=(-m "lane($ID): ${summary%, }" -m "Files: $(tr '\n' ' ' <<< "$changed")")
   [[ -z "$TR1_NOTE" ]] || msg+=(-m "$TR1_NOTE")
-  msg+=(-m "Run by scripts/gpu_lane_setup.sh on $(hostname) ($("$NVSMI" -L | head -1)).")
+  gpu="$("$NVSMI" -L 2>/dev/null | sed -n 1p || true)"
+  msg+=(-m "Run by scripts/gpu_lane_setup.sh on $(hostname) (${gpu:-GPU unknown}).")
   git commit -q "${msg[@]}" -- "${EV[@]}"
   git --no-pager log --oneline -1
 fi
+trap push_branch EXIT  # every exit from here on pushes the evidence
 rest="$(git status --porcelain)"
 if [[ -n "$rest" ]]; then
   echo "left uncommitted (not part of the evidence):"
@@ -406,16 +490,15 @@ say "8/8 approve and launch"
 if [[ "$LAUNCH" == "0" ]]; then
   echo "--no-launch: stopping before the launch; the GPU preflight is clean. The sweep runner does not"
   echo "read queue.json itself: the approval is recorded when you launch, by re-running without --no-launch."
-  push_branch
   exit 0
 fi
-ask "Start the GPU sweep of $ID now and record your queue approval?" "go" || { echo "not approved; nothing launched"; push_branch; exit 0; }
+git diff --quiet HEAD -- "$LANE" "lanes/$ID/PREREG.md" queue.json \
+  || die "the lane spec, its PREREG or queue.json differs from the commit: the sweep runs only on committed files"
+ask "Start the GPU sweep of $ID now and record your queue approval?" "go" || { echo "not approved; nothing launched"; exit 0; }
 GO_NOTE="Approved by $WHO typing 'go' at a terminal on $(hostname), $(date -Is)."
 check_no_live_sweep
-runeforge sweep "$LANE" --detach --backend gpu || {
-  push_branch
-  die "the GPU sweep refused to start (see above): nothing is running, and queue.json and the ledger are unchanged"
-}
+runeforge sweep "$LANE" --detach --backend gpu \
+  || die "the GPU sweep refused to start (see above): nothing is running, and queue.json and the ledger are unchanged"
 python - "$ID" "$RD" "$GO_NOTE" <<'EOF' || die "THE SWEEP IS RUNNING, but recording the launch failed (see above): set \"approved\": true for $ID in queue.json and the ledger row to running yourself, commit both and push"
 import json, sys
 from pathlib import Path
@@ -433,7 +516,8 @@ launched = (f"GPU sweep launched (--backend gpu; resume only with --backend gpu)
 led.update(lane_id, status="running", notes=f"{row.notes} | {launched}" if row.notes else launched)
 print("queue.json: approved; ledger: running")
 EOF
-python scripts/validate_ledger.py | tail -1 || die "THE SWEEP IS RUNNING, but the ledger does not validate (see above): fix the row, commit queue.json and ledger/ledger.jsonl, push"
+vout="$(python scripts/validate_ledger.py 2>&1)" || { echo "$vout"; die "THE SWEEP IS RUNNING, but the ledger does not validate (see the errors above): fix the row, commit queue.json and ledger/ledger.jsonl, push"; }
+echo "$vout" | tail -1
 git add -- queue.json ledger/ledger.jsonl
 git commit -q -m "lane($ID): running (GPU sweep launched); queue approval" -m "$GO_NOTE" -- queue.json ledger/ledger.jsonl \
   || die "THE SWEEP IS RUNNING, but the commit failed: commit queue.json and ledger/ledger.jsonl yourself and push"

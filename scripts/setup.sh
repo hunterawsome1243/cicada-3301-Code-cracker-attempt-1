@@ -38,6 +38,9 @@ bash scripts/fetch_raw.sh "${1:-}"
 
 echo "== corpora (offline, from the vendored texts)"
 python scripts/build_corpus.py
+# setup's own work is done (scripts/gpu_lane_setup.sh re-runs this script until the marker exists);
+# the trust anchor below reports, it does not install
+touch .venv/.runeforge-setup-ok
 
 echo "== trust anchor"
 python scripts/build_canon.py --check
