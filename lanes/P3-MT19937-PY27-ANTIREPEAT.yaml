@@ -61,7 +61,7 @@ budget:
   gpu_hours_cap: 2.0        # at the CLAUDE.md line; more needs Hunter's approval in queue.json
   max_seeds: null
 kill_condition:            # Q5 of the Aiming Test, checked once at at_fraction of the slice
-  at_fraction: 0.10         # = seed 429,496,730
+  at_fraction: 0.10         # checked at the first chunk boundary at or past 10 %: cursor 436,207,616
   min_seeds_per_s: 600000   # below this 2^32 cannot finish inside wall_clock_hours
   max_crossers: 10          # more crossers at 10 % than the whole slice expects x 1000: the bar is wrong
 resume_cursor: null

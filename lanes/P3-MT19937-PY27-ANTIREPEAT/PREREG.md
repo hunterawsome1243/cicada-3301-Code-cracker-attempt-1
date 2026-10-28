@@ -218,3 +218,25 @@ naming its slice and fraction before it starts.
 ## Addenda
 
 <!-- Dated, appended after the freeze. Never edit the sections above. -->
+
+### Addendum 2026-10-28 — corrections from the setup-script review (nothing above edited; no bar or condition changed)
+
+1. **Q5 check point (§0 Q5).** The sweep evaluates `kill_condition` once, at the first chunk boundary at
+   or past `at_fraction` (`runeforge/runner/sweep.py` `_check_q5`, called after each chunk). With
+   `chunk_size` 16,777,216 that is cursor 436,207,616 (fraction 0.1015625), not seed 429,496,730. The
+   rate it compares is that chunk's own rate, not a cumulative one. The condition is unchanged
+   (600,000 seeds/s, 10 crossers). RESULTS.md cites the `chunk` row with `hi` 436,207,616 in sweep.jsonl,
+   and `kill_detail` in checkpoint.json if the kill fired.
+2. **Expected false positives (header and §4).** At the frozen bar −5.728379, N · P(clear) = 0.01005025
+   (α 0.00999992). At the exact bar −5.72837932 it is −ln 0.99 = 0.01005034. The 0.01005030 written
+   above is `threshold_for`'s float print, which is the same for both bars, so the header's seventh-digit
+   comparison compares two equal prints. 0.0101, α 0.0099999 and "< 1" stand.
+3. **The §4 run condition is enforced.** The condition is that the installed record reproduces −5.72837932
+   to 1e-6. `runeforge lane` alone refuses only a frozen bar below `threshold_for`. Since 2026-10-28,
+   `scripts/gpu_lane_setup.sh` step 3 also writes `lanes/P3-MT19937-PY27-ANTIREPEAT/threshold_after_TR1.json`
+   and stops the lane unless 0 ≤ frozen − computed ≤ 1e-6. This was rehearsed in a disposable clone with
+   a re-staged fit (μ_b −6.49): bar −5.74163, gap 0.0133, stopped.
+4. **Lane spec wording.** At the freeze, the lane spec's `hypothesis` field carried the template's "exact"
+   key-skip wording. It was replaced by §1's text on 2026-10-28, with a ledger update row carrying the same
+   note. The field is not in `lane_pipeline_sha256`, so the gate and control bindings are unchanged
+   (pipeline SHA-256 `c296c437df68…` before and after).
