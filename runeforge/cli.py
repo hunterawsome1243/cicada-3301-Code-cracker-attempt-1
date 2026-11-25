@@ -219,21 +219,18 @@ def cmd_status(args: argparse.Namespace) -> int:
     console.print(f"jobs: {sum(1 for j in jobs if j[2])} alive, {len(jobs)} with a status.json")
     for name, pid, alive, info in jobs:
         rate = info.get("seeds_per_s")
-        frac = info.get("fraction")
+        # the lane's slice, not the launch's --max-seeds cap (older status files: the launch's)
+        frac = info.get("lane_fraction", info.get("fraction"))
+        finished = info.get("lane_done", info.get("done"))
         best = info.get("best_score")
         console.print(
             f"  {name:28s} pid {pid:<8d} {'ALIVE' if alive else 'dead '} "
             f"cursor {info.get('cursor')} ({'?' if frac is None else f'{100 * frac:.2f} %'}) "
             f"{'?' if rate is None else f'{rate:,.0f}'} seeds/s crossers {info.get('crossers')} "
-            f"best {'?' if best is None else f'{best:.4f}'} done {info.get('done')} "
-            f"kill {info.get('kill_condition')}"
+            f"best {'?' if best is None else f'{best:.4f}'} done {finished} "
+            f"kill {info.get('kill_condition')} backend {info.get('backend', 'cpu')}"
         )
-        if (
-            not alive
-            and not info.get("done")
-            and latest.get(name)
-            and latest[name].status == "running"
-        ):
+        if not alive and not finished and latest.get(name) and latest[name].status == "running":
             console.print(
                 "    [yellow]dead PID with a running row: park it with its cursor[/yellow]"
             )
@@ -440,13 +437,26 @@ def cmd_lane(args: argparse.Namespace) -> int:
     return 1 if problems else 0
 
 
-def cmd_gate(args: argparse.Namespace) -> int:
+def _evidence_lane(path):
+    """A lane that gate, control, null and sweep may write evidence for: never a template.
+    lanes/README.md: files starting with "_" are templates and are never run (a template's
+    evidence would land under whatever lane_id it carries)."""
     from runeforge.lanes import load_lane
+
+    if Path(path).name.startswith("_"):
+        raise ValueError(
+            f"{path} is a template (its name starts with '_'): copy it to "
+            "lanes/<lane_id>.yaml, rename lane_id, and run that"
+        )
+    return load_lane(path)
+
+
+def cmd_gate(args: argparse.Namespace) -> int:
     from runeforge.runner import gate
     from runeforge.runner.sweep import run_dir
 
     try:
-        lane = load_lane(args.lane)
+        lane = _evidence_lane(args.lane)
         res = gate.run_gate(lane, seeds=args.seeds, corpus=args.corpus)
     except (ValueError, FileNotFoundError) as exc:
         console.print(f"[red]REFUSED:[/red] {exc}")
@@ -472,12 +482,11 @@ def cmd_gate(args: argparse.Namespace) -> int:
 
 
 def cmd_control(args: argparse.Namespace) -> int:
-    from runeforge.lanes import load_lane
     from runeforge.runner import control
     from runeforge.runner.sweep import run_dir
 
     try:
-        lane = load_lane(args.lane)
+        lane = _evidence_lane(args.lane)
         rep = control.run_control(lane, seed=args.seed)
     except (ValueError, FileNotFoundError) as exc:
         console.print(f"[red]REFUSED:[/red] {exc}")
@@ -519,12 +528,11 @@ def cmd_control(args: argparse.Namespace) -> int:
 
 
 def cmd_null(args: argparse.Namespace) -> int:
-    from runeforge.lanes import load_lane
     from runeforge.runner import null
     from runeforge.runner.sweep import run_dir
 
     try:
-        lane = load_lane(args.lane)
+        lane = _evidence_lane(args.lane)
         rep = null.run_null(lane, n=args.n, seed=args.seed, trials=args.trials)
     except (ValueError, FileNotFoundError) as exc:
         console.print(f"[red]REFUSED:[/red] {exc}")
@@ -584,6 +592,9 @@ def cmd_score(args: argparse.Namespace) -> int:
 def cmd_sweep(args: argparse.Namespace) -> int:
     from runeforge.runner import sweep
 
+    if Path(args.lane).name.startswith("_"):
+        console.print(f"[red]REFUSED:[/red] {args.lane} is a template; it is never run")
+        return 2
     ledger = Path(args.ledger) if args.ledger else None
     kw = {"max_seeds": args.max_seeds, "override_q5": args.override_q5, "backend": args.backend}
     if args.detach:

@@ -240,3 +240,27 @@ naming its slice and fraction before it starts.
    key-skip wording. It was replaced by §1's text on 2026-10-28, with a ledger update row carrying the same
    note. The field is not in `lane_pipeline_sha256`, so the gate and control bindings are unchanged
    (pipeline SHA-256 `c296c437df68…` before and after).
+
+### Addendum 2026-11-25 — runner and procedure corrections from the project-wide review (nothing above edited; no bar, slice or condition changed)
+
+1. **Backend.** §7 says the sweep runs only as `runeforge sweep … --detach --backend gpu`. Until now
+   nothing enforced it: the checkpoint did not pin the backend and the runner's resume commands left
+   out `--backend gpu`, so a resume with the CPU default would have spent the lane's 2 h wall clock at
+   about 1,240 seeds/s. `checkpoint.json` now pins `backend` and the runner refuses a resume on
+   another one; the resume command a GPU sweep writes is `runeforge sweep … --resume --backend gpu
+   --detach` (`runeforge/runner/sweep.py` `pins`, `pin_problems`, `resume_cmd`;
+   `tests/test_sweep_integrity.py`).
+2. **Q5 (§0 Q5; addendum 2026-10-28 item 1).** The check is now measured on the lane's slice
+   (`seed_range` capped by `budget.max_seeds`), never on a launch's `--max-seeds` cap, so a short
+   launch cannot spend it. For this lane the check point is unchanged: the first chunk boundary at or
+   past 10 % of 2³², cursor 436,207,616 when no launch stops mid-chunk. It is recorded whether or not
+   it fires, as `kill_check` (cursor, fraction, rate, crossers, backend, `fired`) in checkpoint.json and
+   status.json; that record, not a `chunk` row, is the source for RESULTS.md §3. `--no-resume` keeps
+   the spent wall clock and a fired Q5 (it needs `--override-q5` like a resume).
+3. **Oracle step while TR-3 is open (§5).** The hit function's "oracle PASS" clause stands. But
+   `runeforge/oracle.py` replays a rigid decode with no skips (TOOLBOX_REQUESTS.md TR-3), so a true
+   key of this lane fails it. A crosser of this lane that reaches HIT_PROTOCOL.md step 5 therefore
+   stays `FLAGGED-FOR-ORACLE` (ledger `hit-unverified`); its oracle FAIL is recorded but is not a
+   verdict, `PENDING-ADJUDICATION.md` is written and Hunter decides. It is never filed `NOISE-CROSSER`
+   on that FAIL (HIT_PROTOCOL.md §5 exception, OVERNIGHT_LOOP.md step 3). It can still be a
+   NOISE-CROSSER or PARITY-FAIL from steps 2–4 or 6.

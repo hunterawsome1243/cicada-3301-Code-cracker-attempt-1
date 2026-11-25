@@ -73,6 +73,13 @@ Vocabulary: a crosser is `FLAGGED-FOR-ORACLE` from the moment it crosses; it bec
   English band on more than one page independently, a stated margin over a size-matched shuffle null,
   and consistency under both rigid and skip-aware decoders with the stated mechanism. Paste the JSON
   verdict into the crosser log. FAIL → `NOISE-CROSSER` with the criterion it missed and by how much.
+- **Exception, `:beam*` lanes, while TOOLBOX_REQUESTS.md TR-3 is open:** the oracle builds a claim
+  with no interrupts and no skips and replays a rigid decode, so a true key-skip or interrupter key
+  fails it. An oracle FAIL of a beam crosser is not a verdict: it is never filed `NOISE-CROSSER` at
+  this step and its `.pending` file is not renamed. Record both oracle outputs, write
+  `runs/<id>/crossers/PENDING-ADJUDICATION.md` (the steps done, the crosser's `decode_record`,
+  "blocked on TR-3") and stop for Hunter; it stays `FLAGGED-FOR-ORACLE` (ledger `hit-unverified`).
+  A beam crosser can still be a `NOISE-CROSSER` or `PARITY-FAIL` from steps 2–4 or 6.
 
 ## 6. Re-encipher rune for rune
 

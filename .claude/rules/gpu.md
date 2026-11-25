@@ -32,7 +32,8 @@ found the crosser).
 ## Jobs
 
 - GPU sweeps are never Bash-tool children (`claude -p` ends background commands at exit; SIGTERM
-  kills the tree). Launch with `runeforge sweep lanes/<id>.yaml --detach` (`setsid nohup … &`),
+  kills the tree). Launch with `runeforge sweep lanes/<id>.yaml --detach --backend gpu`
+  (`setsid nohup … &`; the checkpoint pins the backend, so every resume names it too),
   which writes `runs/<id>/sweep.pid` and refreshes `runs/<id>/status.json` (`updated_epoch`,
   `deadline_epoch`, `done`, `kill_condition`, resume cursor) every chunk. Checkpoint every chunk;
   `--resume` is the default; resume across a forced kill is tested.

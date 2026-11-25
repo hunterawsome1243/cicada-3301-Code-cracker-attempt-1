@@ -4,10 +4,11 @@
 # fingerprint gate (`runeforge gate`) and family-wise bars from scripts/threshold_for.py
 # at the lane's true N. `runeforge sweep` refuses to start without all of them.
 #
-# Example below: queue item 1 of spec section 4.2, Python 2.7 random (MT19937) seeded
-# 32-bit, the "exact" key-skip relation. Dukotah/cicada3301 parked this lane at 44.14 %
-# (1,895,728,884 of 2^32 seeds, six worker bands, 2026-09-15). Their run/ state is not
-# in a clone, so it restarts from seed 0 here; the cursor below is OURS.
+# Example below: the family of queue item 1 (spec section 4.2), Python 2.7 random (MT19937)
+# seeded 32-bit, with anti-repeat key skips. The lane_id is a placeholder on purpose: the
+# registered lane is lanes/P3-MT19937-PY27-ANTIREPEAT.yaml (it superseded
+# P3-MT19937-PY27-EXACT, whose "exact" naming R1 corrected). `runeforge gate|control|null|
+# sweep` refuse any lane file whose name starts with "_".
 #
 # Measured 2026-10-22 (scratch runs, no lane evidence written; reports/beam_decoder.md):
 # * gate: interrupt_prob 0.0 -> GATE PASS; 1.0 (the solved pages' rule, every plaintext F an
@@ -15,10 +16,11 @@
 #   447 uniform, no room for unencrypted plaintext F's at English rates.
 # * control (numpy-pcg64 stand-in generator, 20 plants x 199 decoys, L = 240): rigid 0/20;
 #   beam-skip 20/20 at rank 1. The rigid decoder cannot follow anti-repeat key skips.
-lane_id: P3-MT19937-PY27-EXACT
+lane_id: TEMPLATE-COPY-AND-RENAME
 hypothesis: >-
   The LP2 0-55 keystream is Python 2.7 random.Random(seed) output reduced mod 29 for a
-  32-bit seed, combined under the "exact" key-skip relation.
+  32-bit seed, combined as c = p + k (mod 29) under the anti-repeat key-skip relation
+  (p_keep below), as lanes/P3-MT19937-PY27-ANTIREPEAT/PREREG.md section 1 states it.
 family: prng
 category: bounded          # instrument | bounded | redteam | closeout (budget split 30/40/20/10)
 prereg: null               # path of the pre-registration note, e.g. reports/prereg/<lane>.md

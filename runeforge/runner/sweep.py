@@ -35,8 +35,15 @@ write and its first status.json, so two launches can never both pass:
   (``lane_pipeline_sha256``);
 * a CLI ``--max-seeds`` above the lane's ``budget.max_seeds``;
 * on resume, a checkpoint whose pinned ``claim_bar``, ``family_wise_bar``,
-  ``lane_pipeline_sha256``, ``smoke`` or (beam decoders) ``decoder`` -- parameters and
-  ``runeforge/beam.py`` -- differs from this launch (``--no-resume`` archives it);
+  ``lane_pipeline_sha256``, ``smoke``, ``backend`` or (beam decoders) ``decoder`` --
+  parameters and ``runeforge/beam.py`` -- differs from this launch (``--no-resume`` archives
+  it; a backend change is a dated PREREG addendum first, because the lane's wall-clock budget
+  was set for its backend). A checkpoint written before ``backend`` was pinned takes the
+  backend its status.json records;
+* on resume, a ``--max-seeds`` whose end (counted from the lane's first seed, not from the
+  cursor) is at or before the checkpoint's cursor: it would score nothing and write ``done``;
+* ``--no-resume`` over a checkpoint whose Q5 kill condition fired, without
+  ``--override-q5 "<reason>"`` (archiving the run does not reset Q5);
 * another live sweep under the same runs directory (never two jobs at once);
 * ``--smoke`` into the repository's own ``runs/`` unless ``RUNEFORGE_SMOKE_OK=1``. Smoke skips
   the ledger, status, control, threshold and gate checks and the family_wise_bar-vs-
@@ -77,24 +84,36 @@ The files (the ops contract overnight.sh and OVERNIGHT_LOOP.md rely on):
   crosser, never re-opens one the crosser steps renamed to ``.noise-crosser`` /
   ``.parity-fail``, and ``--no-resume`` never moves them.
 * ``runs/<id>/previous-<stamp>-<pid>/`` -- ``--no-resume`` moves checkpoint.json,
-  status.json and sweep.jsonl there.
+  status.json and sweep.jsonl there. What is per lane rather than per run carries into the
+  new checkpoint: ``elapsed_s`` (the wall-clock budget), the Q5 state (``kill_condition``,
+  ``kill_checked``, ``kill_detail``, ``kill_check``, ``q5_overrides``) and a ``restarts``
+  list naming the archive and the cursor it reached.
 * ``runs/<id>/killed-history/<stamp>-KILLED-<reason>`` -- overnight.sh's ``KILLED-*`` markers,
   moved there when a relaunch passes its preflight.
 
 Budget: ``deadline_epoch`` = launch + (``wall_clock_hours`` x 3600 - ``elapsed_s`` already
-spent): the budget is per lane, not per launch, and a lane with nothing left stops at once
-(``stopped_by: deadline``). The seed cap is ``lo + min(--max-seeds, budget.max_seeds)``.
+spent): the budget is per lane, not per launch (``--no-resume`` included), and a lane with
+nothing left stops at once (``stopped_by: deadline``). The launch's seed cap is
+``lo + min(--max-seeds, budget.max_seeds)``; the lane's slice is ``lo + budget.max_seeds``
+(or the whole ``seed_range``). status.json's ``seed_range``, ``fraction`` and ``done`` describe
+this launch; ``lane_seed_range``, ``lane_fraction`` and ``lane_done`` describe the lane, and
+only ``lane_done: true`` means the lane's slice is finished (a launch that reached its own
+``--max-seeds`` cap says ``done: true, lane_done: false``).
 
-Q5: the kill condition is evaluated once, at ``kill_condition.at_fraction`` of the slice. Once
-it fires it is recorded in checkpoint.json, and every later resume writes status.json with
-``kill_condition: fired`` and exits 3 without scoring, unless ``--override-q5 "<reason>"``
-(appends an ``override-q5`` SWEEPROW and records the reason; status then says
-``overridden``).
+Q5: the kill condition is evaluated once, at the first chunk boundary at or past
+``kill_condition.at_fraction`` of the lane's slice (never of a launch's ``--max-seeds`` cap,
+so a short launch cannot spend the check). The check is recorded whether or not it fires:
+``kill_check`` in checkpoint.json and status.json (cursor, fraction, seeds/s, crossers,
+``fired``). Once it fires it is recorded in checkpoint.json (``kill_detail``), and every later
+resume writes status.json with ``kill_condition: fired`` and exits 3 without scoring, unless
+``--override-q5 "<reason>"`` (appends an ``override-q5`` SWEEPROW and records the reason;
+status then says ``overridden``).
 
-Exit codes: 0 done · 1 stopped (deadline) · 2 refused · 3 Q5 kill condition · 143 SIGTERM or
-SIGINT. ``launch_detached`` returns 0 only once the child has written status.json with its
-own PID (or finished cleanly); if the child exits first it returns 2 and prints the tail of
-``sweep.log``.
+Exit codes: 0 done · 1 stopped (deadline) or crashed (status.json ``stopped_by: crash``, a
+``crash`` SWEEPROW; a GPU/CPU parity break names its seed) · 2 refused · 3 Q5 kill condition ·
+143 SIGTERM or SIGINT. ``launch_detached`` returns 0 only once the child has written
+status.json with its own PID (or finished cleanly); if the child exits first it returns 2 and
+prints the tail of ``sweep.log``.
 """
 
 from __future__ import annotations
@@ -136,7 +155,7 @@ LOCK_WAIT_S = 20  # the child waits this long for <runs>/.sweep.lock, then refus
 THRESHOLD_TOL = 1e-9
 SMOKE_OK_ENV = "RUNEFORGE_SMOKE_OK"  # test harnesses only: allow --smoke into REPO_ROOT/runs
 REPO_RUNS = REPO_ROOT / "runs"
-PINNED = ("claim_bar", "family_wise_bar", "lane_pipeline_sha256", "smoke")
+PINNED = ("claim_bar", "family_wise_bar", "lane_pipeline_sha256", "smoke", "backend")
 # a lane whose latest row says this is concluded ground and is not re-run
 CONCLUDED = ("negative", "inconclusive", "hit-unverified", "hit-verified", "superseded")
 # a crosser's file: open, or renamed by the crosser steps once adjudicated
@@ -203,6 +222,12 @@ def seed_hi(lane: LaneSpec, max_seeds: int | None) -> int:
     lo, hi = lane.seed_range
     caps = [c for c in (max_seeds, lane.budget.max_seeds) if c is not None]
     return min(hi, lo + min(caps)) if caps else hi
+
+
+def lane_hi(lane: LaneSpec) -> int:
+    """The exclusive end of the lane's own slice (its seed_range capped by budget.max_seeds):
+    what Q5's fraction and ``lane_done`` are measured against, whatever --max-seeds says."""
+    return seed_hi(lane, None)
 
 
 def threshold_problems(lane: LaneSpec, row) -> list[str]:
@@ -321,15 +346,18 @@ def preflight(
     return problems
 
 
-def pins(lane: LaneSpec, smoke: bool) -> dict:
-    """What a checkpoint is only valid for: the bars, the pipeline and smoke-ness, and for a
-    beam decoder its parameters and runeforge/beam.py (the lane spec names only the decoder,
-    so a resumed sweep would otherwise mix decodes of two decoders)."""
+def pins(lane: LaneSpec, smoke: bool, backend: str = "cpu") -> dict:
+    """What a checkpoint is only valid for: the bars, the pipeline, smoke-ness and the backend
+    (the lane's wall-clock budget was set for one backend: a GPU lane resumed on the CPU would
+    spend it at CPU speed), and for a beam decoder its parameters and runeforge/beam.py (the
+    lane spec names only the decoder, so a resumed sweep would otherwise mix decodes of two
+    decoders)."""
     out = {
         "claim_bar": lane.claim_bar,
         "family_wise_bar": lane.family_wise_bar,
         "lane_pipeline_sha256": control.lane_pipeline_sha256(lane),
         "smoke": smoke,
+        "backend": backend,
     }
     decoder = presets.split_preset(lane.preset)[1]
     if decoder != "rigid":
@@ -369,22 +397,85 @@ def beam_control_problems(lane: LaneSpec, lanes_dir: Path | None = None) -> list
     return []
 
 
-def pin_problems(ckpt: dict, lane: LaneSpec, smoke: bool) -> list[str]:
-    out = []
-    for key, now in pins(lane, smoke).items():
+def pin_problems(ckpt: dict, lane: LaneSpec, smoke: bool, backend: str = "cpu") -> list[str]:
+    out, backend_only = [], True
+    for key, now in pins(lane, smoke, backend).items():
         if key not in ckpt:
             out.append(f"checkpoint.json does not pin {key} (an older runner wrote it)")
+            backend_only = False
+        elif key == "backend" and ckpt[key] != now:
+            out.append(
+                f"checkpoint.json was written by a --backend {ckpt[key]} sweep; this launch is "
+                f"--backend {now}: resume with --backend {ckpt[key]} (the lane's wall-clock "
+                "budget was set for that backend; changing it is a dated PREREG addendum first)"
+            )
         elif key == "smoke" and ckpt[key] != now:
             was, run = ("smoke" if ckpt[key] else "real"), ("smoke" if now else "real")
             out.append(f"checkpoint.json was written by a {was} run; this is a {run} run")
+            backend_only = False
         elif ckpt[key] != now:
             out.append(f"checkpoint.json pins {key} = {ckpt[key]!r}; the lane now gives {now!r}")
-    if out:
+            backend_only = False
+    if out and not backend_only:
         out.append(
             "a sweep keeps the bars and pipeline it started with: restore the lane spec, or "
-            "start over with --no-resume (archives checkpoint.json, status.json, sweep.jsonl)"
+            "start over with --no-resume (archives checkpoint.json, status.json, sweep.jsonl; "
+            "the lane's spent wall clock and its Q5 state carry over)"
         )
     return out
+
+
+def read_checkpoint(rd: Path) -> dict | None:
+    """runs/<id>/checkpoint.json, or None. A checkpoint written before ``backend`` was pinned
+    takes the backend its status.json records (every launch that checkpoints writes it)."""
+    path = rd / "checkpoint.json"
+    if not path.exists():
+        return None
+    ckpt = _read_json(path)
+    if "backend" not in ckpt:
+        backend = _read_json(rd / "status.json").get("backend")
+        if backend in ("cpu", "gpu"):
+            ckpt["backend"] = backend
+    return ckpt
+
+
+def checkpoint_problems(
+    ckpt: dict | None,
+    lane: LaneSpec,
+    *,
+    resume: bool,
+    smoke: bool,
+    backend: str,
+    max_seeds: int | None,
+    override_q5: str | None,
+) -> list[str]:
+    """Every reason the checkpoint already on disk forbids this launch (empty = it may go)."""
+    if ckpt is None:
+        return []
+    if resume:
+        out = pin_problems(ckpt, lane, smoke, backend)
+        cursor = ckpt.get("cursor")
+        if not out and max_seeds is not None and isinstance(cursor, int):
+            end = seed_hi(lane, max_seeds)
+            if end <= cursor < lane_hi(lane):
+                out.append(
+                    f"--max-seeds {max_seeds} ends this launch at seed {end}, at or before the "
+                    f"checkpoint's cursor {cursor}: it would score nothing and write done "
+                    f"(--max-seeds counts from the lane's first seed {lane.seed_range[0]}, "
+                    "not from the cursor)"
+                )
+        return out
+    if ckpt.get("smoke") == smoke and ckpt.get("kill_condition") == "fired" and not override_q5:
+        return [
+            "--no-resume does not reset Q5: the archived run's kill condition fired "
+            f"({ckpt.get('kill_detail')}); starting over needs the same human decision as a "
+            'resume: --override-q5 "<reason>"'
+        ]
+    return []
+
+
+# what --no-resume carries from the archived checkpoint into the new one: per lane, not per run
+CARRIED = ("elapsed_s", "kill_condition", "kill_checked", "kill_detail", "kill_check")
 
 
 def keystream_sha256(lane: LaneSpec, seed: int, n: int = 12956) -> str:
@@ -463,6 +554,7 @@ class _Sweep:
         self.starttime = pid_starttime(self.pid)
         self.lo = lane.seed_range[0]
         self.hi = seed_hi(lane, max_seeds)
+        self.lane_hi = lane_hi(lane)
         self.lane_ref = _lane_ref(lane_path)
         start = lane.resume_cursor if lane.resume_cursor is not None else self.lo
         self.state: dict = {
@@ -492,6 +584,10 @@ class _Sweep:
             cmd = f"python -m runeforge.runner.sweep run {self.lane_ref} --smoke"
         else:
             cmd = f"runeforge sweep {self.lane_ref} --resume"
+        if self.backend != "cpu":
+            # the checkpoint pins the backend; a GPU sweep is a long job: detached, never a
+            # Bash-tool child (the CPU string is unchanged: tests pin it)
+            cmd += f" --backend {self.backend}" + ("" if self.smoke else " --detach")
         if self.max_seeds is not None:
             cmd += f" --max-seeds {self.max_seeds}"
         if not self.smoke and self.ledger_path and Path(self.ledger_path) != LEDGER_PATH:
@@ -530,6 +626,10 @@ class _Sweep:
                 "seed_range": [self.lo, self.hi],
                 "seeds_done": st["seeds_done"],
                 "fraction": (st["cursor"] - self.lo) / max(self.hi - self.lo, 1),
+                "lane_seed_range": [self.lo, self.lane_hi],
+                "lane_fraction": (st["cursor"] - self.lo) / max(self.lane_hi - self.lo, 1),
+                "lane_done": st["cursor"] >= self.lane_hi,
+                "kill_check": st.get("kill_check"),
                 "seeds_per_s": self.rate if rate is None else rate,
                 "best_score": best[0],
                 "best_seed": best[1],
@@ -575,16 +675,41 @@ class _Sweep:
         )
         if problems:
             return _refuse(problems)
+        ckpt = read_checkpoint(self.rd)
+        problems = checkpoint_problems(
+            ckpt,
+            lane,
+            resume=self.resume,
+            smoke=self.smoke,
+            backend=self.backend,
+            max_seeds=self.max_seeds,
+            override_q5=self.override_q5,
+        )
+        if problems:
+            return _refuse(problems)
         (self.rd / "crossers").mkdir(parents=True, exist_ok=True)
-        if self.resume and self.ckpt_path.exists():
-            ckpt = _read_json(self.ckpt_path)
-            problems = pin_problems(ckpt, lane, self.smoke)
-            if problems:
-                return _refuse(problems)
+        if self.resume and ckpt is not None:
             self.state.update(ckpt)
         elif not self.resume:
-            _archive_previous(self.rd)
-        self.state.update(pins(lane, self.smoke))
+            archived = _archive_previous(self.rd)
+            if ckpt is not None and ckpt.get("smoke") == self.smoke:
+                # the budget and Q5 belong to the lane: a restart does not reset them
+                carried = [k for k in CARRIED if k in ckpt]
+                if ckpt.get("kill_condition", "no") == "no":
+                    # Q5 did not fire: the new run gets its own check at its own 10 %
+                    carried = [k for k in carried if k == "elapsed_s"]
+                self.state.update({k: ckpt[k] for k in carried})
+                self.state["q5_overrides"] = list(ckpt.get("q5_overrides", []))
+                self.state["restarts"] = [
+                    *ckpt.get("restarts", []),
+                    {
+                        "archived": archived.name if archived else None,
+                        "cursor": ckpt.get("cursor"),
+                        "backend": ckpt.get("backend"),
+                        "epoch": int(time.time()),
+                    },
+                ]
+        self.state.update(pins(lane, self.smoke, self.backend))
         self.state["numbering"] = canon.LP2_NUMBERING
         self.top = [tuple(x) for x in self.state["top"]]
         heapq.heapify(self.top)
@@ -732,6 +857,7 @@ class _Sweep:
                         self.resume_cmd,
                         cursor=st["cursor"],
                         why=stop["why"],
+                        lane_done=st["cursor"] >= self.lane_hi,
                     )
                 ]
             )
@@ -739,6 +865,9 @@ class _Sweep:
             self.write_rows(
                 [self.row("crash", self.resume_cmd, cursor=st["cursor"], error=repr(exc))]
             )
+            stop["flag"], stop["why"] = True, "crash"  # status.json says so, not a bare stop
+            with contextlib.suppress(Exception):
+                self.write_status(False)
             raise
         if self.kill == "fired":
             return 3
@@ -786,7 +915,9 @@ class _Sweep:
                 cpu = float(pipeline.score_batch(scorer, p)[0])
                 if abs(cpu - float(scores[i])) > 1e-6:
                     raise RuntimeError(
-                        f"GPU/CPU disagree on row {i}: {scores[i]!r} vs {cpu!r} (parity broken)"
+                        f"GPU/CPU disagree on seed {seeds[i]} (row {i} of a batch of "
+                        f"{len(seeds)} from seed {seeds[0]}): {scores[i]!r} vs {cpu!r} "
+                        "(parity broken)"
                     )
                 cache[i] = p[0]
             return cache[i]
@@ -795,12 +926,26 @@ class _Sweep:
 
     def _check_q5(self, cursor: int) -> None:
         st, kc = self.state, self.lane.kill_condition
-        frac = (cursor - self.lo) / max(self.hi - self.lo, 1)
+        # the lane's slice, never this launch's --max-seeds cap: a short launch cannot spend
+        # the one pre-registered check at a fraction of the real slice
+        frac = (cursor - self.lo) / max(self.lane_hi - self.lo, 1)
         if st.get("kill_checked") or frac < kc.at_fraction:
             return
         st["kill_checked"] = True
         slow = bool(kc.min_seeds_per_s and self.rate < kc.min_seeds_per_s)
         crowded = kc.max_crossers is not None and st["crossers"] > kc.max_crossers
+        # recorded whether or not it fires: RESULTS.md reports the check either way
+        st["kill_check"] = {
+            "at_fraction": frac,
+            "cursor": cursor,
+            "seeds_per_s": self.rate,
+            "min_seeds_per_s": kc.min_seeds_per_s,
+            "crossers": st["crossers"],
+            "max_crossers": kc.max_crossers,
+            "backend": self.backend,
+            "fired": bool(slow or crowded),
+            "epoch": int(time.time()),
+        }
         if slow or crowded:
             self.kill = "fired"
             st["kill_condition"] = "fired"
@@ -874,18 +1019,20 @@ def run(
                 signal.signal(s, handler)
 
 
-def _archive_previous(rd: Path) -> None:
+def _archive_previous(rd: Path) -> Path | None:
     """``--no-resume``: move the previous run's state aside, so the new sweep.jsonl is one
-    contiguous run. crossers/ stays: a .pending file is a HIT_PROTOCOL.md work item and is
-    never moved (the same seed crossing again keeps its existing file)."""
+    contiguous run; returns the archive directory (None if there was nothing to move).
+    crossers/ stays: a .pending file is a HIT_PROTOCOL.md work item and is never moved (the
+    same seed crossing again keeps its existing file)."""
     old = [rd / n for n in ("checkpoint.json", "status.json", "sweep.jsonl")]
     old = [p for p in old if p.exists()]
     if not old:
-        return
+        return None
     dest = rd / f"previous-{time.strftime('%Y%m%dT%H%M%S')}-{os.getpid()}"
     dest.mkdir()
     for p in old:
         os.replace(p, dest / p.name)
+    return dest
 
 
 def _archive_killed_markers(rd: Path) -> None:
@@ -1020,6 +1167,8 @@ def launch_detached(
         problems.append("--override-q5 needs a reason (it is recorded in sweep.jsonl)")
     if problems:
         return _refuse(problems)
+    # the checkpoint (pins, backend, --max-seeds vs cursor, Q5 on --no-resume) is checked by
+    # the child under the lock; a refusal there comes back as "exited with 2" plus its log
     rd = run_dir(lane, base_dir)
     rd.mkdir(parents=True, exist_ok=True)
     cmd = [sys.executable, "-m", "runeforge.runner.sweep", "run", str(lane_path)]

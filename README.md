@@ -117,7 +117,9 @@ with the command that regenerates it. The procedure is SESSION_PROMPT.md section
 
 ```bash
 cp lanes/_template.yaml lanes/<id>.yaml                       # then edit
-python scripts/threshold_for.py --n <N> --preset lp-ngram3-heldout:beam-skip --L 240  # the bars
+python scripts/threshold_for.py --n <N> --preset lp-ngram3-heldout:beam-skip --L 240 --json
+                                      # the bars: freeze `bar` rounded UP at 6 decimals,
+                                      # never the 4-decimal print (LaneSpec refuses it)
 runeforge lane lanes/<id>.yaml                                # schema + runnable problems
 runeforge ledger append --lane lanes/<id>.yaml   # pre-registration: the bar frozen as threshold
 runeforge gate lanes/<id>.yaml        # murphy fingerprint gate, >= 12 keys, majority rule
@@ -126,6 +128,8 @@ runeforge control lanes/<id>.yaml     # >= 20 plants; writes lanes/<id>/control*
                                       # records positive_control + its sha256 in the ledger
 git add lanes/<id> && git commit      # control, gate and null reports are the evidence
 runeforge sweep lanes/<id>.yaml --detach   # refuses without that control and the frozen bar
+                                      # (+ --backend gpu for a GPU lane; a resume must use the
+                                      # backend its checkpoint pins, or it is refused)
 runeforge status --short              # live jobs with seeds/s, crossers, best score
 runeforge score lanes/<id>.yaml <seed>     # re-score any sweep row (its reproduce command)
 runeforge crosser list                # FLAGGED-FOR-ORACLE files
@@ -228,7 +232,7 @@ data/raw/          5 git submodules (read-only): rtkd, scream314, cicada_tools, 
 data/canon/        lp2_runes.json, lp1_runes.json, solved_sections.json, pins, divergences
 data/reference/    cicada_tools' own decode of the solved sections
 data/corpora/      built by scripts/build_corpus.py (not committed)
-lanes/             one YAML per attack lane (_template.yaml = queue item 1)
+lanes/             one YAML per attack lane (_template.yaml is a template: never run)
 ledger/            ledger.jsonl (created by the first pre-registration)
 runs/              sweep state per lane (not committed)
 scripts/           build_canon.py, extract_reference.py, fetch_raw.sh, setup.sh, build_corpus.py,
@@ -248,7 +252,8 @@ tests/             Rules 1-3 and the toolbox
 - **Phase 3: CUDA sweep engine.** GPU kernels behind `runeforge sweep --backend gpu`,
   parity-tested against the CPU runner, at ≥ 10⁷ seeds/s, and the Dukotah never-run/parked
   queue. The queue
-  starts with the Python 2.7 MT "exact" lane (`lanes/_template.yaml`).
+  starts with the Python 2.7 MT anti-repeat lane (`lanes/P3-MT19937-PY27-ANTIREPEAT.yaml`,
+  which superseded the "exact" lane after R1).
 - **Phase 4: open research lanes.** Doublet-site image audit (P-8, which also settles
   DV-01), a keyed-increment chain cipher, a Z340-style transform screener, and OutGuess
   with non-default keys.

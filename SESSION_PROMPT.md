@@ -75,7 +75,9 @@ Create `lanes/<id>/PREREG.md` from `.claude/rules/lanes.md` and commit it (`lane
   noise ceiling). A control that can only pass is decoration.
 - Null: size-matched shuffle of the real runes, n ≥ 200, AND the domain-separated SHA-256 stream null;
   report `null_mean`, `null_sd`, `null_max`. Threshold = `scripts/threshold_for.py --n <true N> --preset
-  <decoder> --L <segment>` (small N: `max(floor, null_max + 0.5)`). Expected false positives over the
+  <decoder> --L <segment> --json`; freeze `bar` rounded up (the stricter side) at 6 decimals, never
+  the 4-decimal print, which can fall below `threshold_for` and is refused (small N:
+  `max(floor, null_max + 0.5)`). Expected false positives over the
   slice, written as a number, < 1.
 - Hit function (ALL of): bar clear at the lane's true N · rune-index self-consistency ≥ 0.90 on held-out
   halves · improves when the window doubles (head → page → full stream) · oracle PASS. Score alone is never
@@ -101,8 +103,13 @@ Create `lanes/<id>/PREREG.md` from `.claude/rules/lanes.md` and commit it (`lane
 2. **Control** (`runeforge control lanes/<id>.yaml`): the planted positive through the exact pipeline.
    Pass bar not met → the lane is `INCONCLUSIVE (power)`. Fix the instrument *as a new instrument lane*
    or park with cause. Do not lower the bar. Do not search.
-3. **Run**: CPU screen first (≤ 30 min). GPU sweeps launch detached (`runeforge sweep … --detach`) and
-   write `runs/<id>/status.json` every chunk; poll with `cat`, never block on them. Check the Q5 kill
+3. **Run**: a CPU lane may screen first (≤ 30 min) with `runeforge score lanes/<id>.yaml <lo>:<hi>`,
+   which writes nothing; a lane whose PREREG budgets GPU-hours skips the CPU screen (a CPU run of it
+   is a dated PREREG addendum first). Sweeps launch detached (`runeforge sweep lanes/<id>.yaml
+   --detach`, plus `--backend gpu` for a GPU lane; a resume must name the backend its checkpoint pins,
+   which `status.json` shows, or the runner refuses it) and write `runs/<id>/status.json` every chunk;
+   poll with `cat`, never block on them. `done: true` means this launch finished; the lane's slice is
+   finished only at `lane_done: true` (a `--max-seeds` launch stops short of it). Check the Q5 kill
    condition at 10 % of budget and write the check into RESULTS.md whether or not it fired. Every
    trial, including crashes, gets a SWEEPROW line with its reproduce command.
 4. **Crosser**: any score above the pre-registered bar → HIT_PROTOCOL.md, immediately, before anything

@@ -140,6 +140,14 @@ class LaneSpec(BaseModel):
             raise ValueError("window too short to score")
         if self.key_offset < 0:
             raise ValueError("key_offset must be >= 0")
+        if self.chunk_size < 1:
+            raise ValueError("chunk_size must be >= 1 (0 would spin without progress)")
+        if self.budget.max_seeds is not None and self.budget.max_seeds < 1:
+            raise ValueError("budget.max_seeds must be >= 1 (or omitted)")
+        if not 0 < self.kill_condition.at_fraction <= 1:
+            raise ValueError(
+                "kill_condition.at_fraction must be in (0, 1]: above 1 Q5 is never evaluated"
+            )
         if self.control.n_runes is not None and self.control.n_runes != self.window:
             raise ValueError(
                 f"control.n_runes {self.control.n_runes} != window {self.window}: plants are "

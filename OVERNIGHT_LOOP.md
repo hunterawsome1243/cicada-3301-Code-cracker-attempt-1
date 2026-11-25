@@ -126,12 +126,18 @@ Order of work (take the first branch that applies, then stop):
 2. Jobs. For every `runs/*/status.json` (the runner removes its `sweep.pid` when it exits): alive
    (`runeforge status --short` checks the PID's cmdline and recorded start time)? `status.json` fresh? A `KILLED-*` marker or a dead PID with a `running` row → set the row to `parked` with
    `parked_state` = the checkpoint cursor and the reason, commit, continue to the next branch.
-   A finished job (`status.json.done == true`) → this iteration's unit of work is the write-up:
+   A finished job (`status.json.lane_done == true`; `done == true` alone only means one launch reached
+   its own `--max-seeds` cap, and such a lane is parked with its cursor) → this iteration's unit of work
+   is the write-up:
    SESSION_PROMPT.md §C4 (RESULTS.md, `check_results.py` PASS, verify-lane subagent) and §C5 (ledger row,
    PICKUP-HERE.md, commit). If verify-lane reports a `differs` that changes the verdict, write it to
    `runs/overnight/REJECTIONS.md` and leave the row `inconclusive`; the next iteration starts from it.
 3. Crossers. Any `runs/*/crossers/*.pending` → run HIT_PROTOCOL.md steps 1–8 within this session's turn
-   budget, without stopping the sweep and without announcing anything. Outcomes: NOISE-CROSSER or
+   budget, without stopping the sweep and without announcing anything. A crosser of a `:beam*` lane
+   (P3-MT19937-PY27-ANTIREPEAT included) stops at step 5 while TOOLBOX_REQUESTS.md TR-3 is open: the
+   oracle replays a rigid decode, so its FAIL says nothing about a key-skip key. Do not rename the
+   crosser file; write `PENDING-ADJUDICATION.md` (steps done, the `decode_record`, "blocked on TR-3")
+   and end with `LOOP: STOP pending adjudication`. Outcomes otherwise: NOISE-CROSSER or
    PARITY-FAIL → log it in `runs/<id>/crossers/`, append the row note, `LOOP: CONTINUE`;
    steps unfinished at the turn budget → write `PENDING-ADJUDICATION.md` (what was done, what remains,
    the exact commands), `LOOP: STOP pending adjudication`; all eight steps passed → write `LEAD.md` per
@@ -143,7 +149,11 @@ Order of work (take the first branch that applies, then stop):
    < 1), then §C3 steps 1–2 (gate, control). `EXCLUDED (gate)` or `INCONCLUSIVE (power)` → RESULTS.md,
    row, commit, `LOOP: CONTINUE`. Control passed → launch the sweep detached
    (`runeforge sweep lanes/<id>.yaml --detach`; exit 0 means the child passed its own preflight and
-   wrote `status.json` with its PID), set the row
+   wrote `status.json` with its PID), set the row. A lane whose PREREG budgets GPU-hours launches only
+   with `--backend gpu` (never the CPU default: it would spend the lane's wall clock at CPU speed), and
+   a parked lane resumes only with the backend its `status.json` records (the checkpoint pins it; a
+   mismatch is refused). A lane with a setup script (P3-MT19937-PY27-ANTIREPEAT:
+   `scripts/gpu_lane_setup.sh`) is first launched by that script on Hunter's `go`, never from here.
    to `running` with the resume cursor, commit, `LOOP: CONTINUE`. Do not wait for the sweep.
    If a GPU job is already alive, do not launch another; take a CPU-only lane (red-team or closeout)
    from the queue instead, or `LOOP: CONTINUE` with nothing started.

@@ -92,8 +92,10 @@ Trust anchor, run before writing (last line of each):
   trial count → `null_mean`, `null_sd`, `null_max`.
 - Null 2: domain-separated SHA-256 stream (`<null2_source>`, domain `<null2_domain>`), n =
   <null2_n>: a key source outside every family this lane searches.
-- Threshold: `python scripts/threshold_for.py --n <n_trials> --preset <preset> --L <window>` →
-  <threshold_line>. Small N: `max(floor, null_max + 0.5)`.
+- Threshold: `python scripts/threshold_for.py --n <n_trials> --preset <preset> --L <window> --json`
+  → <threshold_line>. Freeze `bar` from `--json`, rounded up (the stricter side) at 6 decimals;
+  never the 4-decimal print, which can fall below `threshold_for` and is refused. Small N:
+  `max(floor, null_max + 0.5)`.
 - Expected false positives over the slice, N · P(clear) = <expected_fp> (must be < 1).
 
 ## 5. Hit function and decision rule
@@ -243,7 +245,7 @@ Crossers above the bar: <n_crossers> (logs in `runs/<lane_id>/crossers/`). Oracl
 
 ```bash
 runeforge control lanes/<lane_id>.yaml
-runeforge sweep lanes/<lane_id>.yaml --detach
+runeforge sweep lanes/<lane_id>.yaml --detach   # + --backend gpu for a GPU lane
 python scripts/check_results.py lanes/<lane_id>/RESULTS.md
 ```
 ````

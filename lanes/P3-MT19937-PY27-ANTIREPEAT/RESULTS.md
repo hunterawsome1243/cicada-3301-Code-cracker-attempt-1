@@ -13,7 +13,10 @@
      `grep -nE '<[a-z_]+[:>]' lanes/P3-MT19937-PY27-ANTIREPEAT/RESULTS.md` must print nothing outside
      this comment, and the checker must print PASS.
      Allowed fillings: <kill_outcome> = "fired" | "did not fire"; <oracle_result> = "not run — no
-     crosser" | "→ PASS" | "→ FAIL" per crosser.
+     crosser" | "→ PASS" | "→ FAIL" per crosser. While TOOLBOX_REQUESTS.md TR-3 is open an oracle
+     FAIL of this beam-skip lane's crosser is not a verdict (the oracle replays a rigid decode):
+     the crosser stays FLAGGED-FOR-ORACLE, PENDING-ADJUDICATION.md is written and Hunter decides
+     (HIT_PROTOCOL.md §5 exception; PREREG addendum 2026-11-25). Never NOISE-CROSSER on that FAIL.
      Verdict vocabulary: NULL | CANDIDATE | INCONCLUSIVE (power) | EXCLUDED (gate). The gate passed
      and the control passed, so EXCLUDED (gate) and INCONCLUSIVE (power) can only arise from the
      Q5 kill or a re-run that fails; a bar crossing is CANDIDATE only after HIT_PROTOCOL.md. -->
@@ -87,8 +90,8 @@ python -m runeforge.oracle --selftest  -> ORACLE SELF-TEST: PASS
   (floor − ceiling = <gap_post_TR1> nats).
 - Q5 kill condition (rate < 600,000 seeds/s or > 10 crossers; the sweep checks it once, at the first chunk
   boundary at or past 10 % of the slice: cursor 436,207,616, fraction 0.1015625, with that chunk's own
-  rate; source: the `chunk` row with `hi` 436,207,616 in sweep.jsonl, plus `kill_detail` in
-  checkpoint.json if it fired; PREREG addendum 2026-10-28): checked at
+  rate; source: `kill_check` in checkpoint.json and status.json, written whether or not it fired,
+  plus `kill_detail` if it fired; PREREG addenda 2026-10-28 and 2026-11-25): checked at
   <kill_check_point>; <kill_outcome>; rate at the check <seeds_per_s_at_check> seeds/s,
   crossers at the check <crossers_at_check>.
 - Survivors above the screening bar −6.043391: <n_survivors> (≈ 43 expected over the slice under the

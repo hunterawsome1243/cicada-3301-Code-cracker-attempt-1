@@ -40,13 +40,14 @@ def score_range(lane: LaneSpec, lo: int, hi: int, top: int = 5) -> dict:
     best: list[tuple[float, int]] = []
     above_claim = above_fw = 0
     for b in range(lo, hi, BATCH):
-        seeds = np.arange(b, min(b + BATCH, hi), dtype=np.int64)
+        # Python ints, as the sweep routes them: 64-bit seed spaces reach past int64
+        seeds = list(range(b, min(b + BATCH, hi)))
         scores = score_seeds(lane, seeds)
         if lane.claim_bar is not None:
             above_claim += int((scores > lane.claim_bar).sum())
         if lane.family_wise_bar is not None:
             above_fw += int((scores > lane.family_wise_bar).sum())
-        for s, v in zip(seeds.tolist(), scores.tolist(), strict=True):
+        for s, v in zip(seeds, scores.tolist(), strict=True):
             if len(best) < top:
                 heapq.heappush(best, (v, s))
             elif v > best[0][0]:
